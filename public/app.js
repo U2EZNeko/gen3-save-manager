@@ -176,8 +176,10 @@ function buildIndex(data) {
         // Pre-compute grouping keys
         const otName = p.otName || 'Unknown OT';
         const gameName = p.originGameName || getOriginGameName(p.originGame) || 'Unknown';
-        pokemonIndex.otGroupKey.set(p.filename, `${otName} (TID:${p.tid || 0} SID:${p.sid || 0}) - ${gameName}`);
-        pokemonIndex.tidSidGroupKey.set(p.filename, `${otName} (TID:${p.tid || 0} SID:${p.sid || 0})`);
+        // OT group key: OT name + Game Version (for OT grouping)
+        pokemonIndex.otGroupKey.set(p.filename, `${otName} - ${gameName}`);
+        // TID/SID group key: OT name + TID/SID + Game (for comprehensive grouping)
+        pokemonIndex.tidSidGroupKey.set(p.filename, `${otName} (TID:${p.tid || 0} SID:${p.sid || 0}) - ${gameName}`);
     });
 }
 
@@ -317,12 +319,17 @@ function sortPokemon(data, sortBy) {
             });
             break;
         case 'tidSid':
-            // Sort by OT name (not TID) - using index
+            // Sort by OT name, then Origin Game - using index
             sorted.sort((a, b) => {
                 if (a.error || b.error) return 0;
                 const otNameA = pokemonIndex.otName.get(a.filename) ?? (a.otName || 'Unknown OT').toLowerCase();
                 const otNameB = pokemonIndex.otName.get(b.filename) ?? (b.otName || 'Unknown OT').toLowerCase();
-                return otNameA.localeCompare(otNameB);
+                const otCompare = otNameA.localeCompare(otNameB);
+                if (otCompare !== 0) return otCompare;
+                // If OT names are the same, sort by Origin Game
+                const gameA = (a.originGameName || getOriginGameName(a.originGame) || 'Unknown').toLowerCase();
+                const gameB = (b.originGameName || getOriginGameName(b.originGame) || 'Unknown').toLowerCase();
+                return gameA.localeCompare(gameB);
             });
             break;
         case 'filename':
@@ -507,16 +514,16 @@ async function displayGroupedPokemon(pokemon) {
             // Determine grouping key (using index for faster lookup)
             let groupKey;
             if (useTIDSID && useOT) {
-                // Group by both OT name, TID/SID, and Game Version
-                groupKey = pokemonIndex.otGroupKey.get(p.filename) || 
+                // Group by both OT name, TID/SID, and Game Version (comprehensive grouping)
+                groupKey = pokemonIndex.tidSidGroupKey.get(p.filename) || 
                     `${p.otName || 'Unknown OT'} (TID:${p.tid || 0} SID:${p.sid || 0}) - ${p.originGameName || getOriginGameName(p.originGame) || 'Unknown'}`;
             } else if (useTIDSID) {
                 // Group by TID/SID only
                 groupKey = `TID:${p.tid || 0} SID:${p.sid || 0}`;
             } else if (useOT) {
-                // Group by OT name, TID/SID, and Game Version (comprehensive OT grouping)
+                // Group by OT name + Game Version
                 groupKey = pokemonIndex.otGroupKey.get(p.filename) || 
-                    `${p.otName || 'Unknown OT'} (TID:${p.tid || 0} SID:${p.sid || 0}) - ${p.originGameName || getOriginGameName(p.originGame) || 'Unknown'}`;
+                    `${p.otName || 'Unknown OT'} - ${p.originGameName || getOriginGameName(p.originGame) || 'Unknown'}`;
             } else {
                 // No grouping
                 groupKey = 'All Pokemon';
