@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen3 Pokemon Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gen3 Pokemon Viewer</h1>
+            <p class="subtitle">View and sort your .pk3 Pokemon files</p>
+        </header>
+
+        <div class="controls">
+            <div class="database-controls">
+                <label for="databaseSelect">Database:</label>
+                <select id="databaseSelect" class="select">
+                    <option value="db1">Database 1</option>
+                    <option value="db2">Database 2</option>
+                    <option value="db3">Database 3</option>
+                    <option value="db4">Database 4</option>
+                </select>
+            </div>
+            <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
+            <div class="sort-controls">
+                <label for="sortSelect">Sort by:</label>
+                <select id="sortSelect" class="select">
+                    <option value="ivSum">IV Sum (High to Low)</option>
+                    <option value="ivSumAsc">IV Sum (Low to High)</option>
+                    <option value="evSum">EV Sum (High to Low)</option>
+                    <option value="evSumAsc">EV Sum (Low to High)</option>
+                    <option value="species">Species</option>
+                    <option value="level">Level (High to Low)</option>
+                    <option value="levelAsc">Level (Low to High)</option>
+                    <option value="hp">HP Stat (High to Low)</option>
+                    <option value="attack">Attack Stat (High to Low)</option>
+                    <option value="defense">Defense Stat (High to Low)</option>
+                    <option value="spAttack">Sp. Attack Stat (High to Low)</option>
+                    <option value="spDefense">Sp. Defense Stat (High to Low)</option>
+                    <option value="speed">Speed Stat (High to Low)</option>
+                    <option value="ivHp">IV HP (High to Low)</option>
+                    <option value="ivAttack">IV Attack (High to Low)</option>
+                    <option value="ivDefense">IV Defense (High to Low)</option>
+                    <option value="ivSpAttack">IV Sp. Attack (High to Low)</option>
+                    <option value="ivSpDefense">IV Sp. Defense (High to Low)</option>
+                    <option value="ivSpeed">IV Speed (High to Low)</option>
+                    <option value="experience">Experience (High to Low)</option>
+                    <option value="tidSid">OT Name / Origin Game</option>
+                    <option value="filename">Filename</option>
+                </select>
+            </div>
+            <div class="group-controls">
+                <label>
+                    <input type="checkbox" id="groupByOT" class="checkbox">
+                    Group by OT
+                </label>
+                <label>
+                    <input type="checkbox" id="groupByTIDSID" class="checkbox">
+                    Group by TID/SID
+                </label>
+            </div>
+            <div class="filter-controls">
+                <label>
+                    <input type="checkbox" id="shinyFilter" class="checkbox">
+                    Show Only Shiny
+                </label>
+                <label>
+                    <input type="checkbox" id="compactView" class="checkbox">
+                    Compact View
+                </label>
+            </div>
+            <div class="filter-controls">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by species or nickname...">
+            </div>
+            <div class="action-controls">
+                <button id="duplicateScannerBtn" class="btn btn-secondary">Scan Duplicates</button>
+                <button id="advancedFilterBtn" class="btn btn-secondary">Advanced Filters</button>
+                <button id="loadSaveBtn" class="btn btn-secondary">Load Save File</button>
+            </div>
+        </div>
+
+        <!-- Save File Management -->
+        <div id="saveFileSection" class="save-file-section hidden">
+            <div class="save-file-header">
+                <h3>Save File Manager</h3>
+                <span id="saveFileStatus" class="save-file-status">No save file loaded</span>
+            </div>
+            <div class="save-file-controls">
+                <input type="file" id="saveFileInput" accept=".sav" style="display: none;">
+                <button id="loadSaveFileBtn" class="btn btn-primary">Load Save File</button>
+                <button id="exportSaveBtn" class="btn btn-primary" disabled>Export Save File</button>
+                <div class="drop-zone" id="dropZone">
+                    <p>Drag and drop .pk3 files here to import into save file</p>
+                    <p class="drop-zone-hint">or click to select files</p>
+                </div>
+                <div class="import-options">
+                    <label>
+                        <input type="radio" name="importTarget" value="box" checked>
+                        Import to Box (auto-find empty slots)
+                    </label>
+                    <label>
+                        <input type="radio" name="importTarget" value="party">
+                        Import to Party (auto-find empty slots)
+                    </label>
+                </div>
+                <div class="selected-pokemon-info">
+                    <p id="selectedCount">0 Pokemon selected</p>
+                    <button id="importSelectedBtn" class="btn btn-primary" disabled>Import Selected Pokemon</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Loading Pokemon...</p>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+
+        <div id="stats" class="stats hidden">
+            <span id="pokemonCount">0</span> Pokemon loaded
+            <span id="filteredCount" class="filtered-count"></span>
+        </div>
+
+        <div id="pokemonGrid" class="pokemon-grid"></div>
+    </div>
+
+    <!-- Duplicate Scanner Results Modal -->
+    <div id="duplicateResults" class="modal hidden">
+        <div class="modal-content duplicate-results-content">
+            <span class="modal-close" id="closeDuplicateResults">&times;</span>
+            <h2>Duplicate Scanner Results</h2>
+            <div id="duplicateResultsBody"></div>
+        </div>
+    </div>
+
+    <!-- Advanced Filter Panel -->
+    <div id="advancedFilterPanel" class="advanced-filter-panel hidden">
+        <div class="advanced-filter-header">
+            <h3>Advanced Filters</h3>
+            <span class="modal-close" id="closeAdvancedFilters">&times;</span>
+        </div>
+        <div class="advanced-filter-body">
+            <div class="filter-group">
+                <h4>IV Filters</h4>
+                <div class="filter-row">
+                    <label>IV Sum Min:</label>
+                    <input type="number" id="ivSumMin" min="0" max="186" class="filter-input">
+                    <label>IV Sum Max:</label>
+                    <input type="number" id="ivSumMax" min="0" max="186" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>HP IV Min:</label>
+                    <input type="number" id="ivHpMin" min="0" max="31" class="filter-input">
+                    <label>HP IV Max:</label>
+                    <input type="number" id="ivHpMax" min="0" max="31" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>Attack IV Min:</label>
+                    <input type="number" id="ivAttackMin" min="0" max="31" class="filter-input">
+                    <label>Attack IV Max:</label>
+                    <input type="number" id="ivAttackMax" min="0" max="31" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>Defense IV Min:</label>
+                    <input type="number" id="ivDefenseMin" min="0" max="31" class="filter-input">
+                    <label>Defense IV Max:</label>
+                    <input type="number" id="ivDefenseMax" min="0" max="31" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>Sp. Attack IV Min:</label>
+                    <input type="number" id="ivSpAttackMin" min="0" max="31" class="filter-input">
+                    <label>Sp. Attack IV Max:</label>
+                    <input type="number" id="ivSpAttackMax" min="0" max="31" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>Sp. Defense IV Min:</label>
+                    <input type="number" id="ivSpDefenseMin" min="0" max="31" class="filter-input">
+                    <label>Sp. Defense IV Max:</label>
+                    <input type="number" id="ivSpDefenseMax" min="0" max="31" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>Speed IV Min:</label>
+                    <input type="number" id="ivSpeedMin" min="0" max="31" class="filter-input">
+                    <label>Speed IV Max:</label>
+                    <input type="number" id="ivSpeedMax" min="0" max="31" class="filter-input">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>EV Filters</h4>
+                <div class="filter-row">
+                    <label>EV Sum Min:</label>
+                    <input type="number" id="evSumMin" min="0" max="510" class="filter-input">
+                    <label>EV Sum Max:</label>
+                    <input type="number" id="evSumMax" min="0" max="510" class="filter-input">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>Level & Stats</h4>
+                <div class="filter-row">
+                    <label>Level Min:</label>
+                    <input type="number" id="levelMin" min="1" max="100" class="filter-input">
+                    <label>Level Max:</label>
+                    <input type="number" id="levelMax" min="1" max="100" class="filter-input">
+                </div>
+                <div class="filter-row">
+                    <label>HP Stat Min:</label>
+                    <input type="number" id="hpStatMin" min="1" class="filter-input">
+                    <label>HP Stat Max:</label>
+                    <input type="number" id="hpStatMax" min="1" class="filter-input">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>Nature</h4>
+                <select id="natureFilter" class="filter-select" multiple>
+                    <option value="Hardy">Hardy</option>
+                    <option value="Lonely">Lonely</option>
+                    <option value="Brave">Brave</option>
+                    <option value="Adamant">Adamant</option>
+                    <option value="Naughty">Naughty</option>
+                    <option value="Bold">Bold</option>
+                    <option value="Docile">Docile</option>
+                    <option value="Relaxed">Relaxed</option>
+                    <option value="Impish">Impish</option>
+                    <option value="Lax">Lax</option>
+                    <option value="Timid">Timid</option>
+                    <option value="Hasty">Hasty</option>
+                    <option value="Serious">Serious</option>
+                    <option value="Jolly">Jolly</option>
+                    <option value="Naive">Naive</option>
+                    <option value="Modest">Modest</option>
+                    <option value="Mild">Mild</option>
+                    <option value="Quiet">Quiet</option>
+                    <option value="Bashful">Bashful</option>
+                    <option value="Rash">Rash</option>
+                    <option value="Calm">Calm</option>
+                    <option value="Gentle">Gentle</option>
+                    <option value="Sassy">Sassy</option>
+                    <option value="Careful">Careful</option>
+                    <option value="Quirky">Quirky</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <h4>Origin Game</h4>
+                <select id="originGameFilter" class="filter-select" multiple>
+                    <option value="Ruby">Ruby</option>
+                    <option value="Sapphire">Sapphire</option>
+                    <option value="Emerald">Emerald</option>
+                    <option value="FireRed">FireRed</option>
+                    <option value="LeafGreen">LeafGreen</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <h4>Ball Type</h4>
+                <select id="ballFilter" class="filter-select" multiple>
+                    <option value="Pokeball">Pokeball</option>
+                    <option value="Great Ball">Great Ball</option>
+                    <option value="Ultra Ball">Ultra Ball</option>
+                    <option value="Master Ball">Master Ball</option>
+                    <option value="Premier Ball">Premier Ball</option>
+                    <option value="Heal Ball">Heal Ball</option>
+                    <option value="Net Ball">Net Ball</option>
+                    <option value="Nest Ball">Nest Ball</option>
+                    <option value="Repeat Ball">Repeat Ball</option>
+                    <option value="Timer Ball">Timer Ball</option>
+                    <option value="Luxury Ball">Luxury Ball</option>
+                    <option value="Dive Ball">Dive Ball</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <h4>Other Filters</h4>
+                <div class="filter-row">
+                    <label>
+                        <input type="checkbox" id="filterShiny" class="checkbox">
+                        Shiny Only
+                    </label>
+                </div>
+                <div class="filter-row">
+                    <label>
+                        <input type="checkbox" id="filterHasNickname" class="checkbox">
+                        Has Nickname
+                    </label>
+                </div>
+                <div class="filter-row">
+                    <label>OT Name:</label>
+                    <input type="text" id="otNameFilter" class="filter-input" placeholder="Filter by OT name...">
+                </div>
+                <div class="filter-row">
+                    <label>TID Min:</label>
+                    <input type="number" id="tidMin" min="0" class="filter-input">
+                    <label>TID Max:</label>
+                    <input type="number" id="tidMax" min="0" class="filter-input">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button id="applyAdvancedFilters" class="btn btn-primary">Apply Filters</button>
+                <button id="clearAdvancedFilters" class="btn btn-secondary">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pokemon Detail Modal -->
+    <div id="pokemonModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
