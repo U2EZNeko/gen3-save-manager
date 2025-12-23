@@ -65,6 +65,7 @@ const filteredCount = document.getElementById('filteredCount');
 const pokemonGrid = document.getElementById('pokemonGrid');
 const cardWidthSlider = document.getElementById('cardWidthSlider');
 const cardWidthValue = document.getElementById('cardWidthValue');
+const maxDisplayLimit = document.getElementById('maxDisplayLimit');
 
 // Advanced filter state
 let advancedFilters = {};
@@ -100,6 +101,19 @@ closeAdvancedFilters.addEventListener('click', () => advancedFilterPanel.classLi
 applyAdvancedFilters.addEventListener('click', applyFilters);
 clearAdvancedFilters.addEventListener('click', clearFilters);
 cardWidthSlider.addEventListener('input', (e) => updateCardWidth(e.target.value));
+if (maxDisplayLimit) {
+    // Load saved max display limit from localStorage, default to 50
+    const savedLimit = localStorage.getItem('maxDisplayLimit');
+    if (savedLimit !== null) {
+        maxDisplayLimit.value = savedLimit;
+    } else {
+        maxDisplayLimit.value = '50';
+    }
+    maxDisplayLimit.addEventListener('change', () => {
+        localStorage.setItem('maxDisplayLimit', maxDisplayLimit.value);
+        sortAndDisplay();
+    });
+}
 
 // Load Pokemon from API
 async function loadPokemon() {
@@ -462,7 +476,6 @@ function sortAndDisplay() {
     
     // Display (with or without grouping)
     displayPokemon(filteredData);
-    updateStats(filteredData.length, pokemonData.length);
 }
 
 // Filter and display Pokemon
@@ -486,21 +499,28 @@ async function displayPokemon(pokemon) {
         return;
     }
     
+    // Apply maximum display limit if set
+    let displayPokemon = pokemon;
+    const maxLimit = maxDisplayLimit ? parseInt(maxDisplayLimit.value) || 0 : 0;
+    if (maxLimit > 0 && pokemon.length > maxLimit) {
+        displayPokemon = pokemon.slice(0, maxLimit);
+    }
+    
     // Check if grouping is enabled
     if (groupByOT.checked || groupByTIDSID.checked) {
-        await displayGroupedPokemon(pokemon);
+        await displayGroupedPokemon(displayPokemon, pokemon.length);
     } else {
         // Create all cards
-        const cardPromises = pokemon.map(p => createPokemonCard(p));
+        const cardPromises = displayPokemon.map(p => createPokemonCard(p));
         const cards = await Promise.all(cardPromises);
         cards.forEach(card => pokemonGrid.appendChild(card));
     }
     
-    updateStats(pokemon.length);
+    updateStats(displayPokemon.length, pokemon.length);
 }
 
 // Display Pokemon grouped by OT Name and/or TID/SID
-async function displayGroupedPokemon(pokemon) {
+async function displayGroupedPokemon(pokemon, totalCount) {
     // Determine grouping key based on checkboxes
     const useTIDSID = groupByTIDSID.checked;
     const useOT = groupByOT.checked;
@@ -556,7 +576,21 @@ async function displayGroupedPokemon(pokemon) {
         
         const displayName = groupKey === '_errors' ? 'Errors' : groupKey;
         
-        header.innerHTML = `<h2>${displayName}</h2><span class="group-count">${grouped[groupKey].length} Pokemon</span>`;
+        // Get the group's Pokemon list
+        let groupPokemon = grouped[groupKey];
+        const originalCount = groupPokemon.length;
+        
+        // When grouping by OT, limit each group to 10 Pokemon
+        if (useOT && !useTIDSID && groupKey !== '_errors') {
+            groupPokemon = groupPokemon.slice(0, 10);
+        }
+        
+        const displayCount = groupPokemon.length;
+        const countText = displayCount < originalCount 
+            ? `${displayCount} of ${originalCount} Pokemon` 
+            : `${displayCount} Pokemon`;
+        
+        header.innerHTML = `<h2>${displayName}</h2><span class="group-count">${countText}</span>`;
         groupDiv.appendChild(header);
         
         const groupGrid = document.createElement('div');
@@ -567,8 +601,8 @@ async function displayGroupedPokemon(pokemon) {
             groupGrid.classList.add('compact-grid');
         }
         
-        // Create all cards for this group
-        const cardPromises = grouped[groupKey].map(p => createPokemonCard(p));
+        // Create all cards for this group (limited if needed)
+        const cardPromises = groupPokemon.map(p => createPokemonCard(p));
         const cards = await Promise.all(cardPromises);
         cards.forEach(card => groupGrid.appendChild(card));
         

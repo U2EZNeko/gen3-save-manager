@@ -55,39 +55,27 @@ class PK3Parser {
     let dataOffset = 0;
     let isPKHeXExport = false;
     
+    // Determine format: 100 bytes = party format (raw from game) or PKHeX export, 80 bytes = stored format
     if (buffer.length === 100) {
-      // Could be PKHeX export (32-byte header + 80 bytes) or party format (80 bytes + 20 bytes party)
-      const pid = buffer.readUInt32LE(0);
-      const sanity = buffer.readUInt16LE(0x1E);
+      // 100-byte file: Check if it's encrypted party format or PKHeX export
+      // PKHeX exports have species at 0x20 in header (already decrypted)
+      // Party format has encrypted data at 0x20-0x4F, need to decrypt first to check
       const speciesAt20 = buffer.readUInt16LE(0x20);
-      const speciesAt40 = buffer.readUInt16LE(0x40);
-      
-      // Check if 0x20 has a valid species (1-386) - indicates PKHeX export format
-      // Check if 0x40 has a valid species (1-386) - indicates party format
       const validSpeciesAt20 = speciesAt20 >= 1 && speciesAt20 <= 386;
-      const validSpeciesAt40 = speciesAt40 >= 1 && speciesAt40 <= 386;
       
-      if (validSpeciesAt20 && !validSpeciesAt40) {
-        // PKHeX export format: species at 0x20 (in header)
-        isPKHeXExport = true;
-        dataOffset = 0x20;
-      } else if (validSpeciesAt40 && !validSpeciesAt20) {
-        // Party format: species at 0x40 (Pokemon data starts at 0x00, Block A at 0x20, so 0x20+0x20=0x40)
-        isPKHeXExport = false;
-        dataOffset = 0x00;
-      } else if (pid > 0 && pid < 0xFFFFFFFF && (sanity === 0 || sanity === 0x8000)) {
-        // Has valid PID and sanity, likely PKHeX export
+      if (validSpeciesAt20) {
+        // Valid species at 0x20 = PKHeX export (already decrypted)
         isPKHeXExport = true;
         dataOffset = 0x20;
       } else {
-        // Default to party format (Pokemon data at start)
+        // Invalid species at 0x20 = party format (encrypted, data starts at 0x00)
         isPKHeXExport = false;
         dataOffset = 0x00;
       }
     } else if (buffer.length === 80) {
-      // Raw stored format
+      // 80-byte stored format (may be encrypted)
       isPKHeXExport = false;
-      dataOffset = 0;
+      dataOffset = 0x00;
     } else {
       throw new Error('Invalid .pk3 file: wrong size (expected 80 or 100 bytes, got ' + buffer.length + ')');
     }
@@ -130,23 +118,31 @@ class PK3Parser {
     
     // Read species ID from Block A
     // Block A starts at offset 0x20 within the Pokemon data structure
-    // For PKHeX exports: dataOffset = 0x20, so species is at 0x20 (in header) OR 0x40 (if party format detected)
-    // For party format: dataOffset = 0x00, so species is at 0x20 (Block A offset)
-    // For raw 80-byte files: dataOffset = 0x00, so species is at 0x20 (Block A offset)
+    // For PKHeX exports: dataOffset = 0x20, so species is at 0x20 (in header, already decrypted)
+    // For party format: dataOffset = 0x00, so species is at 0x20 (Block A at 0x00+0x20=0x20, after decryption)
+    // For raw 80-byte files: dataOffset = 0x00, so species is at 0x20 (Block A offset, after decryption if needed)
     let rawSpecies;
     if (buffer.length === 100) {
-      // 100-byte file: check both possible locations
+      // 100-byte file: check both possible locations (after decryption if needed)
       const speciesAt20 = safeReadUInt16LE(0x20);
       const speciesAt40 = safeReadUInt16LE(0x40);
       const validAt20 = speciesAt20 >= 1 && speciesAt20 <= 386;
       const validAt40 = speciesAt40 >= 1 && speciesAt40 <= 386;
       
       if (isPKHeXExport && validAt20) {
-        // PKHeX export: species in header at 0x20
+        // PKHeX export: species in header at 0x20 (already decrypted)
         rawSpecies = speciesAt20;
-      } else if (!isPKHeXExport && validAt40) {
-        // Party format: species at 0x40 (Pokemon data at 0x00, Block A at 0x20, so 0x20+0x20=0x40)
-        rawSpecies = speciesAt40;
+      } else if (!isPKHeXExport) {
+        // Party format: species is at 0x20 after decryption (Block A is at 0x20 relative to data start 0x00)
+        // Use 0x20 if valid, otherwise try 0x40 as fallback
+        if (validAt20) {
+          rawSpecies = speciesAt20;
+        } else if (validAt40) {
+          rawSpecies = speciesAt40;
+        } else {
+          // Neither is valid, use 0x20 as default (will be handled by mapping/error handling)
+          rawSpecies = speciesAt20;
+        }
       } else if (validAt20) {
         // Fallback: use 0x20 if valid
         rawSpecies = speciesAt20;
@@ -158,7 +154,7 @@ class PK3Parser {
         rawSpecies = speciesAt20;
       }
     } else {
-      // 80-byte file: species at Block A offset (0x20)
+      // 80-byte file: species at Block A offset (0x20) after decryption if needed
       rawSpecies = safeReadUInt16LE(dataOffset + 0x20);
     }
     
@@ -253,130 +249,170 @@ class PK3Parser {
       }
     }
     
-    const data = {
-      // Block A - Growth substructure (starts at 0x20 in Pokemon data)
-      // Species is special - always at absolute 0x20
-      // Other Block A fields are at dataOffset + offset (where offset is relative to Block A start)
-      species: species,
-      heldItem: safeReadUInt16LE(dataOffset + 0x02), // Block A + 0x02
-      experience: safeReadUInt32LE(dataOffset + 0x04), // Block A + 0x04
-      ppBonuses: safeReadByte(dataOffset + 0x08), // Block A + 0x08
-      friendship: safeReadByte(dataOffset + 0x09), // Block A + 0x09
+    // Split parsing logic for PKHeX exports vs encrypted party/stored format
+    let data;
+    
+    if (isPKHeXExport) {
+      // PKHeX EXPORT PATH (already decrypted, dataOffset = 0x20)
+      // Header (0x00-0x1F) contains Pokemon data starting at 0x20
+      data = {
+        species: species,
+        heldItem: safeReadUInt16LE(0x22), // Block A + 0x02
+        experience: safeReadUInt32LE(0x24), // Block A + 0x04
+        ppBonuses: safeReadByte(0x28), // Block A + 0x08
+        friendship: safeReadByte(0x29), // Block A + 0x09
+        
+        move1: safeReadUInt16LE(0x2C), // Block B
+        move2: safeReadUInt16LE(0x2E),
+        move3: safeReadUInt16LE(0x30),
+        move4: safeReadUInt16LE(0x32),
+        pp1: safeReadByte(0x34),
+        pp2: safeReadByte(0x35),
+        pp3: safeReadByte(0x36),
+        pp4: safeReadByte(0x37),
+        
+        evHP: safeReadByte(0x38), // Block C
+        evAttack: safeReadByte(0x39),
+        evDefense: safeReadByte(0x3A),
+        evSpeed: safeReadByte(0x3B),
+        evSpAttack: safeReadByte(0x3C),
+        evSpDefense: safeReadByte(0x3D),
+        coolness: safeReadByte(0x3E),
+        beauty: safeReadByte(0x3F),
+        cute: safeReadByte(0x40),
+        smart: safeReadByte(0x41),
+        tough: safeReadByte(0x42),
+        feel: safeReadByte(0x43),
+        
+        pokerus: safeReadByte(0x44), // Block D
+        metLocation: safeReadByte(0x45),
+        originsRaw: safeReadUInt16LE(0x46),
+        
+        tid: buffer.readUInt16LE(0x04),
+        sid: buffer.readUInt16LE(0x06),
+        otId: buffer.readUInt16LE(0x04),
+        
+        ivs: this.extractIVs(workingBuffer, 0x48),
+        ability: this.extractAbility(workingBuffer, 0x48),
+        
+        ribbons: workingBuffer.length >= 0x4F ? safeReadUInt32LE(0x4C) : 0,
+        
+        level: 0, // Will be calculated from experience
+        mail: 0,
+        personality: personality,
+        nature: nature,
+        
+        isShiny: (() => {
+          const tid = buffer.readUInt16LE(0x04);
+          const sid = buffer.readUInt16LE(0x06);
+          const id32 = tid | (sid << 16);
+          const xor = personality ^ id32;
+          const shinyXor = (xor >> 16) ^ (xor & 0xFFFF);
+          return shinyXor < 8;
+        })(),
+        
+        hp: 0, // PKHeX exports don't have HP, needs calculation
+        maxHP: 0,
+        attack: 0,
+        defense: 0,
+        speed: 0,
+        spAttack: 0,
+        spDefense: 0,
+        
+        nickname: buffer.length >= 0x12 ? this.readNickname(workingBuffer, 0x08, 10) : null,
+        otNameRaw: buffer.length > 0x1A ? this.readStringGen3PKHeX(buffer, 0x14, 7) : null,
+        
+        origins: {
+          levelMet: 0,
+          gameOfOrigin: 0,
+          pokeball: 0,
+          otGender: 0,
+        },
+      };
+    } else {
+      // ENCRYPTED PARTY/STORED FORMAT PATH (decrypted, data at fixed offsets in workingBuffer)
+      // After decryption, all blocks are at fixed absolute offsets: 0x20, 0x2C, 0x38, 0x44, etc.
+      // For 100-byte party format, stats are in unencrypted party section (0x50-0x63)
+      const isPartyFormat = buffer.length === 100;
       
-      // Block B - Attacks substructure (starts at 0x2C in Pokemon data)
-      move1: safeReadUInt16LE(dataOffset + 0x0C), // Block B + 0x00 = 0x2C
-      move2: safeReadUInt16LE(dataOffset + 0x0E), // Block B + 0x02 = 0x2E
-      move3: safeReadUInt16LE(dataOffset + 0x10), // Block B + 0x04 = 0x30
-      move4: safeReadUInt16LE(dataOffset + 0x12), // Block B + 0x06 = 0x32
-      pp1: safeReadByte(dataOffset + 0x14), // Block B + 0x08 = 0x34
-      pp2: safeReadByte(dataOffset + 0x15), // Block B + 0x09 = 0x35
-      pp3: safeReadByte(dataOffset + 0x16), // Block B + 0x0A = 0x36
-      pp4: safeReadByte(dataOffset + 0x17), // Block B + 0x0B = 0x37
-      
-      // Block C - EVs & Condition substructure (starts at 0x38 in Pokemon data)
-      evHP: safeReadByte(dataOffset + 0x18), // Block C + 0x00 = 0x38
-      evAttack: safeReadByte(dataOffset + 0x19), // Block C + 0x01 = 0x39
-      evDefense: safeReadByte(dataOffset + 0x1A), // Block C + 0x02 = 0x3A
-      evSpeed: safeReadByte(dataOffset + 0x1B), // Block C + 0x03 = 0x3B
-      evSpAttack: safeReadByte(dataOffset + 0x1C), // Block C + 0x04 = 0x3C
-      evSpDefense: safeReadByte(dataOffset + 0x1D), // Block C + 0x05 = 0x3D
-      coolness: safeReadByte(dataOffset + 0x1E), // Block C + 0x06 = 0x3E
-      beauty: safeReadByte(dataOffset + 0x1F), // Block C + 0x07 = 0x3F
-      cute: safeReadByte(dataOffset + 0x20), // Block C + 0x08 = 0x40
-      smart: safeReadByte(dataOffset + 0x21), // Block C + 0x09 = 0x41
-      tough: safeReadByte(dataOffset + 0x22), // Block C + 0x0A = 0x42
-      feel: safeReadByte(dataOffset + 0x23), // Block C + 0x0B = 0x43
-      
-      // Block D - Miscellaneous substructure (starts at 0x44 in Pokemon data)
-      pokerus: safeReadByte(dataOffset + 0x24), // Block D + 0x00 = 0x44
-      metLocation: safeReadByte(dataOffset + 0x25), // Block D + 0x01 = 0x45
-      originsRaw: safeReadUInt16LE(dataOffset + 0x26), // Block D + 0x02 = 0x46
-      // TID and SID are stored in the header (not in Pokemon data)
-      // For PKHeX exports: header is at 0x00-0x1F, so TID/SID at 0x04/0x06
-      // For party format: Pokemon data starts at 0x00, header is at 0x00-0x1F, so TID/SID at 0x04/0x06
-      // For raw 80-byte: Pokemon data starts at 0x00, header is at 0x00-0x1F, so TID/SID at 0x04/0x06
-      // So TID/SID are always at absolute offset 0x04/0x06 (header is always at start of buffer)
-      tid: buffer.length > 0x05 ? buffer.readUInt16LE(0x04) : 0,
-      sid: buffer.length > 0x07 ? buffer.readUInt16LE(0x06) : 0, // SID at 0x06-0x07
-      otId: buffer.length > 0x05 ? buffer.readUInt16LE(0x04) : 0, // TID is also the OT ID
-      
-      // IVs, Ability (Block D continues - IV32 at Data[0x48] in Pokemon data)
-      // IV32 is a packed 32-bit value containing all IVs and ability bit
-      // Must use workingBuffer (decrypted) for these encrypted data blocks
-      ivs: this.extractIVs(workingBuffer, dataOffset + 0x28), // Block D + 0x04 = 0x48
-      ability: this.extractAbility(workingBuffer, dataOffset + 0x28), // Block D + 0x04 = 0x48
-      
-      // Ribbons (Data[0x4C-0x4F] in PK3.cs - but this might be in party format only)
-      // For stored format, ribbons might not be present
-      ribbons: buffer.length >= dataOffset + 0x4F ? safeReadUInt32LE(dataOffset + 0x4C) : 0,
-      
-      // Contest stats are already read above in Block C (0x3E-0x43)
-      // They're part of Block C, not a separate section
-      
-      // Status and other fields might be in party format only
-      // Level calculation from EXP is done later
-      level: 0, // Will be calculated from experience
-      
-      // Mail and other party-only fields
-      mail: 0,
-      
-      // Personality value and Nature
-      personality: personality,
-      nature: nature,
-      
-      // Calculate shininess (Gen 3 formula)
-      // For Gen 3: isShiny = (pid ^ id32) >> 16) ^ ((pid ^ id32) & 0xFFFF) < 8
-      // Where id32 = TID | (SID << 16)
-      isShiny: (() => {
-        const tid = buffer.length > 0x05 ? buffer.readUInt16LE(0x04) : 0;
-        const sid = buffer.length > 0x07 ? buffer.readUInt16LE(0x06) : 0;
-        const id32 = tid | (sid << 16);
-        const xor = personality ^ id32;
-        const shinyXor = (xor >> 16) ^ (xor & 0xFFFF);
-        return shinyXor < 8;
-      })(),
-      
-      // Current HP - PKHeX exports may not include HP in the 100-byte format
-      // HP is typically calculated from base stats, IVs, EVs, and level
-      // Check if HP data exists in the file (might be at different offsets)
-      hp: buffer.length > dataOffset + 0x46 ? safeReadUInt16LE(dataOffset + 0x46) : 0,
-      
-      // Max HP - same as above
-      maxHP: buffer.length > dataOffset + 0x48 ? safeReadUInt16LE(dataOffset + 0x48) : 0,
-      
-      // Attack (0x6A-0x6B)
-      attack: safeReadUInt16LE(dataOffset + 0x4A),
-      
-      // Defense (0x6C-0x6D)
-      defense: safeReadUInt16LE(dataOffset + 0x4C),
-      
-      // Speed (0x6E-0x6F)
-      speed: safeReadUInt16LE(dataOffset + 0x4E),
-      
-      // Sp. Attack (0x70-0x71) - might be beyond file
-      spAttack: buffer.length > dataOffset + 0x50 ? safeReadUInt16LE(dataOffset + 0x50) : 0,
-      
-      // Sp. Defense (0x72-0x73) - might be beyond file
-      spDefense: buffer.length > dataOffset + 0x52 ? safeReadUInt16LE(dataOffset + 0x52) : 0,
-      
-      // Nickname (0x74-0x7F) - might be beyond file
-      nickname: buffer.length > dataOffset + 0x54 ? this.readString(buffer, dataOffset + 0x54, 11) : '???',
-      
-      // OT Name - Based on PKHeX PK3.cs: OriginalTrainerTrash => Data.Slice(0x14, 7)
-      // For PKHeX exports: The header (0x00-0x1F) IS the PK3 Data structure, so OT Name is at 0x14
-      // For party format: Pokemon data starts at 0x00, OT Name is at 0x14 relative to data start = 0x14 absolute
-      // For raw 80-byte: Pokemon data starts at 0x00, OT Name is at 0x14 relative to data start = 0x14 absolute
-      // So OT Name is always at absolute offset 0x14 in the buffer (header is always at 0x00-0x1F)
-      otNameRaw: (buffer.length > 0x1A ? this.readStringGen3PKHeX(buffer, 0x14, 7) : null),
-      
-      origins: {
-        // Will be extracted from originsRaw below
-        levelMet: 0,
-        gameOfOrigin: 0,
-        pokeball: 0,
-        otGender: 0,
-      },
-    };
+      data = {
+        species: species,
+        heldItem: safeReadUInt16LE(0x22), // Block A + 0x02 = 0x22
+        experience: safeReadUInt32LE(0x24), // Block A + 0x04 = 0x24
+        ppBonuses: safeReadByte(0x28), // Block A + 0x08 = 0x28
+        friendship: safeReadByte(0x29), // Block A + 0x09 = 0x29
+        
+        move1: safeReadUInt16LE(0x2C), // Block B
+        move2: safeReadUInt16LE(0x2E),
+        move3: safeReadUInt16LE(0x30),
+        move4: safeReadUInt16LE(0x32),
+        pp1: safeReadByte(0x34),
+        pp2: safeReadByte(0x35),
+        pp3: safeReadByte(0x36),
+        pp4: safeReadByte(0x37),
+        
+        evHP: safeReadByte(0x38), // Block C
+        evAttack: safeReadByte(0x39),
+        evDefense: safeReadByte(0x3A),
+        evSpeed: safeReadByte(0x3B),
+        evSpAttack: safeReadByte(0x3C),
+        evSpDefense: safeReadByte(0x3D),
+        coolness: safeReadByte(0x3E),
+        beauty: safeReadByte(0x3F),
+        cute: safeReadByte(0x40),
+        smart: safeReadByte(0x41),
+        tough: safeReadByte(0x42),
+        feel: safeReadByte(0x43),
+        
+        pokerus: safeReadByte(0x44), // Block D
+        metLocation: safeReadByte(0x45),
+        originsRaw: safeReadUInt16LE(0x46),
+        
+        tid: buffer.readUInt16LE(0x04),
+        sid: buffer.readUInt16LE(0x06),
+        otId: buffer.readUInt16LE(0x04),
+        
+        ivs: this.extractIVs(workingBuffer, 0x48),
+        ability: this.extractAbility(workingBuffer, 0x48),
+        
+        ribbons: workingBuffer.length >= 0x4F ? safeReadUInt32LE(0x4C) : 0,
+        
+        // For party format, level and stats are in unencrypted party section (0x50-0x63)
+        level: isPartyFormat && buffer.length >= 0x55 ? buffer.readUInt8(0x54) : 0,
+        mail: isPartyFormat && buffer.length >= 0x56 ? buffer.readInt8(0x55) : 0,
+        
+        personality: personality,
+        nature: nature,
+        
+        isShiny: (() => {
+          const tid = buffer.readUInt16LE(0x04);
+          const sid = buffer.readUInt16LE(0x06);
+          const id32 = tid | (sid << 16);
+          const xor = personality ^ id32;
+          const shinyXor = (xor >> 16) ^ (xor & 0xFFFF);
+          return shinyXor < 8;
+        })(),
+        
+        // Party format stats are in unencrypted section (0x50-0x63)
+        hp: isPartyFormat && buffer.length >= 0x58 ? buffer.readUInt16LE(0x56) : 0,
+        maxHP: isPartyFormat && buffer.length >= 0x5A ? buffer.readUInt16LE(0x58) : 0,
+        attack: isPartyFormat && buffer.length >= 0x5C ? buffer.readUInt16LE(0x5A) : 0,
+        defense: isPartyFormat && buffer.length >= 0x5E ? buffer.readUInt16LE(0x5C) : 0,
+        speed: isPartyFormat && buffer.length >= 0x60 ? buffer.readUInt16LE(0x5E) : 0,
+        spAttack: isPartyFormat && buffer.length >= 0x62 ? buffer.readUInt16LE(0x60) : 0,
+        spDefense: isPartyFormat && buffer.length >= 0x64 ? buffer.readUInt16LE(0x62) : 0,
+        
+        nickname: buffer.length >= 0x12 ? this.readNickname(workingBuffer, 0x08, 10) : null,
+        otNameRaw: buffer.length > 0x1A ? this.readStringGen3PKHeX(buffer, 0x14, 7) : null,
+        
+        origins: {
+          levelMet: 0,
+          gameOfOrigin: 0,
+          pokeball: 0,
+          otGender: 0,
+        },
+      };
+    }
 
     // Extract Origins fields from packed ushort (PK3.cs format)
     // Origins is at Data[0x46] = dataOffset + 0x26 = 0x46 absolute
@@ -546,6 +582,77 @@ class PK3Parser {
       return str;
     }
     return null;
+  }
+  
+  /**
+   * Read nickname with strict validation to avoid false positives from trash bytes
+   * Nickname trash bytes often decode to species names or garbage, so we need extra validation
+   */
+  static readNickname(buffer, offset, maxLength) {
+    const str = this.readStringGen3PKHeX(buffer, offset, maxLength);
+    if (!str) return null;
+    
+    // Reject if it's all the same character (likely trash)
+    if (str.length > 1 && /^(.)\1+$/.test(str)) {
+      return null;
+    }
+    
+    // Reject if it's mostly non-letter characters
+    const letterCount = (str.match(/[A-Za-z]/g) || []).length;
+    if (letterCount < Math.ceil(str.length * 0.6)) {
+      return null;
+    }
+    
+    // Get the raw bytes for pattern analysis
+    const bytes = [];
+    for (let i = 0; i < Math.min(maxLength, buffer.length - offset); i++) {
+      const byte = buffer[offset + i];
+      if (byte === 0x00 || byte === 0xFF) break;
+      bytes.push(byte);
+    }
+    
+    if (bytes.length === 0) return null;
+    
+    // Check for suspicious byte patterns that indicate trash
+    const uniqueBytes = new Set(bytes);
+    const byteValues = Array.from(bytes);
+    const min = Math.min(...byteValues);
+    const max = Math.max(...byteValues);
+    
+    // Reject if bytes have too much repetition (likely trash)
+    if (uniqueBytes.size < bytes.length * 0.5 && bytes.length > 3) {
+      return null;
+    }
+    
+    // Reject if bytes are in a very narrow range (common in trash)
+    if (max - min < 15 && bytes.length > 4) {
+      return null;
+    }
+    
+    // Reject all-caps names that are 4+ characters (often trash that decodes to species names)
+    // Real nicknames are usually mixed case, shorter, or have special characters
+    // All-caps 4+ character names are almost always trash bytes (species names are typically 4-10 chars)
+    // Only allow all-caps if it's 1-3 characters (common for short nicknames like "ABC", "XY")
+    if (str === str.toUpperCase() && str.length >= 4) {
+      return null;
+    }
+    
+    // Reject if it's all caps and has suspicious byte patterns
+    if (str === str.toUpperCase() && str.length >= 5) {
+      // Check for repeating byte patterns
+      let hasRepeatingPattern = false;
+      for (let i = 0; i < bytes.length - 2; i++) {
+        if (bytes[i] === bytes[i + 1] || bytes[i] === bytes[i + 2]) {
+          hasRepeatingPattern = true;
+          break;
+        }
+      }
+      if (hasRepeatingPattern) {
+        return null;
+      }
+    }
+    
+    return str;
   }
 
   /**
@@ -1153,21 +1260,24 @@ class PK3Parser {
     const SIZE_3BLOCK = 12;
     const BlockCount = 4;
     
+    // For 100-byte party format files, only decrypt the first 80 bytes (stored format)
+    // The last 20 bytes are party-specific data and not part of the Pokemon encryption
+    const dataToDecrypt = buffer.length > SIZE_3STORED ? buffer.slice(0, SIZE_3STORED) : buffer;
+    const workingBuffer = Buffer.from(dataToDecrypt);
+    
     // Read PID and OID from header
-    const PID = buffer.readUInt32LE(dataOffset + 0x00);
-    const OID = buffer.readUInt32LE(dataOffset + 0x04);
+    const PID = workingBuffer.readUInt32LE(dataOffset + 0x00);
+    const OID = workingBuffer.readUInt32LE(dataOffset + 0x04);
     const seed = (PID ^ OID) >>> 0;
     const sv = PID % 24;
-    
-    const decrypted = Buffer.from(buffer);
     
     // Step 1: XOR data blocks (0x20-0x50) with seed
     // Header (0x00-0x1F) is NOT encrypted
     const blockStart = dataOffset + SIZE_3HEADER;
     const blockEnd = dataOffset + SIZE_3STORED;
-    for (let i = blockStart; i < blockEnd && i + 4 <= decrypted.length; i += 4) {
-      const value = decrypted.readUInt32LE(i);
-      decrypted.writeUInt32LE((value ^ seed) >>> 0, i);
+    for (let i = blockStart; i < blockEnd && i + 4 <= workingBuffer.length; i += 4) {
+      const value = workingBuffer.readUInt32LE(i);
+      workingBuffer.writeUInt32LE((value ^ seed) >>> 0, i);
     }
     
     // Step 2: Unshuffle blocks using BlockPosition (same as sav3-parser.js)
@@ -1180,11 +1290,11 @@ class PK3Parser {
       1, 0, 2, 3, 1, 0, 3, 2, // duplicates
     ];
     
-    const result = Buffer.from(decrypted);
+    const result = Buffer.from(workingBuffer);
     const index = sv * BlockCount;
     
     // Copy header (0x00-0x1F) as-is
-    decrypted.copy(result, dataOffset, dataOffset, dataOffset + SIZE_3HEADER);
+    workingBuffer.copy(result, dataOffset, dataOffset, dataOffset + SIZE_3HEADER);
     
     // Unshuffle blocks - BlockPosition[index + block] tells us which source block to use
     for (let block = 0; block < BlockCount; block++) {
@@ -1192,9 +1302,17 @@ class PK3Parser {
       const srcBlockIndex = BlockPosition[index + block];
       const srcOffset = dataOffset + SIZE_3HEADER + (SIZE_3BLOCK * srcBlockIndex);
       
-      if (destOffset + SIZE_3BLOCK <= result.length && srcOffset + SIZE_3BLOCK <= decrypted.length) {
-        decrypted.copy(result, destOffset, srcOffset, srcOffset + SIZE_3BLOCK);
+      if (destOffset + SIZE_3BLOCK <= result.length && srcOffset + SIZE_3BLOCK <= workingBuffer.length) {
+        workingBuffer.copy(result, destOffset, srcOffset, srcOffset + SIZE_3BLOCK);
       }
+    }
+    
+    // If original buffer was 100 bytes, append the remaining 20 bytes (party data)
+    if (buffer.length > SIZE_3STORED) {
+      const fullResult = Buffer.alloc(buffer.length);
+      result.copy(fullResult, 0, 0, SIZE_3STORED);
+      buffer.copy(fullResult, SIZE_3STORED, SIZE_3STORED, buffer.length);
+      return fullResult;
     }
     
     return result;
