@@ -66,9 +66,40 @@ const pokemonGrid = document.getElementById('pokemonGrid');
 const cardWidthSlider = document.getElementById('cardWidthSlider');
 const cardWidthValue = document.getElementById('cardWidthValue');
 const maxDisplayLimit = document.getElementById('maxDisplayLimit');
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
 
 // Advanced filter state
 let advancedFilters = {};
+
+// Theme management
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+}
+
+// Initialize theme on page load
+initTheme();
+
+// Theme toggle event listener
+if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+}
 
 // Event listeners
 // Database selection change handler

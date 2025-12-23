@@ -1,5 +1,43 @@
 :root {
     --pokemon-card-min-width: 280px;
+    
+    /* Light theme colors */
+    --bg-primary: #f5f5f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e8e8e8;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --border-color: #d0d0d0;
+    --accent-color: #667eea;
+    --accent-hover: #7c8ef5;
+    --btn-secondary-bg: #e0e0e0;
+    --btn-secondary-hover: #d0d0d0;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.1);
+    --error-bg: #ffe8e8;
+    --error-text: #cc0000;
+    --error-border: #ff6b6b;
+}
+
+[data-theme="dark"] {
+    /* Dark theme colors - black and grey */
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-tertiary: #808080;
+    --border-color: #404040;
+    --accent-color: #667eea;
+    --accent-hover: #7c8ef5;
+    --btn-secondary-bg: #2a2a2a;
+    --btn-secondary-hover: #3a3a3a;
+    --card-bg: #1a1a1a;
+    --card-shadow: rgba(0, 0, 0, 0.5);
+    --error-bg: #2a1a1a;
+    --error-text: #ff6b6b;
+    --error-border: #ff6b6b;
 }
 
 * {
@@ -10,15 +48,16 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: var(--bg-primary);
     min-height: 100vh;
     height: 100vh;
     padding: 20px;
     margin: 0;
-    color: #e0e0e0;
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
@@ -33,7 +72,7 @@ body {
 
 header {
     text-align: center;
-    color: white;
+    color: var(--text-primary);
     margin-bottom: 20px;
     flex-shrink: 0;
 }
@@ -50,17 +89,19 @@ header h1 {
 }
 
 .controls {
-    background: #2d2d44;
+    background: var(--bg-secondary);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 6px var(--card-shadow);
     margin-bottom: 20px;
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
     align-items: center;
-    color: #e0e0e0;
+    color: var(--text-primary);
     flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .btn {
@@ -74,25 +115,25 @@ header h1 {
 }
 
 .btn-primary {
-    background: #667eea;
+    background: var(--accent-color);
     color: white;
 }
 
 .btn-primary:hover {
-    background: #7c8ef5;
+    background: var(--accent-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
 }
 
 .btn-secondary {
-    background: #5a5a7a;
-    color: white;
+    background: var(--btn-secondary-bg);
+    color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-    background: #6a6a8a;
+    background: var(--btn-secondary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(90, 90, 122, 0.4);
+    box-shadow: 0 4px 8px var(--card-shadow);
 }
 
 .database-controls {
@@ -103,7 +144,7 @@ header h1 {
 
 .database-controls label {
     font-size: 14px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -125,7 +166,7 @@ header h1 {
     gap: 5px;
     cursor: pointer;
     font-size: 14px;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .limit-controls {
@@ -136,27 +177,41 @@ header h1 {
 
 .limit-controls label {
     font-size: 14px;
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
 .limit-controls input[type="number"] {
     padding: 8px 12px;
-    border: 2px solid #444;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     font-size: 14px;
     width: 100px;
-    background: #1e1e2e;
-    color: #e0e0e0;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .limit-controls input[type="number"]:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-color);
 }
 
 .limit-controls input[type="number"]::placeholder {
-    color: #888;
+    color: var(--text-tertiary);
+}
+
+.theme-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#themeToggle {
+    min-width: 45px;
+    padding: 10px;
+    font-size: 20px;
+    line-height: 1;
 }
 
 .checkbox {
@@ -167,42 +222,44 @@ header h1 {
 
 .select {
     padding: 8px 12px;
-    border: 2px solid #444;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     font-size: 14px;
     cursor: pointer;
-    background: #1e1e2e;
-    color: #e0e0e0;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-color);
 }
 
 .select option {
-    background: #1e1e2e;
-    color: #e0e0e0;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .search-input {
     padding: 8px 12px;
-    border: 2px solid #444;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     font-size: 14px;
     flex: 1;
     min-width: 200px;
-    background: #1e1e2e;
-    color: #e0e0e0;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-color);
 }
 
 .search-input::placeholder {
-    color: #888;
+    color: var(--text-tertiary);
 }
 
 .loading {
@@ -238,14 +295,16 @@ header h1 {
 }
 
 .stats {
-    background: #2d2d44;
+    background: var(--bg-secondary);
     padding: 15px;
     border-radius: 5px;
     margin-bottom: 20px;
     text-align: center;
     font-weight: 600;
-    color: #7c8ef5;
+    color: var(--accent-color);
     flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .hidden {
@@ -268,19 +327,19 @@ header h1 {
 }
 
 .pokemon-card {
-    background: #2d2d44;
+    background: var(--card-bg);
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 6px var(--card-shadow);
+    transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s ease, border-color 0.3s ease;
     cursor: pointer;
-    border: 1px solid #3d3d54;
+    border: 1px solid var(--border-color);
 }
 
 .pokemon-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0,0,0,0.5);
-    border-color: #667eea;
+    box-shadow: 0 8px 12px var(--card-shadow);
+    border-color: var(--accent-color);
 }
 
 .pokemon-card.compact {
@@ -325,14 +384,15 @@ header h1 {
     width: 96px;
     height: 96px;
     image-rendering: pixelated;
-    background: #1e1e2e;
+    background: var(--bg-tertiary);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    color: #666;
-    border: 1px solid #3d3d54;
+    color: var(--text-tertiary);
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .pokemon-sprite img {
@@ -348,12 +408,12 @@ header h1 {
 .pokemon-name {
     font-size: 1.3em;
     font-weight: 700;
-    color: #e0e0e0;
+    color: var(--text-primary);
     margin-bottom: 5px;
 }
 
 .pokemon-species {
-    color: #aaa;
+    color: var(--text-secondary);
     font-size: 0.9em;
 }
 
@@ -363,7 +423,8 @@ header h1 {
     gap: 10px;
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #3d3d54;
+    border-top: 1px solid var(--border-color);
+    transition: border-color 0.3s ease;
 }
 
 .detail-item {
@@ -373,7 +434,7 @@ header h1 {
 
 .detail-label {
     font-size: 0.75em;
-    color: #888;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     margin-bottom: 3px;
 }
@@ -381,7 +442,7 @@ header h1 {
 .detail-value {
     font-size: 1.1em;
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .ability-name {
@@ -391,7 +452,7 @@ header h1 {
 .ability-type {
     font-size: 0.7em;
     font-weight: normal;
-    color: #aaa;
+    color: var(--text-secondary);
     margin-left: 5px;
 }
 
@@ -416,33 +477,35 @@ header h1 {
 }
 
 .iv-stat {
-    background: #1e1e2e;
+    background: var(--bg-tertiary);
     padding: 5px;
     border-radius: 3px;
     text-align: center;
-    border: 1px solid #3d3d54;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .iv-stat-label {
     font-size: 0.7em;
-    color: #888;
+    color: var(--text-tertiary);
     margin-bottom: 2px;
 }
 
 .iv-stat-value {
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text-primary);
 }
 
 .moves-section {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #3d3d54;
+    border-top: 1px solid var(--border-color);
+    transition: border-color 0.3s ease;
 }
 
 .moves-title {
     font-size: 0.85em;
-    color: #aaa;
+    color: var(--text-secondary);
     margin-bottom: 8px;
     text-transform: uppercase;
 }
@@ -455,16 +518,16 @@ header h1 {
 }
 
 .moves-section .move-card {
-    background: #1e1e2e;
+    background: var(--bg-tertiary);
     border-radius: 6px;
-    border: 1px solid #3d3d54;
-    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
     overflow: hidden;
 }
 
 .moves-section .move-card:hover {
-    background: #252538;
-    border-color: #667eea;
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
     transform: translateY(-1px);
 }
 
@@ -493,7 +556,7 @@ header h1 {
 }
 
 .moves-section .move-card-name {
-    color: #e0e0e0;
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 0.8em;
     text-align: left;
@@ -506,7 +569,7 @@ header h1 {
 }
 
 .moves-section .move-card-pp {
-    color: #aaa;
+    color: var(--text-secondary);
     font-size: 0.7em;
     text-align: right;
     flex-shrink: 0;
@@ -542,11 +605,12 @@ header h1 {
 
 .ot-group {
     margin-bottom: 30px;
-    background: #2d2d44;
+    background: var(--card-bg);
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    border: 1px solid #3d3d54;
+    box-shadow: 0 4px 6px var(--card-shadow);
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .ot-group-header {
@@ -555,7 +619,8 @@ header h1 {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #667eea;
+    border-bottom: 2px solid var(--accent-color);
+    transition: border-color 0.3s ease;
 }
 
 .ot-group-header h2 {
