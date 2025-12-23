@@ -63,6 +63,8 @@ const stats = document.getElementById('stats');
 const pokemonCount = document.getElementById('pokemonCount');
 const filteredCount = document.getElementById('filteredCount');
 const pokemonGrid = document.getElementById('pokemonGrid');
+const cardWidthSlider = document.getElementById('cardWidthSlider');
+const cardWidthValue = document.getElementById('cardWidthValue');
 
 // Advanced filter state
 let advancedFilters = {};
@@ -97,6 +99,7 @@ advancedFilterBtn.addEventListener('click', () => advancedFilterPanel.classList.
 closeAdvancedFilters.addEventListener('click', () => advancedFilterPanel.classList.add('hidden'));
 applyAdvancedFilters.addEventListener('click', applyFilters);
 clearAdvancedFilters.addEventListener('click', clearFilters);
+cardWidthSlider.addEventListener('input', (e) => updateCardWidth(e.target.value));
 
 // Load Pokemon from API
 async function loadPokemon() {
@@ -2261,6 +2264,13 @@ function clearFilters() {
     sortAndDisplay();
 }
 
+// Change size of cards
+const updateCardWidth = (val) => {
+    const px = `${val}px`;
+    document.documentElement.style.setProperty('--pokemon-card-min-width', px);
+    if (cardWidthValue) cardWidthValue.textContent = px;
+};
+
 // Save File Management
 const loadSaveBtn = document.getElementById('loadSaveBtn');
 const saveFileSection = document.getElementById('saveFileSection');
@@ -2559,6 +2569,9 @@ if (document.readyState === 'loading') {
         }
         // Load Pokemon from selected database
         loadPokemon();
+
+        // init card width slider
+        updateCardWidth(cardWidthSlider.value);
     });
 } else {
     // DOM is already ready, load immediately

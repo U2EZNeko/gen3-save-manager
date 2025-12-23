@@ -1,3 +1,7 @@
+:root {
+    --pokemon-card-min-width: 280px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -205,12 +209,12 @@ header h1 {
 
 .pokemon-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--pokemon-card-min-width), 1fr));
     gap: 20px;
 }
 
 .pokemon-grid.compact-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--pokemon-card-min-width), 1fr));
     gap: 12px;
 }
 
