@@ -709,6 +709,15 @@ header h1 {
         padding: 15px;
     }
     
+    .radar-chart-container {
+        padding: 12px;
+    }
+    
+    .radar-chart-container svg {
+        max-width: 100%;
+        min-width: 0;
+    }
+    
     .modal-header {
         flex-direction: column;
         text-align: center;
@@ -769,6 +778,15 @@ header h1 {
     
     .chart-container {
         padding: 10px;
+    }
+    
+    .radar-chart-container {
+        padding: 8px;
+    }
+    
+    .radar-chart-container svg {
+        max-width: 100%;
+        min-width: 0;
     }
     
     .moves-grid {
@@ -867,6 +885,9 @@ header h1 {
     margin-bottom: 40px;
     padding-bottom: 30px;
     border-bottom: 1px solid #3d3d54;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .modal-section:last-child {
@@ -1058,6 +1079,9 @@ header h1 {
 
 .iv-chart-container {
     margin-top: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Radar Chart */
@@ -1065,10 +1089,21 @@ header h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
     background: #1e1e2e;
     border-radius: 10px;
     border: 1px solid #3d3d54;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.radar-chart-container svg {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    min-width: 0;
 }
 
 /* Grid Chart */

@@ -1972,7 +1972,7 @@ function createRadarChart(stats, maxValue = 31) {
     
     return `
         <div class="radar-chart-container">
-            <svg width="300" height="300" viewBox="0 0 300 300">
+            <svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-width: 300px;">
                 ${gridLines}
                 ${axisLines}
                 <polygon points="${points}" fill="${maxValue === 255 ? '#03A9F4' : '#667eea'}" fill-opacity="0.3" stroke="${maxValue === 255 ? '#03A9F4' : '#667eea'}" stroke-width="2"/>
