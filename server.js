@@ -84,9 +84,13 @@ app.get('/api/pokemon', (req, res) => {
       try {
         const buffer = fs.readFileSync(file.path);
         const pokemonData = PK3Parser.parse(buffer, file.filename);
+        // Get file stats again to include creation date
+        const fileStats = fs.statSync(file.path);
         return {
           ...pokemonData,
-          filename: file.filename
+          filename: file.filename,
+          fileCreated: fileStats.birthtime || fileStats.mtime, // Use birthtime (creation) or mtime (modified) as fallback
+          fileModified: fileStats.mtime
         };
       } catch (error) {
         console.error(`Error parsing ${file.filename}:`, error);
@@ -267,55 +271,33 @@ app.post('/api/save/import', express.json({ limit: '1mb' }), (req, res) => {
     const pokemonBuffer = Buffer.from(pokemonData);
     
     // Convert PKHeX export/party format to stored format (80 bytes)
+    // PKHeX exports are 100 bytes: first 80 bytes are stored format (decrypted), last 20 bytes are unused
+    // Party format is 100 bytes: first 80 bytes are stored format (encrypted), last 20 bytes are party data
+    // Raw stored format is 80 bytes (encrypted)
     let storedData = pokemonBuffer;
+    
     if (pokemonBuffer.length === 100) {
-      // 100-byte file: Could be PKHeX export (32-byte header + 80 bytes) or party format (80 bytes + 20 bytes party)
-      const pid = pokemonBuffer.readUInt32LE(0);
-      const speciesAt20 = pokemonBuffer.readUInt16LE(0x20);
-      const speciesAt40 = pokemonBuffer.readUInt16LE(0x40);
-      const validSpeciesAt20 = speciesAt20 >= 1 && speciesAt20 <= 386;
-      const validSpeciesAt40 = speciesAt40 >= 1 && speciesAt40 <= 386;
-      
-      if (validSpeciesAt20 && !validSpeciesAt40) {
-        // PKHeX export format: Header at 0x00-0x1F, Pokemon data blocks at 0x20-0x6F
-        // Need to reconstruct 80-byte stored format:
-        // Stored format: 0x00-0x1F (header) + 0x20-0x4F (Pokemon blocks) = 80 bytes
-        // PKHeX export: 0x00-0x1F (header) + 0x20-0x6F (Pokemon blocks) = 112 bytes total
-        // But file might be truncated to 100 bytes, so we have 68 bytes of Pokemon data
-        storedData = Buffer.alloc(80, 0);
-        // Copy header (first 32 bytes) - this includes PID, TID, SID, OT name, etc.
-        pokemonBuffer.copy(storedData, 0, 0, 32);
-        // Copy Pokemon data blocks: stored format needs 48 bytes (0x20-0x4F)
-        // PKHeX export has up to 80 bytes (0x20-0x6F), but file might be truncated
-        const dataStart = 0x20;
-        const dataNeeded = 48; // Stored format needs 48 bytes of Pokemon blocks
-        const dataAvailable = Math.min(dataNeeded, pokemonBuffer.length - dataStart);
-        pokemonBuffer.copy(storedData, 0x20, dataStart, dataStart + dataAvailable);
-        // If we got less than 48 bytes, the rest is already zero-padded
-      } else if (validSpeciesAt40 && !validSpeciesAt20) {
-        // Party format: Pokemon data is first 80 bytes (stored format)
-        storedData = pokemonBuffer.slice(0, 80);
-      } else if (pid > 0 && pid < 0xFFFFFFFF) {
-        // Has valid PID, likely PKHeX export - reconstruct stored format
-        storedData = Buffer.alloc(80, 0);
-        // Copy header (32 bytes)
-        pokemonBuffer.copy(storedData, 0, 0, 32);
-        // Copy Pokemon data blocks (48 bytes needed, but file might be truncated)
-        const dataStart = 0x20;
-        const dataNeeded = 48;
-        const dataAvailable = Math.min(dataNeeded, pokemonBuffer.length - dataStart);
-        pokemonBuffer.copy(storedData, 0x20, dataStart, dataStart + dataAvailable);
-      } else {
-        // Default to party format (first 80 bytes)
-        storedData = pokemonBuffer.slice(0, 80);
-      }
-    } else if (pokemonBuffer.length !== 80) {
+      // 100-byte file: Take first 80 bytes (stored format)
+      // For PKHeX exports, this is already decrypted stored format
+      // For party format, this is encrypted stored format
+      // We'll encrypt it when writing to save file, so both are fine
+      storedData = pokemonBuffer.slice(0, 80);
+    } else if (pokemonBuffer.length === 80) {
+      // Already in stored format (80 bytes)
+      storedData = pokemonBuffer;
+    } else {
       return res.status(400).json({ error: `Invalid Pokemon data size: expected 80 or 100 bytes, got ${pokemonBuffer.length}` });
     }
     
     // Validate stored data size
     if (storedData.length !== 80) {
       return res.status(400).json({ error: `Invalid stored Pokemon data size: expected 80 bytes, got ${storedData.length}` });
+    }
+    
+    // Validate that we have valid Pokemon data (non-zero PID)
+    const pid = storedData.readUInt32LE(0);
+    if (pid === 0) {
+      return res.status(400).json({ error: 'Invalid Pokemon data: PID is zero' });
     }
     
     if (isParty) {
@@ -368,6 +350,7 @@ app.get('/api/save/export', (req, res) => {
   
   try {
     const exported = currentSaveFile.export();
+    // Use the same filename as the loaded save file
     const filename = currentSaveFileName || 'save_modified.sav';
     
     res.setHeader('Content-Type', 'application/octet-stream');

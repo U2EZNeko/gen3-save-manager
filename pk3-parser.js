@@ -202,25 +202,50 @@ class PK3Parser {
     }
     
     // Convert internal species ID to National Dex
-    let species = getNational3(rawSpecies);
+    // PKHeX stores SpeciesInternal (internal ID) in the file, which needs conversion
+    // However, for PKHeX exports, the filename often contains the correct National Dex number
+    // The key is: if rawSpecies < 277, it's already National Dex (Gen 1-2 Pokemon)
+    // If rawSpecies >= 277, it's an internal ID and needs conversion
+    let species;
     
-    // If conversion failed, try the lookup table as fallback
-    if (species === 0 || species > 386) {
-      // Last resort: try to extract species from filename if provided
-      if (filename) {
-        // Filename format: "### - SPECIESNAME - PID.pk3" or "### ★ - SPECIESNAME - PID.pk3"
-        const match = filename.match(/^(\d+)\s/);
-        if (match) {
-          const fileSpecies = parseInt(match[1]);
-          if (fileSpecies >= 1 && fileSpecies <= 386) {
-            species = fileSpecies;
-          }
+    // Extract species from filename if available (for both PKHeX exports and encrypted files)
+    // Filenames are often more reliable than file data, especially for PKHeX exports
+    let filenameSpecies = null;
+    if (filename) {
+      // Filename format: "### - SPECIESNAME - PID.pk3" or "### ★ - SPECIESNAME - PID.pk3"
+      const match = filename.match(/^(\d+)\s/);
+      if (match) {
+        const fileSpecies = parseInt(match[1]);
+        if (fileSpecies >= 1 && fileSpecies <= 386) {
+          filenameSpecies = fileSpecies;
         }
       }
     }
     
-    // If still invalid, try the lookup table as fallback
-    if (species === 0 || species > 386) {
+    // If filename has a species number, prioritize it for ALL file types
+    // This is because filenames are more reliable than file data (especially for PKHeX exports)
+    if (filenameSpecies !== null) {
+      // Use filename species directly
+      species = filenameSpecies;
+    } else {
+      // No filename species available, convert from file data
+      // Check if it's already a valid National Dex (Gen 1-2 Pokemon, or PKHeX export with National Dex)
+      // Gen 1-2 Pokemon have internal ID = National Dex (1-251)
+      // Gen 3 Pokemon have internal ID starting at 277
+      if (rawSpecies >= 1 && rawSpecies < 277) {
+        // Gen 1-2 Pokemon: internal ID matches National Dex
+        species = rawSpecies;
+      } else if (rawSpecies >= 277) {
+        // Gen 3 Pokemon: convert from internal ID to National Dex
+        species = getNational3(rawSpecies);
+      } else {
+        // Invalid (0 or out of range)
+        species = 0;
+      }
+    }
+    
+    // If conversion failed or returned invalid, try lookup table (only for non-PKHeX exports or if filename didn't help)
+    if ((species === 0 || species > 386) && (!isPKHeXExport || filenameSpecies === null)) {
       const PKHEX_TO_NATIONAL_DEX = {
         1: 1, 4: 4, 7: 7, 12: 12, 16: 16, 19: 19, 20: 20, 21: 21, 22: 22, 23: 23,
         25: 25, 27: 27, 30: 30, 32: 32, 33: 33, 37: 37, 41: 41, 42: 42, 43: 43, 44: 44,
@@ -231,11 +256,12 @@ class PK3Parser {
         165: 165, 167: 167, 170: 170, 177: 177, 178: 178, 179: 179, 190: 190, 191: 191,
         203: 203, 204: 204, 207: 207, 209: 209, 214: 214, 216: 216, 218: 218, 222: 222,
         228: 228, 231: 231, 234: 234,
-        // Gen 3 Pokemon mappings (PKHeX internal -> National Dex)
+        // Gen 3 Pokemon mappings (PKHeX internal -> National Dex) - REMOVED INCORRECT ENTRIES
+        // Note: 328 maps to 343 (Baltoy), 330 maps to 351 (Castform) - these were wrong in old table
         277: 252, 280: 255, 282: 257, 283: 258, 286: 261, 287: 262, 288: 263, 289: 264,
         290: 265, 291: 266, 295: 270, 301: 290, 304: 276, 308: 327, 309: 278, 313: 320,
-        317: 352, 319: 344, 322: 302, 325: 370, 327: 342, 328: 349, 330: 318, 331: 319,
-        332: 328, 336: 297, 337: 309, 339: 322, 341: 363, 349: 338, 358: 333, 361: 355,
+        317: 352, 319: 344, 322: 302, 325: 370, 327: 342, 331: 319,
+        332: 328, 336: 297, 337: 309, 339: 322, 341: 363, 358: 333, 361: 355,
         371: 294, 373: 366, 377: 353, 379: 336, 381: 369, 382: 304, 384: 306, 385: 351,
         387: 314, 392: 280, 406: 384
       };
@@ -243,9 +269,21 @@ class PK3Parser {
       const mapped = PKHEX_TO_NATIONAL_DEX[rawSpecies];
       if (mapped !== undefined) {
         species = mapped;
-      } else if (rawSpecies >= 1 && rawSpecies <= 386) {
-        // Already a valid National Dex number
+      } else if (rawSpecies >= 1 && rawSpecies <= 386 && rawSpecies < 277) {
+        // Already a valid National Dex number (Gen 1-2)
         species = rawSpecies;
+      }
+    }
+    
+    // Last resort: try to extract species from filename if provided (for non-PKHeX exports)
+    if ((species === 0 || species > 386) && filename && !isPKHeXExport) {
+      // Filename format: "### - SPECIESNAME - PID.pk3" or "### ★ - SPECIESNAME - PID.pk3"
+      const match = filename.match(/^(\d+)\s/);
+      if (match) {
+        const fileSpecies = parseInt(match[1]);
+        if (fileSpecies >= 1 && fileSpecies <= 386) {
+          species = fileSpecies;
+        }
       }
     }
     

@@ -49,6 +49,8 @@
                     <option value="experience">Experience (High to Low)</option>
                     <option value="tidSid">OT Name / Origin Game</option>
                     <option value="filename">Filename</option>
+                    <option value="dateNewest">Date (Newest First)</option>
+                    <option value="dateOldest">Date (Oldest First)</option>
                 </select>
             </div>
             <div class="group-controls">
@@ -77,6 +79,7 @@
             <div class="action-controls">
                 <button id="duplicateScannerBtn" class="btn btn-secondary">Scan Duplicates</button>
                 <button id="advancedFilterBtn" class="btn btn-secondary">Advanced Filters</button>
+                <button id="statisticsBtn" class="btn btn-secondary">Statistics</button>
                 <button id="loadSaveBtn" class="btn btn-secondary">Load Save File</button>
             </div>
             <div class="theme-controls">
@@ -346,6 +349,15 @@
         <div class="modal-content">
             <span class="modal-close">&times;</span>
             <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="statisticsModal" class="modal hidden">
+        <div class="modal-content statistics-content">
+            <span class="modal-close" id="closeStatistics">&times;</span>
+            <h2>Database Statistics</h2>
+            <div id="statisticsBody"></div>
         </div>
     </div>
 

@@ -11,6 +11,7 @@ let pokemonIndex = {
     filename: new Map(),    // filename -> lowercase filename
     ivSum: new Map(),       // filename -> ivSum
     evSum: new Map(),       // filename -> evSum
+    fileDate: new Map(),    // filename -> file creation date timestamp
     // Pre-computed grouping keys
     otGroupKey: new Map(),  // filename -> full OT group key
     tidSidGroupKey: new Map() // filename -> TID/SID group key
@@ -57,6 +58,10 @@ const advancedFilterPanel = document.getElementById('advancedFilterPanel');
 const closeAdvancedFilters = document.getElementById('closeAdvancedFilters');
 const applyAdvancedFilters = document.getElementById('applyAdvancedFilters');
 const clearAdvancedFilters = document.getElementById('clearAdvancedFilters');
+const statisticsBtn = document.getElementById('statisticsBtn');
+const statisticsModal = document.getElementById('statisticsModal');
+const closeStatistics = document.getElementById('closeStatistics');
+const statisticsBody = document.getElementById('statisticsBody');
 const loading = document.getElementById('loading');
 const error = document.getElementById('error');
 const stats = document.getElementById('stats');
@@ -129,6 +134,19 @@ duplicateScannerBtn.addEventListener('click', scanDuplicates);
 closeDuplicateResults.addEventListener('click', () => duplicateResults.classList.add('hidden'));
 advancedFilterBtn.addEventListener('click', () => advancedFilterPanel.classList.toggle('hidden'));
 closeAdvancedFilters.addEventListener('click', () => advancedFilterPanel.classList.add('hidden'));
+if (statisticsBtn) {
+    statisticsBtn.addEventListener('click', showStatistics);
+}
+if (closeStatistics) {
+    closeStatistics.addEventListener('click', () => statisticsModal.classList.add('hidden'));
+}
+if (statisticsModal) {
+    statisticsModal.addEventListener('click', (e) => {
+        if (e.target === statisticsModal) {
+            statisticsModal.classList.add('hidden');
+        }
+    });
+}
 applyAdvancedFilters.addEventListener('click', applyFilters);
 clearAdvancedFilters.addEventListener('click', clearFilters);
 cardWidthSlider.addEventListener('input', (e) => updateCardWidth(e.target.value));
@@ -208,6 +226,7 @@ function buildIndex(data) {
     pokemonIndex.evSum.clear();
     pokemonIndex.otGroupKey.clear();
     pokemonIndex.tidSidGroupKey.clear();
+    pokemonIndex.fileDate.clear();
     
     data.forEach(p => {
         if (p.error || !p.filename) return;
@@ -220,6 +239,10 @@ function buildIndex(data) {
         pokemonIndex.filename.set(p.filename, (p.filename || '').toLowerCase());
         pokemonIndex.ivSum.set(p.filename, p.ivSum || 0);
         pokemonIndex.evSum.set(p.filename, p.evSum || 0);
+        
+        // Pre-compute file date for sorting (use creation date or modified date)
+        const fileDate = p.fileCreated ? new Date(p.fileCreated).getTime() : (p.fileModified ? new Date(p.fileModified).getTime() : 0);
+        pokemonIndex.fileDate.set(p.filename, fileDate);
         
         // Pre-compute grouping keys
         const otName = p.otName || 'Unknown OT';
@@ -386,6 +409,22 @@ function sortPokemon(data, sortBy) {
                 const nameA = pokemonIndex.filename.get(a.filename) ?? (a.filename || '').toLowerCase();
                 const nameB = pokemonIndex.filename.get(b.filename) ?? (b.filename || '').toLowerCase();
                 return nameA.localeCompare(nameB);
+            });
+            break;
+        case 'dateNewest':
+            sorted.sort((a, b) => {
+                if (a.error || b.error) return 0;
+                const dateA = pokemonIndex.fileDate.get(a.filename) ?? 0;
+                const dateB = pokemonIndex.fileDate.get(b.filename) ?? 0;
+                return dateB - dateA; // Newest first (higher timestamp first)
+            });
+            break;
+        case 'dateOldest':
+            sorted.sort((a, b) => {
+                if (a.error || b.error) return 0;
+                const dateA = pokemonIndex.fileDate.get(a.filename) ?? 0;
+                const dateB = pokemonIndex.fileDate.get(b.filename) ?? 0;
+                return dateA - dateB; // Oldest first (lower timestamp first)
             });
             break;
     }
@@ -2074,6 +2113,301 @@ function getEVColor(value) {
     return '#009688'; // Teal for low
 }
 
+// Statistics
+function showStatistics() {
+    console.log('showStatistics called');
+    console.log('statisticsBody:', statisticsBody);
+    console.log('statisticsModal:', statisticsModal);
+    
+    if (!statisticsBody || !statisticsModal) {
+        console.error('Statistics elements not found:', { statisticsBody, statisticsModal });
+        alert('Statistics modal elements not found. Please refresh the page.');
+        return;
+    }
+    
+    statisticsBody.innerHTML = '<p>Calculating statistics...</p>';
+    statisticsModal.classList.remove('hidden');
+    console.log('Modal should be visible now');
+    
+    // Filter out invalid Pokemon
+    const validPokemon = pokemonData.filter(p => !p.error && p.species && p.species > 0 && p.species <= 386);
+    
+    if (validPokemon.length === 0) {
+        statisticsBody.innerHTML = '<p class="no-statistics">No valid Pokemon found in database.</p>';
+        return;
+    }
+    
+    // Calculate statistics
+    const stats = calculateStatistics(validPokemon);
+    
+    // Display statistics
+    displayStatistics(stats);
+}
+
+function calculateStatistics(pokemon) {
+    const stats = {
+        total: pokemon.length,
+        uniqueSpecies: new Set(pokemon.map(p => p.species)).size,
+        speciesCount: {},
+        shinyCount: 0,
+        shinySpecies: {},
+        ivStats: {
+            sum: { total: 0, count: 0, max: 0, min: 186 },
+            hp: { total: 0, count: 0, max: 0, min: 31 },
+            attack: { total: 0, count: 0, max: 0, min: 31 },
+            defense: { total: 0, count: 0, max: 0, min: 31 },
+            spAttack: { total: 0, count: 0, max: 0, min: 31 },
+            spDefense: { total: 0, count: 0, max: 0, min: 31 },
+            speed: { total: 0, count: 0, max: 0, min: 31 }
+        },
+        levelStats: { total: 0, count: 0, max: 0, min: 100, distribution: {} },
+        otDistribution: {},
+        gameDistribution: {},
+        natureDistribution: {},
+        abilityDistribution: {},
+        ballDistribution: {},
+        metLocationDistribution: {}
+    };
+    
+    pokemon.forEach(p => {
+        // Species count
+        const speciesName = p.speciesName || `#${p.species}`;
+        stats.speciesCount[speciesName] = (stats.speciesCount[speciesName] || 0) + 1;
+        
+        // Shiny count
+        if (p.isShiny) {
+            stats.shinyCount++;
+            stats.shinySpecies[speciesName] = (stats.shinySpecies[speciesName] || 0) + 1;
+        }
+        
+        // IV statistics
+        if (p.ivs) {
+            const ivs = p.ivs;
+            const ivSum = p.ivSum || 0;
+            
+            stats.ivStats.sum.total += ivSum;
+            stats.ivStats.sum.count++;
+            stats.ivStats.sum.max = Math.max(stats.ivStats.sum.max, ivSum);
+            stats.ivStats.sum.min = Math.min(stats.ivStats.sum.min, ivSum);
+            
+            ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
+                const value = ivs[stat] || 0;
+                stats.ivStats[stat].total += value;
+                stats.ivStats[stat].count++;
+                stats.ivStats[stat].max = Math.max(stats.ivStats[stat].max, value);
+                stats.ivStats[stat].min = Math.min(stats.ivStats[stat].min, value);
+            });
+        }
+        
+        // Level statistics
+        if (p.level) {
+            stats.levelStats.total += p.level;
+            stats.levelStats.count++;
+            stats.levelStats.max = Math.max(stats.levelStats.max, p.level);
+            stats.levelStats.min = Math.min(stats.levelStats.min, p.level);
+            
+            const levelRange = Math.floor(p.level / 10) * 10;
+            const rangeKey = `${levelRange}-${levelRange + 9}`;
+            stats.levelStats.distribution[rangeKey] = (stats.levelStats.distribution[rangeKey] || 0) + 1;
+        }
+        
+        // OT distribution
+        const otName = p.otName || 'Unknown OT';
+        stats.otDistribution[otName] = (stats.otDistribution[otName] || 0) + 1;
+        
+        // Game distribution
+        const gameName = p.originGameName || 'Unknown';
+        stats.gameDistribution[gameName] = (stats.gameDistribution[gameName] || 0) + 1;
+        
+        // Nature distribution
+        const natureName = p.natureName || (p.nature ? `Nature ${p.nature}` : null);
+        if (natureName) {
+            stats.natureDistribution[natureName] = (stats.natureDistribution[natureName] || 0) + 1;
+        }
+        
+        // Ability distribution
+        if (p.abilityName) {
+            stats.abilityDistribution[p.abilityName] = (stats.abilityDistribution[p.abilityName] || 0) + 1;
+        }
+        
+        // Ball distribution
+        if (p.ballName) {
+            stats.ballDistribution[p.ballName] = (stats.ballDistribution[p.ballName] || 0) + 1;
+        }
+        
+        // Met location distribution
+        if (p.metLocationName) {
+            stats.metLocationDistribution[p.metLocationName] = (stats.metLocationDistribution[p.metLocationName] || 0) + 1;
+        }
+    });
+    
+    // Calculate averages
+    if (stats.ivStats.sum.count > 0) {
+        stats.ivStats.sum.avg = (stats.ivStats.sum.total / stats.ivStats.sum.count).toFixed(2);
+        ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
+            if (stats.ivStats[stat].count > 0) {
+                stats.ivStats[stat].avg = (stats.ivStats[stat].total / stats.ivStats[stat].count).toFixed(2);
+            }
+        });
+    }
+    
+    if (stats.levelStats.count > 0) {
+        stats.levelStats.avg = (stats.levelStats.total / stats.levelStats.count).toFixed(2);
+    }
+    
+    // Get top items
+    stats.topSpecies = Object.entries(stats.speciesCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    stats.topShinySpecies = Object.entries(stats.shinySpecies)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    stats.topOTs = Object.entries(stats.otDistribution)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    stats.topNatures = Object.entries(stats.natureDistribution)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    stats.topAbilities = Object.entries(stats.abilityDistribution)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    stats.topBalls = Object.entries(stats.ballDistribution)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    return stats;
+}
+
+function displayStatistics(stats) {
+    let html = '<div class="statistics-container">';
+    
+    // Overview
+    html += '<div class="statistics-section">';
+    html += '<h3>Overview</h3>';
+    html += '<div class="statistics-grid">';
+    html += `<div class="statistic-card"><div class="statistic-value">${stats.total}</div><div class="statistic-label">Total Pokemon</div></div>`;
+    html += `<div class="statistic-card"><div class="statistic-value">${stats.uniqueSpecies}</div><div class="statistic-label">Unique Species</div></div>`;
+    html += `<div class="statistic-card"><div class="statistic-value">${stats.shinyCount}</div><div class="statistic-label">Shiny Pokemon</div></div>`;
+    html += `<div class="statistic-card"><div class="statistic-value">${((stats.shinyCount / stats.total) * 100).toFixed(2)}%</div><div class="statistic-label">Shiny Rate</div></div>`;
+    html += '</div></div>';
+    
+    // Most Common Pokemon
+    html += '<div class="statistics-section">';
+    html += '<h3>Most Common Pokemon</h3>';
+    html += '<div class="statistics-list">';
+    stats.topSpecies.forEach(([species, count], idx) => {
+        const percentage = ((count / stats.total) * 100).toFixed(1);
+        html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${species}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+    });
+    html += '</div></div>';
+    
+    // Most Common Shiny Pokemon
+    if (stats.topShinySpecies.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Most Common Shiny Pokemon</h3>';
+        html += '<div class="statistics-list">';
+        stats.topShinySpecies.forEach(([species, count], idx) => {
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${species} ⭐</span><span class="statistics-count">${count}</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
+    // IV Statistics
+    if (stats.ivStats.sum.count > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>IV Statistics</h3>';
+        html += '<div class="statistics-grid">';
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.avg}</div><div class="statistic-label">Avg IV Sum</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.max}</div><div class="statistic-label">Max IV Sum</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.min}</div><div class="statistic-label">Min IV Sum</div></div>`;
+        html += '</div>';
+        html += '<div class="iv-breakdown">';
+        ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
+            const statName = stat === 'spAttack' ? 'Sp. Atk' : stat === 'spDefense' ? 'Sp. Def' : stat.charAt(0).toUpperCase() + stat.slice(1);
+            html += `<div class="iv-stat-item"><span class="iv-stat-name">${statName}:</span><span class="iv-stat-value">Avg: ${stats.ivStats[stat].avg || 0} | Max: ${stats.ivStats[stat].max} | Min: ${stats.ivStats[stat].min}</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
+    // Level Statistics
+    if (stats.levelStats.count > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Level Statistics</h3>';
+        html += '<div class="statistics-grid">';
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.levelStats.avg}</div><div class="statistic-label">Average Level</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.levelStats.max}</div><div class="statistic-label">Max Level</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.levelStats.min}</div><div class="statistic-label">Min Level</div></div>`;
+        html += '</div></div>';
+    }
+    
+    // OT Distribution
+    html += '<div class="statistics-section">';
+    html += '<h3>Top OT Names</h3>';
+    html += '<div class="statistics-list">';
+    stats.topOTs.forEach(([ot, count], idx) => {
+        const percentage = ((count / stats.total) * 100).toFixed(1);
+        html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${ot}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+    });
+    html += '</div></div>';
+    
+    // Game Distribution
+    html += '<div class="statistics-section">';
+    html += '<h3>Origin Game Distribution</h3>';
+    html += '<div class="statistics-list">';
+    Object.entries(stats.gameDistribution)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([game, count]) => {
+            const percentage = ((count / stats.total) * 100).toFixed(1);
+            html += `<div class="statistics-item"><span class="statistics-name">${game}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+        });
+    html += '</div></div>';
+    
+    // Nature Distribution
+    if (stats.topNatures.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Top Natures</h3>';
+        html += '<div class="statistics-list">';
+        stats.topNatures.forEach(([nature, count], idx) => {
+            const percentage = ((count / stats.total) * 100).toFixed(1);
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${nature}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
+    // Ability Distribution
+    if (stats.topAbilities.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Top Abilities</h3>';
+        html += '<div class="statistics-list">';
+        stats.topAbilities.forEach(([ability, count], idx) => {
+            const percentage = ((count / stats.total) * 100).toFixed(1);
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${ability}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
+    // Ball Distribution
+    if (stats.topBalls.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Top Pokeballs</h3>';
+        html += '<div class="statistics-list">';
+        stats.topBalls.forEach(([ball, count], idx) => {
+            const percentage = ((count / stats.total) * 100).toFixed(1);
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${ball}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
+    html += '</div>';
+    
+    statisticsBody.innerHTML = html;
+}
+
 // Duplicate Scanner
 async function scanDuplicates() {
     const duplicateResultsBody = document.getElementById('duplicateResultsBody');
@@ -2582,17 +2916,27 @@ async function exportSaveFile() {
             throw new Error(error.error || 'Failed to export save file');
         }
         
+        // Get filename from Content-Disposition header, or use default
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'save_modified.sav';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+        
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'save_modified.sav';
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        console.log('Save file exported');
+        console.log('Save file exported as:', filename);
     } catch (error) {
         alert(`Error exporting save file: ${error.message}`);
         console.error('Error:', error);

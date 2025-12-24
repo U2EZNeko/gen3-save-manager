@@ -31,20 +31,28 @@ class SAV3Parser {
   
   /**
    * Determine which save slot is active (slot 0 or slot 1)
+   * Based on PKHeX's GetActiveSlot - uses IsAllMainSectorsPresent and CompareFooters
    */
   getActiveSlot() {
-    // Check both slots and determine which is more recent/valid
-    const slot0Valid = this.isSlotValid(0);
-    const slot1Valid = this.isSlotValid(1);
+    // Check if both slots have all required sectors
+    const slot0Valid = this.isAllMainSectorsPresent(0);
+    const slot1Valid = this.isAllMainSectorsPresent(1);
     
     if (slot0Valid && !slot1Valid) return 0;
     if (slot1Valid && !slot0Valid) return 1;
     
-    // If both are valid, check save counter
+    // If both are valid, compare footers (save counters) to find the most recent
     if (slot0Valid && slot1Valid) {
-      const counter0 = this.data.readUInt32LE(0xFFC);
-      const counter1 = this.data.readUInt32LE(SIZE_MAIN + 0xFFC);
-      return counter1 > counter0 ? 1 : 0;
+      // Find sector 0 in each slot to get footer offset
+      const sector0_0 = this.findSector0(0);
+      const sector0_1 = this.findSector0(1);
+      
+      if (sector0_0 >= 0 && sector0_1 >= 0) {
+        // Compare save counters at offset 0xFFC in sector 0
+        const counter0 = this.data.readUInt32LE(sector0_0 + 0xFFC);
+        const counter1 = this.data.readUInt32LE(sector0_1 + 0xFFC);
+        return counter1 > counter0 ? 1 : 0;
+      }
     }
     
     // Default to slot 0
@@ -52,31 +60,50 @@ class SAV3Parser {
   }
   
   /**
-   * Check if a save slot is valid
+   * Find sector 0 (small buffer sector) in a save slot
    */
-  isSlotValid(slot) {
+  findSector0(slot) {
     const start = slot * SIZE_MAIN;
-    if (start + SIZE_MAIN > this.data.length) return false;
+    const end = start + SIZE_MAIN;
     
-    let validCount = 0;
-    for (let i = 0; i < 14; i++) {
-      const offset = start + (i * SIZE_SECTOR);
-      if (offset + SIZE_SECTOR > this.data.length) break;
-      
-      const sector = this.data.slice(offset, offset + SIZE_SECTOR);
+    for (let ofs = start; ofs < end; ofs += SIZE_SECTOR) {
+      if (ofs + SIZE_SECTOR > this.data.length) break;
+      const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
       const id = sector.readUInt16LE(0xFF4);
-      const checksum = sector.readUInt16LE(0xFF6);
-      const expected = this.calculateChecksum(sector.slice(0, SIZE_SECTOR_USED));
-      const actual = checksum;
-      
-      if (expected === actual) {
-        validCount++;
+      if (id === 0) {
+        return ofs;
       }
     }
-    
-    // Consider valid if at least half the sectors are valid
-    return validCount >= 7;
+    return -1;
   }
+  
+  /**
+   * Check if all main sectors (0-13) are present in a save slot
+   * Based on PKHeX's IsAllMainSectorsPresent
+   */
+  isAllMainSectorsPresent(slot) {
+    const start = slot * SIZE_MAIN;
+    const end = start + SIZE_MAIN;
+    let bitTrack = 0; // bit flags for each sector, 1 if present
+    
+    for (let ofs = start; ofs < end; ofs += SIZE_SECTOR) {
+      if (ofs + SIZE_SECTOR > this.data.length) break;
+      
+      const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
+      const id = sector.readUInt16LE(0xFF4);
+      
+      if (id < 0 || id >= 14) {
+        return false; // Invalid sector ID
+      }
+      
+      bitTrack |= (1 << id); // Set bit for this sector ID
+    }
+    
+    // Check if all 14 sectors (0-13) are present
+    // 0b_0011_1111_1111_1111 = all bits 0-13 set
+    return bitTrack === 0b0011111111111111;
+  }
+  
   
   /**
    * Calculate sector checksum
@@ -95,23 +122,23 @@ class SAV3Parser {
   
   /**
    * Read sectors from save file into buffers
+   * Based on PKHeX's ReadSectors - scans for sectors by ID within the active slot
    */
   readSectors() {
     const start = this.activeSlot * SIZE_MAIN;
+    const end = start + SIZE_MAIN;
     
     // Check if we have enough data
     if (start + SIZE_MAIN > this.data.length) {
       throw new Error(`Save file too small: need ${start + SIZE_MAIN} bytes, got ${this.data.length}`);
     }
     
-    for (let i = 0; i < 14; i++) {
-      const offset = start + (i * SIZE_SECTOR);
-      if (offset + SIZE_SECTOR > this.data.length) {
-        console.warn(`Sector ${i} out of bounds, skipping`);
-        break;
-      }
+    // Scan through all sectors in the active slot and route to buffers by ID
+    // Sectors may not be in sequential order, so we scan for them
+    for (let ofs = start; ofs < end; ofs += SIZE_SECTOR) {
+      if (ofs + SIZE_SECTOR > this.data.length) break;
       
-      const sector = this.data.slice(offset, offset + SIZE_SECTOR);
+      const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
       const id = sector.readUInt16LE(0xFF4);
       const sectorData = sector.slice(0, SIZE_SECTOR_USED);
       
@@ -134,59 +161,122 @@ class SAV3Parser {
   
   /**
    * Write buffers back to save file sectors
+   * Based on PKHeX's WriteSectors - finds sectors by ID and writes buffer data to them
+   * IMPORTANT: We must find the actual sector positions by scanning for sector IDs,
+   * as sectors may not be in sequential order within the save slot
    */
   writeSectors() {
     const start = this.activeSlot * SIZE_MAIN;
+    const end = start + SIZE_MAIN;
     
-    // Write small buffer (sector 0)
-    const sector0 = this.data.slice(start, start + SIZE_SECTOR);
-    this.smallBuffer.copy(sector0, 0, 0, Math.min(SIZE_SECTOR_USED, this.smallBuffer.length));
-    const checksum0 = this.calculateChecksum(this.smallBuffer);
-    sector0.writeUInt16LE(0, 0xFF4); // Sector ID
-    sector0.writeUInt16LE(checksum0, 0xFF6);
-    sector0.copy(this.data, start, 0, SIZE_SECTOR);
+    // First, find all sector positions by scanning for sector IDs
+    // This matches PKHeX's approach - sectors can be in any order
+    const sectorPositions = new Map(); // id -> offset
     
-    // Write large buffer (sectors 1-4)
-    for (let id = 1; id <= 4; id++) {
-      const sectorOffset = start + (id * SIZE_SECTOR);
-      const bufferOffset = (id - 1) * SIZE_SECTOR_USED;
-      const sector = this.data.slice(sectorOffset, sectorOffset + SIZE_SECTOR);
-      this.largeBuffer.copy(sector, 0, bufferOffset, bufferOffset + SIZE_SECTOR_USED);
-      const checksum = this.calculateChecksum(this.largeBuffer.slice(bufferOffset, bufferOffset + SIZE_SECTOR_USED));
-      sector.writeUInt16LE(id, 0xFF4);
-      sector.writeUInt16LE(checksum, 0xFF6);
-      sector.copy(this.data, sectorOffset, 0, SIZE_SECTOR);
+    for (let ofs = start; ofs < end; ofs += SIZE_SECTOR) {
+      if (ofs + SIZE_SECTOR > this.data.length) break;
+      
+      const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
+      const id = sector.readUInt16LE(0xFF4);
+      
+      // Only track valid sector IDs (0-13)
+      if (id >= 0 && id <= 13) {
+        sectorPositions.set(id, ofs);
+      }
     }
     
-    // Write storage buffer (sectors 5-13)
-    for (let id = 5; id <= 13; id++) {
-      const sectorOffset = start + (id * SIZE_SECTOR);
-      const bufferOffset = (id - 5) * SIZE_SECTOR_USED;
-      const sector = this.data.slice(sectorOffset, sectorOffset + SIZE_SECTOR);
-      this.storageBuffer.copy(sector, 0, bufferOffset, bufferOffset + SIZE_SECTOR_USED);
-      const checksum = this.calculateChecksum(this.storageBuffer.slice(bufferOffset, bufferOffset + SIZE_SECTOR_USED));
-      sector.writeUInt16LE(id, 0xFF4);
-      sector.writeUInt16LE(checksum, 0xFF6);
-      sector.copy(this.data, sectorOffset, 0, SIZE_SECTOR);
+    // Now write each sector by ID
+    // Based on PKHeX's WriteSectors - copy buffer data to sectors
+    // PKHeX copies FROM buffer chunks TO data sectors
+    for (const [id, ofs] of sectorPositions.entries()) {
+      if (ofs + SIZE_SECTOR > this.data.length) continue;
+      
+      if (id === 0) {
+        // Small buffer (sector 0)
+        // Save the original counter and footer bytes before we overwrite anything
+        const footerStart = ofs + SIZE_SECTOR_USED;
+        const originalCounter = this.data.readUInt32LE(ofs + 0xFFC);
+        const originalFooterBytes = this.data.slice(footerStart + 0x08, ofs + 0xFFC); // Bytes 0xFF8-0xFFB (8 bytes before counter)
+        
+        this.smallBuffer.copy(this.data, ofs, 0, Math.min(SIZE_SECTOR_USED, this.smallBuffer.length));
+        const checksum = this.calculateChecksum(this.smallBuffer.slice(0, SIZE_SECTOR_USED));
+        // Write sector ID and checksum in footer
+        this.data.writeUInt16LE(0, ofs + 0xFF4); // Sector ID
+        this.data.writeUInt16LE(checksum, ofs + 0xFF6);
+        
+        // Restore footer bytes 0xFF8-0xFFB (but NOT 0xFFC-0xFFF which contains the counter)
+        originalFooterBytes.copy(this.data, footerStart + 0x08);
+        
+        // Increment save counter at 0xFFC to make this slot the active one
+        // This ensures the slot we wrote to remains active after export
+        const otherSlot = this.activeSlot === 0 ? 1 : 0;
+        const otherSector0 = this.findSector0(otherSlot);
+        let otherCounter = 0;
+        if (otherSector0 >= 0) {
+          otherCounter = this.data.readUInt32LE(otherSector0 + 0xFFC);
+        }
+        // Make sure our counter is higher than the other slot's counter
+        const newCounter = Math.max(originalCounter, otherCounter) + 1;
+        // Handle overflow - wrap around if needed
+        const finalCounter = (newCounter > 0xFFFFFFFF) ? 0 : (newCounter >>> 0);
+        this.data.writeUInt32LE(finalCounter, ofs + 0xFFC);
+      } else if (id >= 1 && id <= 4) {
+        // Large buffer (sectors 1-4)
+        const bufferOffset = (id - 1) * SIZE_SECTOR_USED;
+        if (bufferOffset + SIZE_SECTOR_USED <= this.largeBuffer.length) {
+          const footerStart = ofs + SIZE_SECTOR_USED;
+          const originalFooterBytes = this.data.slice(footerStart + 0x08, ofs + SIZE_SECTOR);
+          
+          this.largeBuffer.copy(this.data, ofs, bufferOffset, bufferOffset + SIZE_SECTOR_USED);
+          const checksum = this.calculateChecksum(this.largeBuffer.slice(bufferOffset, bufferOffset + SIZE_SECTOR_USED));
+          this.data.writeUInt16LE(id, ofs + 0xFF4);
+          this.data.writeUInt16LE(checksum, ofs + 0xFF6);
+          // Restore rest of footer (0xFF8-0xFFF)
+          originalFooterBytes.copy(this.data, footerStart + 0x08);
+        }
+      } else if (id >= 5 && id <= 13) {
+        // Storage buffer (sectors 5-13)
+        const bufferOffset = (id - 5) * SIZE_SECTOR_USED;
+        if (bufferOffset + SIZE_SECTOR_USED <= this.storageBuffer.length) {
+          const footerStart = ofs + SIZE_SECTOR_USED;
+          const originalFooterBytes = this.data.slice(footerStart + 0x08, ofs + SIZE_SECTOR);
+          
+          this.storageBuffer.copy(this.data, ofs, bufferOffset, bufferOffset + SIZE_SECTOR_USED);
+          const checksum = this.calculateChecksum(this.storageBuffer.slice(bufferOffset, bufferOffset + SIZE_SECTOR_USED));
+          this.data.writeUInt16LE(id, ofs + 0xFF4);
+          this.data.writeUInt16LE(checksum, ofs + 0xFF6);
+          // Restore rest of footer (0xFF8-0xFFF)
+          originalFooterBytes.copy(this.data, footerStart + 0x08);
+        }
+      }
     }
+    
+    // After writing sectors, reload buffers from the updated save file data
+    // This ensures that subsequent operations (like findNextEmptyBoxSlot) see the updated data
+    this.readSectors();
   }
   
   /**
    * Get box offset in storage buffer
+   * Based on PKHeX: Box + 4 + (SIZE_STORED * box * COUNT_SLOTSPERBOX)
+   * Box starts at 0, with a 4-byte header, then boxes follow
    */
   getBoxOffset(box) {
     if (box < 0 || box >= COUNT_BOX) return -1;
-    // Each box has COUNT_SLOTSPERBOX slots, each slot is SIZE_STORED bytes
-    return box * COUNT_SLOTSPERBOX * SIZE_STORED;
+    // Storage buffer starts with 4-byte header (current box index at offset 0)
+    // Then boxes follow: each box has COUNT_SLOTSPERBOX slots, each slot is SIZE_STORED bytes
+    return 4 + (box * COUNT_SLOTSPERBOX * SIZE_STORED);
   }
   
   /**
    * Get party offset in large buffer
+   * Based on PKHeX: Party starts at 0x238 in Large buffer (RS/E)
+   * Party count is at 0x234
    */
   getPartyOffset() {
-    // Party starts after trainer data in large buffer
-    // Approximate offset - may need adjustment based on game version
-    return 0x98; // Common offset for party data
+    // Party starts at 0x238 in large buffer (RS/E/FRLG)
+    // This is after trainer data and other game-specific data
+    return 0x238;
   }
   
   /**
@@ -204,7 +294,30 @@ class SAV3Parser {
     if (slotOffset + SIZE_STORED > this.storageBuffer.length) return null;
     
     const pkmData = this.storageBuffer.slice(slotOffset, slotOffset + SIZE_STORED);
-    return this.decryptPKM(pkmData);
+    
+    // Check if slot is empty (all zeros or invalid PID)
+    const personality = pkmData.readUInt32LE(0);
+    if (personality === 0) {
+      return null; // Empty slot
+    }
+    
+    const decrypted = this.decryptPKM(pkmData);
+    if (!decrypted) {
+      return null; // Decryption failed or invalid data
+    }
+    
+    // Recalculate checksum for decrypted data and update it in the header
+    // This ensures PK3Parser.checkIfEncrypted returns false for already-decrypted data
+    let checksum = 0;
+    const blockStart = 0x20;
+    const blockEnd = 0x50;
+    for (let i = blockStart; i < blockEnd && i + 2 <= decrypted.length; i += 2) {
+      checksum += decrypted.readUInt16LE(i);
+    }
+    checksum = checksum & 0xFFFF;
+    decrypted.writeUInt16LE(checksum, 0x1C);
+    
+    return decrypted;
   }
   
   /**
@@ -224,6 +337,9 @@ class SAV3Parser {
   
   /**
    * Decrypt Pokemon data (Gen 3 encryption)
+   * Based on PKHeX's DecryptArray3:
+   * 1. XOR data blocks (0x20-0x50) with seed = PID ^ OID
+   * 2. Unshuffle blocks using BlockPosition[PID % 24]
    */
   decryptPKM(data) {
     if (!data || data.length < SIZE_STORED) return null;
@@ -235,16 +351,19 @@ class SAV3Parser {
     const seed = (PID ^ OID) >>> 0;
     const sv = PID % 24;
     
-    const decrypted = Buffer.from(data);
-    
     // Step 1: XOR data blocks (0x20-0x50) with seed
     // Header (0x00-0x1F) is NOT encrypted
-    for (let i = 0x20; i < SIZE_STORED; i += 4) {
+    // CryptArray3 XORs the data blocks (0x20-0x50) with seed
+    const decrypted = Buffer.from(data);
+    const SIZE_3HEADER = 32; // 0x20
+    const SIZE_3STORED_BLOCKS = 48; // 0x50 - 0x20 = 48 bytes
+    for (let i = SIZE_3HEADER; i < SIZE_3HEADER + SIZE_3STORED_BLOCKS; i += 4) {
       const value = decrypted.readUInt32LE(i);
       decrypted.writeUInt32LE((value ^ seed) >>> 0, i);
     }
     
-    // Step 2: Unshuffle blocks using BlockPosition
+    // Step 2: Unshuffle blocks using BlockPosition[PID % 24]
+    // For decryption, we use PID % 24 directly (not BlockPositionInvert)
     return this.shuffleArray3(decrypted, sv, false);
   }
   
@@ -294,6 +413,9 @@ class SAV3Parser {
       
       // Encrypt and write to storage buffer
       const encrypted = this.encryptPKM(pokemonData);
+      if (slotOffset + SIZE_STORED > this.storageBuffer.length) {
+        throw new Error(`Box slot offset out of bounds: ${slotOffset} (buffer size: ${this.storageBuffer.length})`);
+      }
       encrypted.copy(this.storageBuffer, slotOffset, 0, SIZE_STORED);
       
     } else if (targetType === 'party') {
@@ -318,12 +440,21 @@ class SAV3Parser {
       }
       
       // Encrypt and write to large buffer
-      // Party Pokemon need 100 bytes, but we only have 80 bytes
-      // Pad with zeros for the extra 20 bytes
+      // Party Pokemon need 100 bytes: 80 bytes stored format + 20 bytes party data
       const encrypted = this.encryptPKM(pokemonData);
-      const partyData = Buffer.alloc(SIZE_PARTY);
-      encrypted.copy(partyData, 0, 0, SIZE_STORED);
-      partyData.copy(this.largeBuffer, slotOffset, 0, SIZE_PARTY);
+      if (slotOffset + SIZE_PARTY > this.largeBuffer.length) {
+        throw new Error(`Party slot offset out of bounds: ${slotOffset} (buffer size: ${this.largeBuffer.length})`);
+      }
+      // Copy encrypted stored format (80 bytes) to party slot
+      encrypted.copy(this.largeBuffer, slotOffset, 0, SIZE_STORED);
+      // Initialize party data (last 20 bytes) to zero
+      this.largeBuffer.fill(0, slotOffset + SIZE_STORED, slotOffset + SIZE_PARTY);
+      
+      // Update party count if needed
+      const currentCount = this.largeBuffer.readUInt8(0x234);
+      if (targetIndex >= currentCount) {
+        this.largeBuffer.writeUInt8(targetIndex + 1, 0x234);
+      }
     } else {
       throw new Error('Invalid target type');
     }
@@ -346,7 +477,7 @@ class SAV3Parser {
     const OID = data.readUInt32LE(4);
     const seed = (PID ^ OID) >>> 0;
     
-    // BlockPositionInvert maps PID % 24 to a shuffle value
+    // BlockPositionInvert maps PID % 24 to a shuffle value for encryption
     const BlockPositionInvert = [
       0, 1, 2, 4, 3, 5, 6, 7, 12, 18, 13, 19, 8, 10, 14, 20, 16, 22, 9, 11, 15, 21, 17, 23,
       0, 1, 2, 4, 3, 5, 6, 7, // duplicates
@@ -354,17 +485,26 @@ class SAV3Parser {
     const sv = BlockPositionInvert[PID % 24];
     
     // Step 1: Shuffle blocks using the inverted shuffle value
+    // For encryption, we use BlockPositionInvert[PID % 24]
     const shuffled = this.shuffleArray3(data, sv, true);
     
     // Step 2: XOR data blocks (0x20-0x50) with seed
     // Header (0x00-0x1F) is NOT encrypted, only shuffled
-    for (let i = 0x20; i < SIZE_STORED; i += 4) {
+    // CryptArray3 XORs the data blocks (0x20-0x50) with seed
+    // Note: We XOR 32-bit values, not individual bytes
+    // SIZE_3STORED = 80 (0x50), SIZE_3HEADER = 32 (0x20)
+    // So we XOR from 0x20 to 0x50 (48 bytes = 12 uint32 values)
+    const SIZE_3HEADER = 32; // 0x20
+    const SIZE_3STORED_BLOCKS = 48; // 0x50 - 0x20 = 48 bytes
+    for (let i = SIZE_3HEADER; i < SIZE_3HEADER + SIZE_3STORED_BLOCKS; i += 4) {
       const value = shuffled.readUInt32LE(i);
       const encryptedValue = (value ^ seed) >>> 0;
       shuffled.writeUInt32LE(encryptedValue, i);
     }
     
     // Step 3: Recalculate checksum (sum of blocks A, B, C, D at 0x20-0x4F)
+    // Checksum is calculated on the ENCRYPTED data blocks (after shuffle and XOR)
+    // This matches how the game validates Pokemon data
     let checksum = 0;
     for (let i = 0x20; i < 0x50; i += 2) {
       checksum += shuffled.readUInt16LE(i);
@@ -384,15 +524,11 @@ class SAV3Parser {
   shuffleArray3(data, sv, encrypt) {
     const SIZE_3HEADER = 32;
     const SIZE_3BLOCK = 12;
+    const SIZE_3STORED = 80;
     const BlockCount = 4;
     
-    // BlockPositionInvert maps PID % 24 to a shuffle value for encryption
-    const BlockPositionInvert = [
-      0, 1, 2, 4, 3, 5, 6, 7, 12, 18, 13, 19, 8, 10, 14, 20, 16, 22, 9, 11, 15, 21, 17, 23,
-      0, 1, 2, 4, 3, 5, 6, 7, // duplicates
-    ];
-    
     // BlockPosition contains block indices (0-3) for each shuffle pattern
+    // This is the same array used by PKHeX
     const BlockPosition = [
       0, 1, 2, 3, 0, 1, 3, 2, 0, 2, 1, 3, 0, 3, 1, 2, 0, 2, 3, 1, 0, 3, 2, 1,
       1, 0, 2, 3, 1, 0, 3, 2, 2, 0, 1, 3, 3, 0, 1, 2, 2, 0, 3, 1, 3, 0, 2, 1,
@@ -402,36 +538,38 @@ class SAV3Parser {
       1, 0, 2, 3, 1, 0, 3, 2, // duplicates
     ];
     
-    const result = Buffer.from(data);
+    const result = Buffer.alloc(data.length);
     const index = sv * BlockCount;
     
     // Copy header (0x00-0x1F) as-is
     data.copy(result, 0, 0, SIZE_3HEADER);
     
-    // Shuffle/unshuffle blocks
-    // BlockPosition values are block indices (0-3), so srcBlockIndex is always 0-3
-    // Validate data size first
-    if (data.length < SIZE_3HEADER + (SIZE_3BLOCK * BlockCount)) {
-      throw new Error(`Data too small for shuffling: ${data.length} bytes (need at least ${SIZE_3HEADER + (SIZE_3BLOCK * BlockCount)} bytes)`);
+    // Copy data after SIZE_3STORED (if any - for party Pokemon)
+    if (data.length > SIZE_3STORED) {
+      data.copy(result, SIZE_3STORED, SIZE_3STORED, data.length);
     }
     
+    // Shuffle/unshuffle blocks using BlockPosition array
+    // BlockPosition[index + block] tells us which source block to use for each destination block
     for (let block = 0; block < BlockCount; block++) {
       const arrayIndex = index + block;
-      // Ensure we're within BlockPosition array bounds
       if (arrayIndex < 0 || arrayIndex >= BlockPosition.length) {
         throw new Error(`BlockPosition index out of range: ${arrayIndex} (array length: ${BlockPosition.length}, sv: ${sv}, index: ${index}, block: ${block})`);
       }
+      
       const destOffset = SIZE_3HEADER + (SIZE_3BLOCK * block);
       const srcBlockIndex = BlockPosition[arrayIndex];
-      // Ensure srcBlockIndex is valid (0-3)
-      if (srcBlockIndex === undefined || srcBlockIndex < 0 || srcBlockIndex >= BlockCount) {
-        throw new Error(`Invalid block index: ${srcBlockIndex} from BlockPosition[${arrayIndex}] (expected 0-${BlockCount - 1}, sv: ${sv}, index: ${index})`);
+      
+      if (srcBlockIndex < 0 || srcBlockIndex >= BlockCount) {
+        throw new Error(`Invalid block index: ${srcBlockIndex} from BlockPosition[${arrayIndex}] (expected 0-${BlockCount - 1})`);
       }
+      
       const srcOffset = SIZE_3HEADER + (SIZE_3BLOCK * srcBlockIndex);
-      // Ensure srcOffset is within bounds
-      if (srcOffset < 0 || srcOffset + SIZE_3BLOCK > data.length) {
-        throw new Error(`Source offset out of range: ${srcOffset} (data length: ${data.length}, srcBlockIndex: ${srcBlockIndex}, arrayIndex: ${arrayIndex})`);
+      
+      if (srcOffset + SIZE_3BLOCK > data.length || destOffset + SIZE_3BLOCK > result.length) {
+        throw new Error(`Block copy out of bounds: src=${srcOffset}, dest=${destOffset}, dataLen=${data.length}, resultLen=${result.length}`);
       }
+      
       data.copy(result, destOffset, srcOffset, srcOffset + SIZE_3BLOCK);
     }
     
