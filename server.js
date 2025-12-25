@@ -5,6 +5,7 @@ const path = require('path');
 const PK3Parser = require('./pk3-parser');
 const SAV3Parser = require('./sav3-parser');
 const multer = require('multer');
+const archiver = require('archiver');
 
 // Convert National Dex ID to Gen 3 internal species ID
 // Based on PKHeX.Core/PKM/Util/Conversion/SpeciesConverter.cs GetInternal3
@@ -234,6 +235,74 @@ app.delete('/api/pokemon/:filename', (req, res) => {
   } catch (error) {
     console.error(`Error deleting file ${filename}:`, error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to download selected Pokemon files as a zip
+app.post('/api/pokemon/download', express.json({ limit: '10mb' }), (req, res) => {
+  try {
+    const { filenames, db } = req.body;
+    
+    if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
+      return res.status(400).json({ error: 'No filenames provided' });
+    }
+    
+    const dbId = db || 'db1';
+    const folderPath = getFolderPath(dbId);
+    
+    if (!fs.existsSync(folderPath)) {
+      return res.status(404).json({ error: 'Folder not found' });
+    }
+    
+    // Security: Validate all filenames
+    for (const filename of filenames) {
+      if (!filename.toLowerCase().endsWith('.pk3')) {
+        return res.status(400).json({ error: `Invalid file type: ${filename}` });
+      }
+      if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ error: `Invalid filename: ${filename}` });
+      }
+    }
+    
+    // Create zip archive
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Maximum compression
+    });
+    
+    // Set response headers
+    res.attachment(`selected-pokemon-${Date.now()}.zip`);
+    archive.pipe(res);
+    
+    // Add each file to the archive
+    let filesAdded = 0;
+    for (const filename of filenames) {
+      const filePath = path.join(folderPath, filename);
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: filename });
+        filesAdded++;
+      }
+    }
+    
+    if (filesAdded === 0) {
+      archive.abort();
+      return res.status(404).json({ error: 'No files found' });
+    }
+    
+    // Finalize the archive
+    archive.finalize();
+    
+    archive.on('error', (err) => {
+      console.error('Archive error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to create archive' });
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error creating download:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message });
+    }
   }
 });
 

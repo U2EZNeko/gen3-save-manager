@@ -73,6 +73,8 @@ const pokemonGrid = document.getElementById('pokemonGrid');
 const cardWidthSlider = document.getElementById('cardWidthSlider');
 const cardWidthValue = document.getElementById('cardWidthValue');
 const maxDisplayLimit = document.getElementById('maxDisplayLimit');
+const startSelectingBtn = document.getElementById('startSelectingBtn');
+const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
 
@@ -163,6 +165,75 @@ if (maxDisplayLimit) {
     maxDisplayLimit.addEventListener('change', () => {
         localStorage.setItem('maxDisplayLimit', maxDisplayLimit.value);
         sortAndDisplay();
+    });
+}
+
+// Selection mode toggle
+if (startSelectingBtn) {
+    startSelectingBtn.addEventListener('click', () => {
+        selectionMode = !selectionMode;
+        if (selectionMode) {
+            startSelectingBtn.textContent = 'Stop Selecting';
+            startSelectingBtn.classList.add('active');
+            if (downloadSelectedBtn) {
+                downloadSelectedBtn.classList.remove('hidden');
+            }
+        } else {
+            startSelectingBtn.textContent = 'Start Selecting';
+            startSelectingBtn.classList.remove('active');
+            if (downloadSelectedBtn) {
+                downloadSelectedBtn.classList.add('hidden');
+            }
+            // Clear selection when exiting selection mode
+            selectedPokemon.clear();
+            updateSelectionUI();
+            // Re-render cards to remove checkboxes
+            sortAndDisplay();
+        }
+        // Re-render cards to show/hide checkboxes
+        sortAndDisplay();
+    });
+}
+
+// Download selected Pokemon
+if (downloadSelectedBtn) {
+    downloadSelectedBtn.addEventListener('click', async () => {
+        if (selectedPokemon.size === 0) {
+            alert('No Pokemon selected');
+            return;
+        }
+        
+        try {
+            const filenames = Array.from(selectedPokemon);
+            const response = await fetch('/api/pokemon/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    filenames: filenames,
+                    db: currentDatabase 
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Download failed');
+            }
+            
+            // Get the blob and create download link
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `selected-pokemon-${Date.now()}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading Pokemon:', error);
+            alert('Failed to download selected Pokemon: ' + error.message);
+        }
     });
 }
 
@@ -845,8 +916,8 @@ async function createPokemonCard(pokemon) {
     // Store filename in card data attribute for easy access
     card.dataset.filename = pokemon.filename;
     
-    // Add selection checkbox (only show if save file is loaded)
-    if (saveFileLoaded) {
+    // Add selection checkbox (show if save file is loaded OR if in selection mode)
+    if (saveFileLoaded || selectionMode) {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.className = 'pokemon-select-checkbox';
@@ -901,8 +972,8 @@ async function createPokemonCard(pokemon) {
             return;
         }
         
-        // If save file is loaded, allow card click to toggle selection with Shift/Ctrl
-        if (saveFileLoaded) {
+        // If save file is loaded or in selection mode, allow card click to toggle selection with Shift/Ctrl
+        if (saveFileLoaded || selectionMode) {
             const checkbox = card.querySelector('.pokemon-select-checkbox');
             if (checkbox) {
                 if (e.shiftKey && lastSelectedIndex >= 0) {
@@ -960,8 +1031,20 @@ function togglePokemonSelection(filename, isSelected) {
 // Update selection UI
 function updateSelectionUI() {
     const count = selectedPokemon.size;
-    selectedCount.textContent = `${count} Pokemon selected`;
-    importSelectedBtn.disabled = count === 0 || !saveFileLoaded;
+    if (selectedCount) {
+        selectedCount.textContent = `${count} Pokemon selected`;
+    }
+    if (importSelectedBtn) {
+        importSelectedBtn.disabled = count === 0 || !saveFileLoaded;
+    }
+    if (downloadSelectedBtn) {
+        downloadSelectedBtn.disabled = count === 0;
+    }
+}
+
+// Alias for backward compatibility
+function updateSelectedCount() {
+    updateSelectionUI();
 }
 
 // Update all card checkbox states
@@ -2758,6 +2841,7 @@ const saveFileLoading = document.getElementById('saveFileLoading');
 const selectedCount = document.getElementById('selectedCount');
 const importSelectedBtn = document.getElementById('importSelectedBtn');
 let saveFileLoaded = false;
+let selectionMode = false; // Track if we're in selection mode (independent of save file)
 
 // Event listeners for save file management
 loadSaveBtn.addEventListener('click', () => {
