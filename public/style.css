@@ -1638,6 +1638,36 @@ header h1 {
     font-size: 0.9em;
 }
 
+.save-file-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    margin: 20px 0;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.save-file-loading.hidden {
+    display: none !important;
+}
+
+.save-file-loading .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #667eea;
+    margin-bottom: 15px;
+}
+
+.save-file-loading p {
+    color: #e0e0e0;
+    margin: 0;
+    font-size: 0.95em;
+}
+
 .save-file-controls {
     display: flex;
     flex-direction: column;
@@ -1677,12 +1707,25 @@ header h1 {
 
 .import-options {
     display: flex;
+    flex-direction: column;
     gap: 15px;
-    align-items: center;
-    flex-wrap: wrap;
     padding: 15px;
     background: #1e1e2e;
     border-radius: 8px;
+}
+
+.import-target-options {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.import-special-options {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .import-options label {

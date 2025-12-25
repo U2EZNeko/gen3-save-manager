@@ -2,6 +2,8 @@
 let pokemonData = [];
 let filteredData = [];
 let selectedPokemon = new Set(); // Track selected Pokemon by filename
+let lastSelectedIndex = -1; // Track last selected card index for range selection
+let allPokemonCards = []; // Track all Pokemon cards in current display order
 
 // Index for fast sorting/grouping operations
 let pokemonIndex = {
@@ -583,6 +585,7 @@ async function displayPokemon(pokemon) {
         // Create all cards
         const cardPromises = displayPokemon.map(p => createPokemonCard(p));
         const cards = await Promise.all(cardPromises);
+        allPokemonCards = cards; // Track all cards for multi-select
         cards.forEach(card => pokemonGrid.appendChild(card));
     }
     
@@ -674,6 +677,7 @@ async function displayGroupedPokemon(pokemon, totalCount) {
         // Create all cards for this group (limited if needed)
         const cardPromises = groupPokemon.map(p => createPokemonCard(p));
         const cards = await Promise.all(cardPromises);
+        allPokemonCards.push(...cards); // Track all cards for multi-select
         cards.forEach(card => groupGrid.appendChild(card));
         
         groupDiv.appendChild(groupGrid);
@@ -849,7 +853,37 @@ async function createPokemonCard(pokemon) {
         checkbox.checked = selectedPokemon.has(pokemon.filename);
         checkbox.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent card click
+            
+            // Multi-select support: Shift for range, Ctrl/Cmd for toggle
+            if (e.shiftKey && lastSelectedIndex >= 0) {
+                // Range selection
+                const currentIndex = allPokemonCards.findIndex(c => c.dataset.filename === pokemon.filename);
+                if (currentIndex >= 0) {
+                    const start = Math.min(lastSelectedIndex, currentIndex);
+                    const end = Math.max(lastSelectedIndex, currentIndex);
+                    const rangeSelected = checkbox.checked;
+                    
+                    for (let i = start; i <= end; i++) {
+                        const c = allPokemonCards[i];
+                        if (c) {
+                            const cb = c.querySelector('.pokemon-select-checkbox');
+                            if (cb) {
+                                cb.checked = rangeSelected;
+                                togglePokemonSelection(c.dataset.filename, rangeSelected);
+                            }
+                        }
+                    }
+                    lastSelectedIndex = currentIndex;
+                    return;
+                }
+            }
+            
+            // Single selection or Ctrl/Cmd toggle
             togglePokemonSelection(pokemon.filename, checkbox.checked);
+            const currentIndex = allPokemonCards.findIndex(c => c.dataset.filename === pokemon.filename);
+            if (currentIndex >= 0) {
+                lastSelectedIndex = currentIndex;
+            }
         });
         
         // Insert checkbox at the top-right of the card
@@ -863,9 +897,51 @@ async function createPokemonCard(pokemon) {
     card.style.cursor = 'pointer';
     card.addEventListener('click', (e) => {
         // Don't open modal if clicking checkbox
-        if (!e.target.closest('.pokemon-select-checkbox')) {
-            showPokemonModal(pokemon);
+        if (e.target.closest('.pokemon-select-checkbox')) {
+            return;
         }
+        
+        // If save file is loaded, allow card click to toggle selection with Shift/Ctrl
+        if (saveFileLoaded) {
+            const checkbox = card.querySelector('.pokemon-select-checkbox');
+            if (checkbox) {
+                if (e.shiftKey && lastSelectedIndex >= 0) {
+                    // Range selection
+                    const currentIndex = allPokemonCards.findIndex(c => c === card);
+                    if (currentIndex >= 0) {
+                        const start = Math.min(lastSelectedIndex, currentIndex);
+                        const end = Math.max(lastSelectedIndex, currentIndex);
+                        const newState = !selectedPokemon.has(pokemon.filename);
+                        
+                        for (let i = start; i <= end; i++) {
+                            const c = allPokemonCards[i];
+                            if (c) {
+                                const cb = c.querySelector('.pokemon-select-checkbox');
+                                if (cb) {
+                                    cb.checked = newState;
+                                    togglePokemonSelection(c.dataset.filename, newState);
+                                }
+                            }
+                        }
+                        lastSelectedIndex = currentIndex;
+                        return;
+                    }
+                }
+                
+                // Toggle selection (Ctrl/Cmd for multi-select, regular click toggles)
+                const newState = !checkbox.checked;
+                checkbox.checked = newState;
+                togglePokemonSelection(pokemon.filename, newState);
+                const currentIndex = allPokemonCards.findIndex(c => c === card);
+                if (currentIndex >= 0) {
+                    lastSelectedIndex = currentIndex;
+                }
+                return;
+            }
+        }
+        
+        // Otherwise show modal
+        showPokemonModal(pokemon);
     });
     
     return card;
@@ -2677,7 +2753,8 @@ const saveFileInput = document.getElementById('saveFileInput');
 const loadSaveFileBtn = document.getElementById('loadSaveFileBtn');
 const exportSaveBtn = document.getElementById('exportSaveBtn');
 const saveFileStatus = document.getElementById('saveFileStatus');
-const dropZone = document.getElementById('dropZone');
+const saveFileLoading = document.getElementById('saveFileLoading');
+// Drop zone removed - using card selection instead
 const selectedCount = document.getElementById('selectedCount');
 const importSelectedBtn = document.getElementById('importSelectedBtn');
 let saveFileLoaded = false;
@@ -2698,42 +2775,83 @@ saveFileInput.addEventListener('change', async (e) => {
     await loadSaveFile(file);
 });
 
-// Drag and drop for save file
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('drag-over');
-});
-
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
-});
-
-dropZone.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    
-    const files = Array.from(e.dataTransfer.files);
-    const pk3Files = files.filter(f => f.name.toLowerCase().endsWith('.pk3'));
-    
-    if (pk3Files.length > 0) {
-        await importPokemonFiles(pk3Files);
-    }
-});
-
-dropZone.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pk3';
-    input.multiple = true;
-    input.addEventListener('change', async (e) => {
-        const files = Array.from(e.target.files);
-        await importPokemonFiles(files);
-    });
-    input.click();
-});
+// Drag and drop removed - using card selection instead
 
 exportSaveBtn.addEventListener('click', exportSaveFile);
 importSelectedBtn.addEventListener('click', importSelectedPokemon);
+
+// Lottery select button
+const lotterySelectBtn = document.getElementById('lotterySelectBtn');
+if (lotterySelectBtn) {
+    lotterySelectBtn.addEventListener('click', performLotterySelect);
+}
+
+// Perform lottery selection: select 1 random Pokemon per TID/SID combo from currently displayed Pokemon
+function performLotterySelect() {
+    if (!saveFileLoaded) {
+        alert('Please load a save file first to enable selection');
+        return;
+    }
+    
+    // Use filteredData which contains the currently displayed Pokemon after all filters
+    const dataToUse = filteredData && filteredData.length > 0 ? filteredData : pokemonData;
+    
+    if (!dataToUse || dataToUse.length === 0) {
+        alert('No Pokemon to select from. Please load Pokemon first.');
+        return;
+    }
+    
+    const tidSidGroups = new Map();
+    
+    // Group currently displayed Pokemon by TID/SID
+    for (const pokemon of dataToUse) {
+        if (pokemon.error || !pokemon.filename) continue; // Skip error Pokemon and invalid entries
+        
+        // Ensure TID and SID are valid numbers
+        const tid = pokemon.tid || 0;
+        const sid = pokemon.sid || 0;
+        const tidSidKey = `${tid}_${sid}`;
+        
+        if (!tidSidGroups.has(tidSidKey)) {
+            tidSidGroups.set(tidSidKey, []);
+        }
+        tidSidGroups.get(tidSidKey).push(pokemon);
+    }
+    
+    if (tidSidGroups.size === 0) {
+        alert('No valid Pokemon found to select from');
+        return;
+    }
+    
+    // Select one random Pokemon from each TID/SID group
+    selectedPokemon.clear();
+    const selectedDetails = [];
+    
+    for (const [tidSidKey, pokemonList] of tidSidGroups) {
+        if (pokemonList.length === 0) continue;
+        
+        const randomIndex = Math.floor(Math.random() * pokemonList.length);
+        const selected = pokemonList[randomIndex];
+        
+        if (selected && selected.filename) {
+            selectedPokemon.add(selected.filename);
+            selectedDetails.push({
+                filename: selected.filename,
+                species: selected.speciesName || `Species ${selected.species}`,
+                tid: selected.tid || 0,
+                sid: selected.sid || 0
+            });
+        }
+    }
+    
+    // Update selection UI
+    updateSelectionUI();
+    updateCardSelectionStates();
+    
+    const count = selectedPokemon.size;
+    console.log('Lottery selection:', selectedDetails);
+    alert(`Lottery selection complete: ${count} Pokemon selected (1 per TID/SID combo)`);
+}
 
 // Load save file
 async function loadSaveFile(file) {
@@ -2741,6 +2859,12 @@ async function loadSaveFile(file) {
         alert('Please select a .sav file');
         return;
     }
+    
+    // Show loading indicator
+    if (saveFileLoading) {
+        saveFileLoading.classList.remove('hidden');
+    }
+    loadSaveFileBtn.disabled = true;
     
     try {
         const formData = new FormData();
@@ -2778,6 +2902,12 @@ async function loadSaveFile(file) {
     } catch (error) {
         alert(`Error loading save file: ${error.message}`);
         console.error('Error:', error);
+    } finally {
+        // Hide loading indicator
+        if (saveFileLoading) {
+            saveFileLoading.classList.add('hidden');
+        }
+        loadSaveFileBtn.disabled = false;
     }
 }
 
@@ -2789,6 +2919,7 @@ async function importPokemonFiles(files) {
     }
     
     const importTarget = document.querySelector('input[name="importTarget"]:checked').value;
+    const startFromLastBox = document.getElementById('startFromLastBox')?.checked || false;
     let successCount = 0;
     let errorCount = 0;
     
@@ -2806,7 +2937,8 @@ async function importPokemonFiles(files) {
                     pokemonData: Array.from(buffer),
                     box: undefined, // Auto-find empty slot
                     slot: undefined, // Auto-find empty slot
-                    isParty: importTarget === 'party'
+                    isParty: importTarget === 'party',
+                    startFromLastBox: startFromLastBox && importTarget === 'box' // Only applies to box imports
                 })
             });
             
@@ -2840,6 +2972,8 @@ async function importSelectedPokemon() {
     }
     
     const importTarget = document.querySelector('input[name="importTarget"]:checked').value;
+    const startFromLastBox = document.getElementById('startFromLastBox')?.checked || false;
+    
     const selectedFilenames = Array.from(selectedPokemon);
     let successCount = 0;
     let errorCount = 0;
@@ -2862,7 +2996,7 @@ async function importSelectedPokemon() {
             const arrayBuffer = await blob.arrayBuffer();
             const buffer = new Uint8Array(arrayBuffer);
             
-            await importSinglePokemon(Array.from(buffer), importTarget);
+            await importSinglePokemon(Array.from(buffer), importTarget, startFromLastBox, filename);
             successCount++;
         } catch (error) {
             errorCount++;
@@ -2879,7 +3013,7 @@ async function importSelectedPokemon() {
 }
 
 // Import a single Pokemon
-async function importSinglePokemon(pokemonData, importTarget) {
+async function importSinglePokemon(pokemonData, importTarget, startFromLastBox = false, filename = null) {
     const response = await fetch('/api/save/import', {
         method: 'POST',
         headers: {
@@ -2889,7 +3023,9 @@ async function importSinglePokemon(pokemonData, importTarget) {
             pokemonData: pokemonData,
             box: undefined,
             slot: undefined,
-            isParty: importTarget === 'party'
+            isParty: importTarget === 'party',
+            startFromLastBox: startFromLastBox && importTarget === 'box', // Only applies to box imports
+            filename: filename // Send filename for correct species parsing
         })
     });
     

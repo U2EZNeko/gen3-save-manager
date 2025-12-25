@@ -6,6 +6,57 @@ const PK3Parser = require('./pk3-parser');
 const SAV3Parser = require('./sav3-parser');
 const multer = require('multer');
 
+// Convert National Dex ID to Gen 3 internal species ID
+// Based on PKHeX.Core/PKM/Util/Conversion/SpeciesConverter.cs GetInternal3
+function convertNationalToInternal3(nationalSpecies) {
+  const FirstUnalignedNational3 = 252; // Legal.MaxSpeciesID_2 + 1
+  const FirstUnalignedInternal3 = 277;
+  
+  // Table3NationalToInternal from SpeciesConverter.cs (exact copy from PKHeX source)
+  // This is the delta table: difference between national ID and internal ID
+  const Table3NationalToInternal = [
+    25, 25, 25, 25, 25, 25, 25, 25,
+    25, 25, 25, 25, 25, 25, 25, 25, 25, 25,
+    25, 25, 25, 25, 25, 25, 28, 28, 31, 31,
+    112, 112, 112, 28, 28, 21, 21, 77, 77, 77,
+    11, 11, 11, 77, 77, 77, 39, 39, 52, 21,
+    15, 15, 20, 52, 78, 78, 78, 49, 49, 28,
+    28, 42, 42, 73, 73, 48, 51, 51, 12, 12,
+    -7, -7, 17, 17, -3, 26, 26, -19, 4, 4,
+    4, 13, 13, 25, 25, 45, 43, 11, 11, -16,
+    -16, -15, -15, -25, -25, 43, 43, 43, 43, -21,
+    -21, 34, -35, 24, 24, 6, 6, 12, 53, 17,
+    0, -15, -15, -22, -22, -22, 7, 7, 7, 12,
+    -45, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+    27, 27, 22, 22, 22, 24, 24,
+  ];
+  
+  if (nationalSpecies < FirstUnalignedNational3) {
+    // Gen 1-2 Pokemon: National Dex ID = internal ID
+    return nationalSpecies;
+  }
+  
+  const shift = nationalSpecies - FirstUnalignedNational3;
+  if (shift < 0 || shift >= Table3NationalToInternal.length) {
+    // Out of range - might already be internal ID or invalid
+    // If it's > 386, it's definitely not a Gen 3 Pokemon, return as-is but it will be rejected
+    // If it's < 277, it might already be an internal ID (Gen 1-2), return as-is
+    return nationalSpecies;
+  }
+  
+  const delta = Table3NationalToInternal[shift];
+  const internal = nationalSpecies + delta;
+  
+  // Validate result (internal IDs for Gen 3 start at 277, max is 386)
+  if (internal >= FirstUnalignedInternal3 && internal <= 386) {
+    return internal;
+  }
+  
+  // Conversion produced invalid result - this shouldn't happen with valid Gen 3 Pokemon
+  // Return the original, but it will be rejected by validation (must be 1-386)
+  return nationalSpecies;
+}
+
 const app = express();
 const PORT = 3000;
 
@@ -261,7 +312,7 @@ app.post('/api/save/import', express.json({ limit: '1mb' }), (req, res) => {
   }
   
   try {
-    const { pokemonData, box, slot, isParty } = req.body;
+    const { pokemonData, box, slot, isParty, startFromLastBox } = req.body;
     
     if (!pokemonData || !Array.isArray(pokemonData)) {
       return res.status(400).json({ error: 'Invalid Pokemon data' });
@@ -270,34 +321,153 @@ app.post('/api/save/import', express.json({ limit: '1mb' }), (req, res) => {
     // Convert array to Buffer
     const pokemonBuffer = Buffer.from(pokemonData);
     
-    // Convert PKHeX export/party format to stored format (80 bytes)
-    // PKHeX exports are 100 bytes: first 80 bytes are stored format (decrypted), last 20 bytes are unused
-    // Party format is 100 bytes: first 80 bytes are stored format (encrypted), last 20 bytes are party data
-    // Raw stored format is 80 bytes (encrypted)
-    let storedData = pokemonBuffer;
+    // Parse the ORIGINAL buffer first to get correct species and decrypted data
+    // This handles encrypted files correctly - parser will decrypt if needed
+    let correctSpecies = null;
+    let decryptedStoredData = null;
     
-    if (pokemonBuffer.length === 100) {
-      // 100-byte file: Take first 80 bytes (stored format)
-      // For PKHeX exports, this is already decrypted stored format
-      // For party format, this is encrypted stored format
-      // We'll encrypt it when writing to save file, so both are fine
-      storedData = pokemonBuffer.slice(0, 80);
-    } else if (pokemonBuffer.length === 80) {
-      // Already in stored format (80 bytes)
-      storedData = pokemonBuffer;
-    } else {
-      return res.status(400).json({ error: `Invalid Pokemon data size: expected 80 or 100 bytes, got ${pokemonBuffer.length}` });
+    try {
+      const parsed = PK3Parser.parse(pokemonBuffer, req.body.filename || null);
+      if (parsed && parsed.species && parsed.species >= 1 && parsed.species <= 386) {
+        correctSpecies = parsed.species; // This is National Dex ID
+      }
+      
+      // Get the decrypted 80-byte stored format from the parser
+      // The parser internally decrypts if needed, so we need to reconstruct the decrypted stored format
+      // For PKHeX exports: data starts at 0x20, first 80 bytes are decrypted
+      // For encrypted files: parser decrypts internally, we need to extract the decrypted 80 bytes
+      
+      // Determine if it's PKHeX export or encrypted
+      let isPKHeXExport = false;
+      if (pokemonBuffer.length === 100) {
+        const speciesAt20 = pokemonBuffer.readUInt16LE(0x20);
+        isPKHeXExport = (speciesAt20 >= 1 && speciesAt20 <= 386);
+      }
+      
+      if (isPKHeXExport) {
+        // PKHeX export: The stored format is the first 80 bytes (0x00-0x4F)
+        // The header (0x00-0x1F) contains PID, TID, SID, OT name, etc.
+        // The Pokemon data blocks start at 0x20 within the stored format
+        // So we need the full 80 bytes starting at 0x00
+        decryptedStoredData = Buffer.from(pokemonBuffer.slice(0, 80));
+      } else {
+        // Encrypted file: need to decrypt using PK3Parser's logic
+        const needsDecryption = PK3Parser.checkIfEncrypted(pokemonBuffer, 0);
+        if (needsDecryption) {
+          const decrypted = PK3Parser.decryptPK3(pokemonBuffer, 0);
+          // decryptPK3 returns the decrypted buffer (80 bytes for stored, 100 bytes for party)
+          // Ensure we get exactly 80 bytes
+          if (decrypted.length >= 80) {
+            decryptedStoredData = Buffer.from(decrypted.slice(0, 80));
+          } else {
+            // If decryption returned less than 80 bytes, something went wrong
+            throw new Error(`Decryption returned invalid size: ${decrypted.length} bytes (expected at least 80)`);
+          }
+        } else {
+          // Already decrypted - take first 80 bytes
+          decryptedStoredData = Buffer.from(pokemonBuffer.length === 100 ? pokemonBuffer.slice(0, 80) : pokemonBuffer);
+        }
+      }
+    } catch (e) {
+      // If parsing fails, try to extract from filename and use raw data
+      console.warn('Failed to parse Pokemon:', e.message);
+      if (req.body.filename) {
+        const match = req.body.filename.match(/^(\d+)\s/);
+        if (match) {
+          const fileSpecies = parseInt(match[1]);
+          if (fileSpecies >= 1 && fileSpecies <= 386) {
+            correctSpecies = fileSpecies;
+          }
+        }
+      }
+      // Fallback: use raw data (might be encrypted, but we'll try)
+      decryptedStoredData = pokemonBuffer.length === 100 ? pokemonBuffer.slice(0, 80) : pokemonBuffer;
     }
     
-    // Validate stored data size
-    if (storedData.length !== 80) {
-      return res.status(400).json({ error: `Invalid stored Pokemon data size: expected 80 bytes, got ${storedData.length}` });
+    // Validate decrypted stored data
+    if (!decryptedStoredData || decryptedStoredData.length !== 80) {
+      return res.status(400).json({ error: `Failed to extract valid stored Pokemon data (got ${decryptedStoredData ? decryptedStoredData.length : 0} bytes)` });
     }
     
     // Validate that we have valid Pokemon data (non-zero PID)
-    const pid = storedData.readUInt32LE(0);
+    const pid = decryptedStoredData.readUInt32LE(0);
     if (pid === 0) {
       return res.status(400).json({ error: 'Invalid Pokemon data: PID is zero' });
+    }
+    
+    // Convert National Dex species ID to internal species ID
+    // Save files store internal species ID at 0x20
+    if (correctSpecies !== null && correctSpecies >= 1 && correctSpecies <= 386) {
+      // Use the parsed species (National Dex ID) and convert to internal
+      let internalSpecies = correctSpecies;
+      if (correctSpecies >= 252 && correctSpecies <= 386) {
+        // Gen 3 Pokemon: convert National Dex to internal ID
+        internalSpecies = convertNationalToInternal3(correctSpecies);
+        // Validate: internal IDs for Gen 3 should be >= 277 and <= 386
+        if (internalSpecies < 277 || internalSpecies > 386) {
+          // Conversion might have failed - check if original at 0x20 is already internal
+          const originalAt20 = decryptedStoredData.readUInt16LE(0x20);
+          if (originalAt20 >= 277 && originalAt20 <= 386) {
+            // Original might already be correct internal ID
+            internalSpecies = originalAt20;
+          } else if (originalAt20 >= 1 && originalAt20 <= 386) {
+            // Original is valid (might be Gen 1-2), keep it
+            internalSpecies = originalAt20;
+          } else {
+            // Both conversion and original are invalid - reject this Pokemon
+            console.error(`Cannot determine valid internal species ID for National Dex ${correctSpecies} (converted: ${internalSpecies}, original: ${originalAt20})`);
+            return res.status(400).json({ error: `Invalid species ID: ${correctSpecies} cannot be converted to valid Gen 3 internal ID` });
+          }
+        }
+      }
+      // Gen 1-2 Pokemon (1-251): internal ID = National Dex ID, no conversion needed
+      
+      // Always write a valid species (never write 0 or >386)
+      // Final validation: internalSpecies must be 1-386
+      if (internalSpecies >= 1 && internalSpecies <= 386) {
+        decryptedStoredData.writeUInt16LE(internalSpecies, 0x20);
+        // Note: We don't recalculate checksum here on decrypted data
+        // The encryptPKM function will recalculate it correctly on the encrypted data
+        // after shuffling and XORing, which is what the game expects
+      } else {
+        // Invalid species ID - reject this Pokemon
+        console.error(`Invalid internal species ID ${internalSpecies} for National Dex ${correctSpecies}`);
+        return res.status(400).json({ error: `Invalid species ID: ${internalSpecies} is out of valid range (1-386)` });
+      }
+    } else {
+      // Fallback: try to convert the existing species at 0x20
+      const speciesAt20 = decryptedStoredData.readUInt16LE(0x20);
+      if (speciesAt20 >= 1 && speciesAt20 <= 386) {
+        if (speciesAt20 >= 252 && speciesAt20 < 277) {
+          // This is a National Dex ID for Gen 3 Pokemon, convert to internal
+          const internalSpecies = convertNationalToInternal3(speciesAt20);
+          // Validate: internal IDs must be 1-386 (Gen 3 internal IDs are 277-386, but we allow 1-386 for safety)
+          if (internalSpecies >= 1 && internalSpecies <= 386) {
+            decryptedStoredData.writeUInt16LE(internalSpecies, 0x20);
+            // Note: We don't recalculate checksum here on decrypted data
+            // The encryptPKM function will recalculate it correctly on the encrypted data
+            // after shuffling and XORing, which is what the game expects
+          } else {
+            // Invalid conversion result - keep original (might be wrong but better than invalid)
+            console.warn(`Conversion failed for species ${speciesAt20}: got ${internalSpecies}, keeping original`);
+          }
+        }
+        // If speciesAt20 >= 277, assume it's already an internal ID (don't convert)
+      }
+    }
+    
+    // Use the decrypted stored data for import (write() will encrypt it)
+    const storedData = decryptedStoredData;
+    
+    // Validate storedData before writing
+    if (!storedData || storedData.length !== 80) {
+      return res.status(400).json({ error: `Invalid stored data: expected 80 bytes, got ${storedData ? storedData.length : 0}` });
+    }
+    
+    // Verify PID is still valid after all processing
+    const finalPid = storedData.readUInt32LE(0);
+    if (finalPid === 0) {
+      return res.status(400).json({ error: 'Invalid Pokemon data: PID became zero after processing' });
     }
     
     if (isParty) {
@@ -307,17 +477,24 @@ app.post('/api/save/import', express.json({ limit: '1mb' }), (req, res) => {
         return res.status(400).json({ error: 'Party is full' });
       }
       // Use write method with 'party' target type
-      currentSaveFile.write(storedData, 'party', partySlot);
-      // Recalculate checksums after modifying save data
-      currentSaveFile.writeSectors();
-      res.json({ success: true, slot: partySlot, message: `Pokemon imported to party slot ${partySlot}` });
+      try {
+        currentSaveFile.write(storedData, 'party', partySlot);
+        // Recalculate checksums after modifying save data
+        currentSaveFile.writeSectors();
+        res.json({ success: true, slot: partySlot, message: `Pokemon imported to party slot ${partySlot}` });
+      } catch (writeError) {
+        console.error('Error writing Pokemon to party:', writeError);
+        return res.status(500).json({ error: `Failed to write Pokemon: ${writeError.message}` });
+      }
     } else {
       // Import to box
       let targetBox = box;
       let targetSlot = slot;
       
       if (targetBox === undefined || targetSlot === undefined) {
-        const empty = currentSaveFile.findNextEmptyBoxSlot();
+        const empty = startFromLastBox 
+          ? currentSaveFile.findNextEmptyBoxSlotFromEnd()
+          : currentSaveFile.findNextEmptyBoxSlot();
         if (!empty) {
           return res.status(400).json({ error: 'All boxes are full' });
         }
@@ -326,15 +503,20 @@ app.post('/api/save/import', express.json({ limit: '1mb' }), (req, res) => {
       }
       
       // Use write method with 'box' target type
-      currentSaveFile.write(storedData, 'box', { box: targetBox, slot: targetSlot });
-      // Recalculate checksums after modifying save data
-      currentSaveFile.writeSectors();
-      res.json({ 
-        success: true, 
-        box: targetBox, 
-        slot: targetSlot, 
-        message: `Pokemon imported to box ${targetBox + 1}, slot ${targetSlot + 1}` 
-      });
+      try {
+        currentSaveFile.write(storedData, 'box', { box: targetBox, slot: targetSlot });
+        // Recalculate checksums after modifying save data
+        currentSaveFile.writeSectors();
+        res.json({ 
+          success: true, 
+          box: targetBox, 
+          slot: targetSlot, 
+          message: `Pokemon imported to box ${targetBox + 1}, slot ${targetSlot + 1}` 
+        });
+      } catch (writeError) {
+        console.error(`Error writing Pokemon to box ${targetBox}, slot ${targetSlot}:`, writeError);
+        return res.status(500).json({ error: `Failed to write Pokemon: ${writeError.message}` });
+      }
     }
   } catch (error) {
     console.error('Error importing Pokemon:', error);

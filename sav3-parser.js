@@ -42,13 +42,26 @@ class SAV3Parser {
     if (slot1Valid && !slot0Valid) return 1;
     
     // If both are valid, compare footers (save counters) to find the most recent
+    // According to Bulbapedia: "Despite the save index being stored in each section, 
+    // only the value in the last section is used to determine the most recent save."
+    // The last section is section 13 (ID 13)
     if (slot0Valid && slot1Valid) {
-      // Find sector 0 in each slot to get footer offset
+      // Find section 13 in each slot to get footer offset
+      const sector13_0 = this.findSector(0, 13);
+      const sector13_1 = this.findSector(1, 13);
+      
+      if (sector13_0 >= 0 && sector13_1 >= 0) {
+        // Compare save counters at offset 0xFFC in section 13 (the last section)
+        const counter0 = this.data.readUInt32LE(sector13_0 + 0xFFC);
+        const counter1 = this.data.readUInt32LE(sector13_1 + 0xFFC);
+        return counter1 > counter0 ? 1 : 0;
+      }
+      
+      // Fallback: if section 13 not found, use sector 0
       const sector0_0 = this.findSector0(0);
       const sector0_1 = this.findSector0(1);
       
       if (sector0_0 >= 0 && sector0_1 >= 0) {
-        // Compare save counters at offset 0xFFC in sector 0
         const counter0 = this.data.readUInt32LE(sector0_0 + 0xFFC);
         const counter1 = this.data.readUInt32LE(sector0_1 + 0xFFC);
         return counter1 > counter0 ? 1 : 0;
@@ -60,9 +73,9 @@ class SAV3Parser {
   }
   
   /**
-   * Find sector 0 (small buffer sector) in a save slot
+   * Find a specific sector by ID in a save slot
    */
-  findSector0(slot) {
+  findSector(slot, sectorId) {
     const start = slot * SIZE_MAIN;
     const end = start + SIZE_MAIN;
     
@@ -70,11 +83,18 @@ class SAV3Parser {
       if (ofs + SIZE_SECTOR > this.data.length) break;
       const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
       const id = sector.readUInt16LE(0xFF4);
-      if (id === 0) {
+      if (id === sectorId) {
         return ofs;
       }
     }
     return -1;
+  }
+  
+  /**
+   * Find sector 0 (small buffer sector) in a save slot
+   */
+  findSector0(slot) {
+    return this.findSector(slot, 0);
   }
   
   /**
@@ -140,20 +160,23 @@ class SAV3Parser {
       
       const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
       const id = sector.readUInt16LE(0xFF4);
-      const sectorData = sector.slice(0, SIZE_SECTOR_USED);
+      // Section 13 is only 2000 bytes (0x7D0) for checksum, not 3968 (0xF80)
+      // But we still read the full sector data
+      const dataSize = (id === 13) ? 0x7D0 : SIZE_SECTOR_USED;
+      const sectorData = sector.slice(0, dataSize);
       
       // Route to appropriate buffer based on sector ID
       if (id === 0) {
-        sectorData.copy(this.smallBuffer, 0, 0, Math.min(SIZE_SECTOR_USED, this.smallBuffer.length));
+        sectorData.copy(this.smallBuffer, 0, 0, Math.min(dataSize, this.smallBuffer.length));
       } else if (id >= 1 && id <= 4) {
         const largeOffset = (id - 1) * SIZE_SECTOR_USED;
-        if (largeOffset + SIZE_SECTOR_USED <= this.largeBuffer.length) {
-          sectorData.copy(this.largeBuffer, largeOffset, 0, SIZE_SECTOR_USED);
+        if (largeOffset + dataSize <= this.largeBuffer.length) {
+          sectorData.copy(this.largeBuffer, largeOffset, 0, dataSize);
         }
       } else if (id >= 5 && id <= 13) {
         const storageOffset = (id - 5) * SIZE_SECTOR_USED;
-        if (storageOffset + SIZE_SECTOR_USED <= this.storageBuffer.length) {
-          sectorData.copy(this.storageBuffer, storageOffset, 0, SIZE_SECTOR_USED);
+        if (storageOffset + dataSize <= this.storageBuffer.length) {
+          sectorData.copy(this.storageBuffer, storageOffset, 0, dataSize);
         }
       }
     }
@@ -166,12 +189,19 @@ class SAV3Parser {
    * as sectors may not be in sequential order within the save slot
    */
   writeSectors() {
-    const start = this.activeSlot * SIZE_MAIN;
-    const end = start + SIZE_MAIN;
+    // According to Bulbapedia: "The game alternates which region of the save file it writes to each time the game is saved.
+    // For example, if the most recent save was save A, then the next time the game is saved, it will be written to save B."
+    // So we should write to the INACTIVE slot (the one we're NOT currently reading from)
+    // This ensures we don't corrupt the active save, and the new save becomes active after we update the counter
+    let writeSlot = this.activeSlot === 0 ? 1 : 0; // Write to the inactive slot
+    let start = writeSlot * SIZE_MAIN;
+    let end = start + SIZE_MAIN;
     
     // First, find all sector positions by scanning for sector IDs
     // This matches PKHeX's approach - sectors can be in any order
-    const sectorPositions = new Map(); // id -> offset
+    // Use a Map to store the LAST sector found for each ID
+    // This matches readSectors() behavior, which uses the last sector found (overwrites buffer)
+    const sectorPositions = new Map(); // id -> offset (last one found)
     
     for (let ofs = start; ofs < end; ofs += SIZE_SECTOR) {
       if (ofs + SIZE_SECTOR > this.data.length) break;
@@ -180,22 +210,49 @@ class SAV3Parser {
       const id = sector.readUInt16LE(0xFF4);
       
       // Only track valid sector IDs (0-13)
+      // Store the LAST sector found for each ID (matches readSectors() behavior)
       if (id >= 0 && id <= 13) {
         sectorPositions.set(id, ofs);
       }
     }
     
+    // If no sectors found in the inactive slot, fall back to the active slot
+    if (sectorPositions.size === 0) {
+      writeSlot = this.activeSlot;
+      start = writeSlot * SIZE_MAIN;
+      end = start + SIZE_MAIN;
+      
+      for (let ofs = start; ofs < end; ofs += SIZE_SECTOR) {
+        if (ofs + SIZE_SECTOR > this.data.length) break;
+        
+        const sector = this.data.slice(ofs, ofs + SIZE_SECTOR);
+        const id = sector.readUInt16LE(0xFF4);
+        
+        if (id >= 0 && id <= 13) {
+          sectorPositions.set(id, ofs);
+        }
+      }
+    }
+    
+    // Track if we found sector 0 to update the counter
+    let sector0Offset = -1;
+    let sector0OriginalCounter = 0;
+    
     // Now write each sector by ID
     // Based on PKHeX's WriteSectors - copy buffer data to sectors
     // PKHeX copies FROM buffer chunks TO data sectors
+    // Write to the LAST sector found for each ID (matching readSectors() behavior)
     for (const [id, ofs] of sectorPositions.entries()) {
       if (ofs + SIZE_SECTOR > this.data.length) continue;
       
       if (id === 0) {
+        // Track sector 0 for counter update (we'll update it after all sectors are written)
+        sector0Offset = ofs;
+        // Read the counter BEFORE we overwrite the sector data
+        sector0OriginalCounter = this.data.readUInt32LE(ofs + 0xFFC);
         // Small buffer (sector 0)
-        // Save the original counter and footer bytes before we overwrite anything
+        // Save the original footer bytes before we overwrite anything
         const footerStart = ofs + SIZE_SECTOR_USED;
-        const originalCounter = this.data.readUInt32LE(ofs + 0xFFC);
         const originalFooterBytes = this.data.slice(footerStart + 0x08, ofs + 0xFFC); // Bytes 0xFF8-0xFFB (8 bytes before counter)
         
         this.smallBuffer.copy(this.data, ofs, 0, Math.min(SIZE_SECTOR_USED, this.smallBuffer.length));
@@ -205,21 +262,8 @@ class SAV3Parser {
         this.data.writeUInt16LE(checksum, ofs + 0xFF6);
         
         // Restore footer bytes 0xFF8-0xFFB (but NOT 0xFFC-0xFFF which contains the counter)
+        // We'll update the counter after all sectors are written
         originalFooterBytes.copy(this.data, footerStart + 0x08);
-        
-        // Increment save counter at 0xFFC to make this slot the active one
-        // This ensures the slot we wrote to remains active after export
-        const otherSlot = this.activeSlot === 0 ? 1 : 0;
-        const otherSector0 = this.findSector0(otherSlot);
-        let otherCounter = 0;
-        if (otherSector0 >= 0) {
-          otherCounter = this.data.readUInt32LE(otherSector0 + 0xFFC);
-        }
-        // Make sure our counter is higher than the other slot's counter
-        const newCounter = Math.max(originalCounter, otherCounter) + 1;
-        // Handle overflow - wrap around if needed
-        const finalCounter = (newCounter > 0xFFFFFFFF) ? 0 : (newCounter >>> 0);
-        this.data.writeUInt32LE(finalCounter, ofs + 0xFFC);
       } else if (id >= 1 && id <= 4) {
         // Large buffer (sectors 1-4)
         const bufferOffset = (id - 1) * SIZE_SECTOR_USED;
@@ -236,23 +280,79 @@ class SAV3Parser {
         }
       } else if (id >= 5 && id <= 13) {
         // Storage buffer (sectors 5-13)
+        // Section 13 is only 2000 bytes (0x7D0) for checksum, not 3968 (0xF80)
+        // According to Bulbapedia: https://bulbapedia.bulbagarden.net/wiki/Save_data_structure_(Generation_III)
+        const dataSize = (id === 13) ? 0x7D0 : SIZE_SECTOR_USED;
         const bufferOffset = (id - 5) * SIZE_SECTOR_USED;
-        if (bufferOffset + SIZE_SECTOR_USED <= this.storageBuffer.length) {
-          const footerStart = ofs + SIZE_SECTOR_USED;
-          const originalFooterBytes = this.data.slice(footerStart + 0x08, ofs + SIZE_SECTOR);
+        if (bufferOffset + dataSize <= this.storageBuffer.length) {
+          const footerStart = ofs + dataSize;
+          // For section 13, the footer starts at 0x7D0, but checksum is at 0xFF6 (relative to sector start)
+          // We need to restore footer bytes but NOT overwrite the checksum we just wrote
+          // Footer structure: 0xFF4 (ID), 0xFF6 (Checksum), 0xFF8 (Signature), 0xFFC (Save index)
+          // For section 13: data ends at 0x7D0, footer starts at 0xFF4
+          // We restore: 0xFF8-0xFFB (signature part 1), then 0xFFC-0xFFF (save index)
+          const checksumOffset = ofs + 0xFF6;
+          const signatureStart = ofs + 0xFF8;
+          const saveIndexStart = ofs + 0xFFC;
           
-          this.storageBuffer.copy(this.data, ofs, bufferOffset, bufferOffset + SIZE_SECTOR_USED);
-          const checksum = this.calculateChecksum(this.storageBuffer.slice(bufferOffset, bufferOffset + SIZE_SECTOR_USED));
+          // Copy only the data size (2000 bytes for section 13, 3968 for others)
+          this.storageBuffer.copy(this.data, ofs, bufferOffset, bufferOffset + dataSize);
+          // Calculate checksum only on the data size (2000 bytes for section 13)
+          const checksum = this.calculateChecksum(this.storageBuffer.slice(bufferOffset, bufferOffset + dataSize));
           this.data.writeUInt16LE(id, ofs + 0xFF4);
-          this.data.writeUInt16LE(checksum, ofs + 0xFF6);
-          // Restore rest of footer (0xFF8-0xFFF)
-          originalFooterBytes.copy(this.data, footerStart + 0x08);
+          this.data.writeUInt16LE(checksum, checksumOffset);
+          
+          // Restore footer bytes: signature (0xFF8-0xFFB) and save index (0xFFC-0xFFF)
+          // But skip the checksum (0xFF6-0xFF7) which we just wrote
+          const originalSignature = this.data.slice(signatureStart, saveIndexStart);
+          const originalSaveIndex = this.data.slice(saveIndexStart, ofs + SIZE_SECTOR);
+          originalSignature.copy(this.data, signatureStart);
+          originalSaveIndex.copy(this.data, saveIndexStart);
         }
       }
     }
     
+    // Update save counter for the slot we wrote to
+    // According to Bulbapedia: "only the value in the last section is used to determine the most recent save"
+    // The last section is section 13 (ID 13)
+    // We need to update the counter in BOTH sector 0 AND section 13
+    if (sector0Offset >= 0) {
+      const otherSlot = writeSlot === 0 ? 1 : 0;
+      // Get counter from section 13 (the last section) of the other slot
+      // This is what determines which save is active
+      const otherSector13 = this.findSector(otherSlot, 13);
+      let otherCounter = 0;
+      if (otherSector13 >= 0) {
+        otherCounter = this.data.readUInt32LE(otherSector13 + 0xFFC);
+      } else {
+        // Fallback to sector 0 if section 13 not found
+        const otherSector0 = this.findSector0(otherSlot);
+        if (otherSector0 >= 0) {
+          otherCounter = this.data.readUInt32LE(otherSector0 + 0xFFC);
+        }
+      }
+      // Make sure our counter is higher than the other slot's counter
+      // Use the maximum of our original counter and the other slot's counter, then add 1
+      const newCounter = Math.max(sector0OriginalCounter, otherCounter) + 1;
+      // Handle overflow - wrap around if needed
+      const finalCounter = (newCounter > 0xFFFFFFFF) ? 0 : (newCounter >>> 0);
+      
+      // Update counter in sector 0
+      this.data.writeUInt32LE(finalCounter, sector0Offset + 0xFFC);
+      
+      // Also update counter in section 13 (the last section) - this is what determines the active save
+      const sector13Offset = sectorPositions.get(13);
+      if (sector13Offset !== undefined && sector13Offset >= 0) {
+        this.data.writeUInt32LE(finalCounter, sector13Offset + 0xFFC);
+      }
+      
+      // Update active slot to the slot we wrote to (since we updated the counter, it's now the active slot)
+      this.activeSlot = writeSlot;
+    }
+    
     // After writing sectors, reload buffers from the updated save file data
     // This ensures that subsequent operations (like findNextEmptyBoxSlot) see the updated data
+    // We reload from the slot we wrote to (which is now the active slot)
     this.readSectors();
   }
   
@@ -308,6 +408,8 @@ class SAV3Parser {
     
     // Recalculate checksum for decrypted data and update it in the header
     // This ensures PK3Parser.checkIfEncrypted returns false for already-decrypted data
+    // The checksum in the encrypted save file is correct, but for decrypted data passed to PK3Parser,
+    // we need the checksum to match the decrypted blocks so it knows the data is already decrypted
     let checksum = 0;
     const blockStart = 0x20;
     const blockEnd = 0x50;
@@ -582,6 +684,21 @@ class SAV3Parser {
   findNextEmptyBoxSlot() {
     for (let box = 0; box < COUNT_BOX; box++) {
       for (let slot = 0; slot < COUNT_SLOTSPERBOX; slot++) {
+        const pokemon = this.getBoxSlot(box, slot);
+        if (!pokemon) {
+          return { box, slot };
+        }
+      }
+    }
+    return null; // No empty slots
+  }
+  
+  /**
+   * Find next empty box slot starting from the last box (working backwards)
+   */
+  findNextEmptyBoxSlotFromEnd() {
+    for (let box = COUNT_BOX - 1; box >= 0; box--) {
+      for (let slot = COUNT_SLOTSPERBOX - 1; slot >= 0; slot--) {
         const pokemon = this.getBoxSlot(box, slot);
         if (!pokemon) {
           return { box, slot };

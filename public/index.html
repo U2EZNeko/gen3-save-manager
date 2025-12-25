@@ -123,23 +123,32 @@
                 <h3>Save File Manager</h3>
                 <span id="saveFileStatus" class="save-file-status">No save file loaded</span>
             </div>
+            <div id="saveFileLoading" class="save-file-loading hidden">
+                <div class="spinner"></div>
+                <p>Loading save file...</p>
+            </div>
             <div class="save-file-controls">
                 <input type="file" id="saveFileInput" accept=".sav" style="display: none;">
                 <button id="loadSaveFileBtn" class="btn btn-primary">Load Save File</button>
                 <button id="exportSaveBtn" class="btn btn-primary" disabled>Export Save File</button>
-                <div class="drop-zone" id="dropZone">
-                    <p>Drag and drop .pk3 files here to import into save file</p>
-                    <p class="drop-zone-hint">or click to select files</p>
-                </div>
                 <div class="import-options">
-                    <label>
-                        <input type="radio" name="importTarget" value="box" checked>
-                        Import to Box (auto-find empty slots)
-                    </label>
-                    <label>
-                        <input type="radio" name="importTarget" value="party">
-                        Import to Party (auto-find empty slots)
-                    </label>
+                    <div class="import-target-options">
+                        <label>
+                            <input type="radio" name="importTarget" value="box" checked>
+                            Import to Box (auto-find empty slots)
+                        </label>
+                        <label>
+                            <input type="radio" name="importTarget" value="party">
+                            Import to Party (auto-find empty slots)
+                        </label>
+                    </div>
+                    <div class="import-special-options">
+                        <button id="lotterySelectBtn" class="btn btn-secondary">Lottery Select (1 per TID/SID)</button>
+                        <label>
+                            <input type="checkbox" id="startFromLastBox">
+                            Start from Last Box
+                        </label>
+                    </div>
                 </div>
                 <div class="selected-pokemon-info">
                     <p id="selectedCount">0 Pokemon selected</p>

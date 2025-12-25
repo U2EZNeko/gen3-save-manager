@@ -1328,11 +1328,14 @@ class PK3Parser {
       1, 0, 2, 3, 1, 0, 3, 2, // duplicates
     ];
     
-    const result = Buffer.from(workingBuffer);
+    // Create result buffer - ensure it's at least SIZE_3STORED bytes
+    const result = Buffer.alloc(Math.max(workingBuffer.length, SIZE_3STORED));
+    workingBuffer.copy(result, 0, 0, workingBuffer.length);
+    
     const index = sv * BlockCount;
     
-    // Copy header (0x00-0x1F) as-is
-    workingBuffer.copy(result, dataOffset, dataOffset, dataOffset + SIZE_3HEADER);
+    // Copy header (0x00-0x1F) as-is (already copied above, but ensure it's correct)
+    // Header is already in place from the copy above
     
     // Unshuffle blocks - BlockPosition[index + block] tells us which source block to use
     for (let block = 0; block < BlockCount; block++) {
@@ -1340,6 +1343,7 @@ class PK3Parser {
       const srcBlockIndex = BlockPosition[index + block];
       const srcOffset = dataOffset + SIZE_3HEADER + (SIZE_3BLOCK * srcBlockIndex);
       
+      // Ensure we have enough space in both buffers
       if (destOffset + SIZE_3BLOCK <= result.length && srcOffset + SIZE_3BLOCK <= workingBuffer.length) {
         workingBuffer.copy(result, destOffset, srcOffset, srcOffset + SIZE_3BLOCK);
       }
