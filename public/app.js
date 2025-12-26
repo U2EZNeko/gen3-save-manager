@@ -1067,15 +1067,6 @@ async function createPokemonCard(pokemon) {
                         <span class="ability-type">(${pokemon.ability ? 'Hidden' : 'Normal'})</span>
                     </div>
                 </div>
-                <div class="detail-item">
-                    <div class="detail-label">Ball</div>
-                    <div class="detail-value">
-                        <span class="ball-display">
-                            <img class="ball-thumbnail" src="" alt="${pokemon.ballName || pokemon.ball || '-'}" data-ball-name="${pokemon.ballName || pokemon.ball || ''}" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 4px; display: none;">
-                            ${pokemon.ballName || pokemon.ball || '-'}
-                        </span>
-                    </div>
-                </div>
             </div>
             
             ${movesHtml}
@@ -1095,12 +1086,6 @@ async function createPokemonCard(pokemon) {
         
         // Update ability name asynchronously (only in full view)
         updateAbilityName(card, pokemon);
-        
-        // Load ball thumbnail asynchronously (only in full view)
-        const ballName = pokemon.ballName || pokemon.ball;
-        if (ballName && ballName !== 'None' && ballName !== '-' && ballName !== 'Ball 0') {
-            loadBallThumbnail(ballName);
-        }
     }
     
     // Store filename in card data attribute for easy access
