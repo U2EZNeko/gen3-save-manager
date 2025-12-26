@@ -46,6 +46,10 @@ let currentDatabase = localStorage.getItem('selectedDatabase') || 'db1';
 // DOM elements
 const databaseSelect = document.getElementById('databaseSelect');
 const loadBtn = document.getElementById('loadBtn');
+const dbReloadNotification = document.getElementById('dbReloadNotification');
+const reloadDbBtn = document.getElementById('reloadDbBtn');
+const dismissNotificationBtn = document.getElementById('dismissNotificationBtn');
+const notificationMessage = document.getElementById('notificationMessage');
 const sortSelect = document.getElementById('sortSelect');
 const searchInput = document.getElementById('searchInput');
 const groupByOT = document.getElementById('groupByOT');
@@ -127,16 +131,82 @@ if (databaseSelect) {
     databaseSelect.value = currentDatabase;
 }
 
+// Refresh button - only refreshes Pokemon from the current database, not the database list
 loadBtn.addEventListener('click', loadPokemon);
+
+// Show database reload notification
+function showDbReloadNotification(filesMoved, targetDbId) {
+    if (!dbReloadNotification || !notificationMessage) return;
+    
+    const targetDb = allDatabases.find(db => db.id === targetDbId);
+    const dbName = targetDb ? targetDb.name : 'database';
+    const fileText = filesMoved === 1 ? 'file' : 'files';
+    
+    notificationMessage.textContent = `${filesMoved} ${fileText} ${filesMoved === 1 ? 'has' : 'have'} been moved to ${dbName}. Reload to see them.`;
+    dbReloadNotification.classList.remove('hidden');
+}
+
+// Reload database button
+if (reloadDbBtn) {
+    reloadDbBtn.addEventListener('click', () => {
+        // Check if we need to switch to the target database
+        const savedConfig = localStorage.getItem(SCANNER_CONFIG_KEY);
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                if (config.targetDbId && databaseSelect) {
+                    databaseSelect.value = config.targetDbId;
+                    currentDatabase = config.targetDbId;
+                    localStorage.setItem('selectedDatabase', config.targetDbId);
+                }
+            } catch (e) {
+                console.error('Error parsing scanner config:', e);
+            }
+        }
+        
+        // Reload Pokemon
+        loadPokemon();
+        
+        // Hide notification
+        if (dbReloadNotification) {
+            dbReloadNotification.classList.add('hidden');
+        }
+    });
+}
+
+// Dismiss notification button
+if (dismissNotificationBtn) {
+    dismissNotificationBtn.addEventListener('click', () => {
+        if (dbReloadNotification) {
+            dbReloadNotification.classList.add('hidden');
+        }
+    });
+}
 sortSelect.addEventListener('change', sortAndDisplay);
 searchInput.addEventListener('input', filterAndDisplay);
 groupByOT.addEventListener('change', sortAndDisplay);
 groupByTIDSID.addEventListener('change', sortAndDisplay);
 shinyFilter.addEventListener('change', filterAndDisplay);
 compactView.addEventListener('change', sortAndDisplay);
-duplicateScannerBtn.addEventListener('click', scanDuplicates);
+if (duplicateScannerBtn) {
+    duplicateScannerBtn.addEventListener('click', () => {
+        scanDuplicates();
+        // Close advanced options modal if open
+        if (advancedOptionsModal && !advancedOptionsModal.classList.contains('hidden')) {
+            advancedOptionsModal.classList.add('hidden');
+        }
+    });
+}
 closeDuplicateResults.addEventListener('click', () => duplicateResults.classList.add('hidden'));
-advancedFilterBtn.addEventListener('click', () => advancedFilterPanel.classList.toggle('hidden'));
+if (advancedFilterBtn) {
+    advancedFilterBtn.addEventListener('click', () => {
+        advancedFilterPanel.classList.toggle('hidden');
+        // Close advanced options modal if open
+        if (advancedOptionsModal && !advancedOptionsModal.classList.contains('hidden')) {
+            advancedOptionsModal.classList.add('hidden');
+        }
+    });
+}
 closeAdvancedFilters.addEventListener('click', () => advancedFilterPanel.classList.add('hidden'));
 if (statisticsBtn) {
     statisticsBtn.addEventListener('click', showStatistics);
@@ -237,23 +307,41 @@ if (downloadSelectedBtn) {
     });
 }
 
-// Load Pokemon from API
+// Load Pokemon from the current database only (does not refresh the database list)
 async function loadPokemon() {
     showLoading();
     hideError();
     
     try {
+        console.log(`[Frontend] Loading Pokemon from database: ${currentDatabase}`);
         const response = await fetch(`/api/pokemon?db=${currentDatabase}`);
+        console.log(`[Frontend] API response status: ${response.status}`);
+        
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[Frontend] API error: ${response.status} - ${errorText}`);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log(`[Frontend] API returned ${data.length} Pokemon files`);
+        console.log(`[Frontend] First 3 items:`, data.slice(0, 3).map(p => ({ filename: p.filename, species: p.species, error: p.error })));
+        
+        // Log any errors
+        const errors = data.filter(p => p.error);
+        if (errors.length > 0) {
+            console.warn(`[Frontend] ${errors.length} files had errors:`, errors.slice(0, 5).map(p => `${p.filename}: ${p.error}`));
+        }
+        
         pokemonData = data;
         
         // Filter out Pokemon with errors or invalid species before preloading
-        const validPokemon = pokemonData.filter(p => !p.error && p.species && p.species > 0 && p.species <= 386);
+        const validPokemon = pokemonData.filter(p => !p.error && p.species && p.species > 0 && p.species <= 807);
         console.log(`Loaded ${pokemonData.length} Pokemon, ${validPokemon.length} valid, ${pokemonData.length - validPokemon.length} invalid/errors`);
+        
+        if (validPokemon.length === 0 && pokemonData.length > 0) {
+            console.error('All Pokemon were filtered out! Sample:', pokemonData.slice(0, 3));
+        }
         
         // Pre-fetch all species names to ensure they're available (only for valid Pokemon)
         try {
@@ -276,17 +364,65 @@ async function loadPokemon() {
         buildIndex(pokemonData);
         
         if (pokemonData.length === 0) {
-            showError('No .pk3 files found. Please place .pk3 files in the "pk3-files" folder.');
+            showError('No Pokemon files found. Please check the selected database folder.');
+            updateDbStatistics([]);
         } else {
             sortAndDisplay();
             showStats();
+            updateDbStatistics(pokemonData);
         }
     } catch (err) {
         showError(`Error loading Pokemon: ${err.message}`);
         console.error('Error:', err);
+        updateDbStatistics([]);
     } finally {
         hideLoading();
     }
+}
+
+// Update DB statistics display
+function updateDbStatistics(data) {
+    const statTotal = document.getElementById('statTotal');
+    const statSpecies = document.getElementById('statSpecies');
+    const statShiny = document.getElementById('statShiny');
+    const statIVSum = document.getElementById('statIVSum');
+    
+    if (!statTotal || !statSpecies || !statShiny || !statIVSum) {
+        return;
+    }
+    
+    // Filter valid Pokemon
+    const validPokemon = data.filter(p => !p.error && p.species && p.species > 0 && p.species <= 386);
+    
+    if (validPokemon.length === 0) {
+        statTotal.textContent = '0';
+        statSpecies.textContent = '0';
+        statShiny.textContent = '0';
+        statIVSum.textContent = '-';
+        return;
+    }
+    
+    // Calculate statistics
+    const total = validPokemon.length;
+    const uniqueSpecies = new Set(validPokemon.map(p => p.species)).size;
+    const shinyCount = validPokemon.filter(p => p.isShiny).length;
+    
+    // Calculate average IV sum
+    let ivSumTotal = 0;
+    let ivSumCount = 0;
+    validPokemon.forEach(p => {
+        if (p.ivSum !== undefined && p.ivSum !== null) {
+            ivSumTotal += p.ivSum;
+            ivSumCount++;
+        }
+    });
+    const avgIVSum = ivSumCount > 0 ? (ivSumTotal / ivSumCount).toFixed(1) : '-';
+    
+    // Update display
+    statTotal.textContent = total;
+    statSpecies.textContent = uniqueSpecies;
+    statShiny.textContent = shinyCount;
+    statIVSum.textContent = avgIVSum;
 }
 
 // Build index for fast sorting/grouping
@@ -607,17 +743,21 @@ function filterPokemon(data, searchTerm, shinyOnly = false, advancedFilters = {}
 
 // Sort and display Pokemon
 function sortAndDisplay() {
+    console.log(`[Frontend] sortAndDisplay() called, pokemonData.length = ${pokemonData ? pokemonData.length : 'null'}`);
     const sortBy = sortSelect.value;
     const searchTerm = searchInput.value.trim();
     const shinyOnly = shinyFilter.checked;
     
     // Apply filter first (with advanced filters)
     let data = filterPokemon(pokemonData, searchTerm, shinyOnly, advancedFilters);
+    console.log(`[Frontend] After filtering: ${data.length} Pokemon`);
     
     // Then sort
     filteredData = sortPokemon(data, sortBy);
+    console.log(`[Frontend] After sorting: ${filteredData.length} Pokemon`);
     
     // Display (with or without grouping)
+    console.log(`[Frontend] Calling displayPokemon() with ${filteredData.length} Pokemon`);
     displayPokemon(filteredData);
 }
 
@@ -628,19 +768,29 @@ function filterAndDisplay() {
 
 // Display Pokemon cards
 async function displayPokemon(pokemon) {
+    console.log(`[Frontend] displayPokemon() called with ${pokemon.length} Pokemon`);
+    
+    if (!pokemonGrid) {
+        console.error('[Frontend] pokemonGrid element not found!');
+        return;
+    }
+    
     pokemonGrid.innerHTML = '';
     
     // Update grid class based on compact view
-    if (compactView.checked) {
+    if (compactView && compactView.checked) {
         pokemonGrid.classList.add('compact-grid');
     } else {
         pokemonGrid.classList.remove('compact-grid');
     }
     
     if (pokemon.length === 0) {
+        console.warn('[Frontend] displayPokemon called with 0 Pokemon');
         pokemonGrid.innerHTML = '<div class="error-card">No Pokemon found matching your search.</div>';
         return;
     }
+    
+    console.log(`[Frontend] Creating cards for ${pokemon.length} Pokemon...`);
     
     // Apply maximum display limit if set
     let displayPokemon = pokemon;
@@ -650,17 +800,42 @@ async function displayPokemon(pokemon) {
     }
     
     // Check if grouping is enabled
-    if (groupByOT.checked || groupByTIDSID.checked) {
-        await displayGroupedPokemon(displayPokemon, pokemon.length);
-    } else {
-        // Create all cards
-        const cardPromises = displayPokemon.map(p => createPokemonCard(p));
-        const cards = await Promise.all(cardPromises);
-        allPokemonCards = cards; // Track all cards for multi-select
-        cards.forEach(card => pokemonGrid.appendChild(card));
+    try {
+        if (groupByOT && groupByOT.checked || groupByTIDSID && groupByTIDSID.checked) {
+            console.log('[Frontend] Displaying grouped Pokemon');
+            await displayGroupedPokemon(displayPokemon, pokemon.length);
+        } else {
+            // Create all cards
+            console.log(`[Frontend] Creating ${displayPokemon.length} cards...`);
+            const cardPromises = displayPokemon.map((p, index) => {
+                try {
+                    return createPokemonCard(p);
+                } catch (err) {
+                    console.error(`[Frontend] Error creating card for ${p.filename} (index ${index}):`, err);
+                    // Return error card instead
+                    const errorCard = document.createElement('div');
+                    errorCard.className = 'pokemon-card';
+                    errorCard.innerHTML = `<div class="error-card"><strong>${p.filename}</strong><br>Error: ${err.message}</div>`;
+                    return errorCard;
+                }
+            });
+            const cards = await Promise.all(cardPromises);
+            console.log(`[Frontend] Created ${cards.length} cards, appending to grid...`);
+            allPokemonCards = cards; // Track all cards for multi-select
+            cards.forEach(card => {
+                if (card && pokemonGrid) {
+                    pokemonGrid.appendChild(card);
+                }
+            });
+            console.log(`[Frontend] Appended ${cards.length} cards to pokemonGrid`);
+        }
+        
+        updateStats(displayPokemon.length, pokemon.length);
+        console.log(`[Frontend] displayPokemon() completed successfully`);
+    } catch (err) {
+        console.error('[Frontend] Error in displayPokemon:', err);
+        pokemonGrid.innerHTML = `<div class="error-card">Error displaying Pokemon: ${err.message}</div>`;
     }
-    
-    updateStats(displayPokemon.length, pokemon.length);
 }
 
 // Display Pokemon grouped by OT Name and/or TID/SID
@@ -800,11 +975,11 @@ async function createPokemonCard(pokemon) {
     const spriteUrl = getSpriteUrl(speciesId, pokemon.isShiny);
     const nickname = pokemon.nickname && pokemon.nickname !== '???' && pokemon.nickname !== 'Loading...' ? pokemon.nickname : speciesName;
     
-    // Only show sprite if it's Gen 3 or below (Generation 3: species IDs 1-386)
-    const spriteHtml = (spriteUrl && isGen3) 
+    // Show sprite for all valid Pokemon (Gen 1-6)
+    const spriteHtml = spriteUrl 
         ? `<img src="${spriteUrl}" alt="${speciesName}" 
                  onerror="this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#999;\'>No Sprite<br>#${speciesId}</div>'">`
-        : `<div style="padding:20px;text-align:center;color:#999;">Not Gen 3<br>#${speciesId}</div>`;
+        : `<div style="padding:20px;text-align:center;color:#999;">No Sprite<br>#${speciesId}</div>`;
     
     // Check if compact view is enabled
     const isCompact = compactView.checked;
@@ -892,6 +1067,15 @@ async function createPokemonCard(pokemon) {
                         <span class="ability-type">(${pokemon.ability ? 'Hidden' : 'Normal'})</span>
                     </div>
                 </div>
+                <div class="detail-item">
+                    <div class="detail-label">Ball</div>
+                    <div class="detail-value">
+                        <span class="ball-display">
+                            <img class="ball-thumbnail" src="" alt="${pokemon.ballName || pokemon.ball || '-'}" data-ball-name="${pokemon.ballName || pokemon.ball || ''}" style="width: 20px; height: 20px; vertical-align: middle; margin-right: 4px; display: none;">
+                            ${pokemon.ballName || pokemon.ball || '-'}
+                        </span>
+                    </div>
+                </div>
             </div>
             
             ${movesHtml}
@@ -911,6 +1095,12 @@ async function createPokemonCard(pokemon) {
         
         // Update ability name asynchronously (only in full view)
         updateAbilityName(card, pokemon);
+        
+        // Load ball thumbnail asynchronously (only in full view)
+        const ballName = pokemon.ballName || pokemon.ball;
+        if (ballName && ballName !== 'None' && ballName !== '-' && ballName !== 'Ball 0') {
+            loadBallThumbnail(ballName);
+        }
     }
     
     // Store filename in card data attribute for easy access
@@ -1085,8 +1275,8 @@ async function getAbilities(speciesId) {
         return abilityCache.get(speciesId);
     }
     
-    // Only fetch for Gen 3 Pokemon (species IDs 1-386)
-    if (!isGen3OrBelow(speciesId)) {
+    // Fetch for all valid Pokemon (species IDs 1-807 for Gen 1-7)
+    if (!isValidSpeciesId(speciesId)) {
         return null;
     }
     
@@ -1207,6 +1397,16 @@ function isGen3OrBelow(speciesId) {
     return id >= 1 && id <= GEN3_MAX_SPECIES_ID;
 }
 
+// Check if species ID is valid for any generation (Gen 1-7: species IDs 1-807)
+function isValidSpeciesId(speciesId) {
+    const id = parseInt(speciesId);
+    if (isNaN(id) || id <= 0) {
+        return false;
+    }
+    // Support up to Gen 7 (species IDs 1-807)
+    return id >= 1 && id <= 807;
+}
+
 // Fetch species name from PokeAPI
 async function getSpeciesName(speciesId) {
     // Validate speciesId
@@ -1221,8 +1421,8 @@ async function getSpeciesName(speciesId) {
         return speciesCache.get(speciesId);
     }
     
-    // Only fetch for Gen 3 Pokemon (species IDs 1-386)
-    if (!isGen3OrBelow(speciesId)) {
+    // Fetch for all valid Pokemon (species IDs 1-807 for Gen 1-7)
+    if (!isValidSpeciesId(speciesId)) {
         const unknownName = `Unknown (${speciesId})`;
         speciesCache.set(speciesId, unknownName);
         return unknownName;
@@ -1271,8 +1471,8 @@ async function getBaseStats(speciesId) {
         return baseStatsCache.get(speciesId);
     }
     
-    // Only fetch for Gen 3 Pokemon (species IDs 1-386)
-    if (!isGen3OrBelow(speciesId)) {
+    // Fetch for all valid Pokemon (species IDs 1-807 for Gen 1-7)
+    if (!isValidSpeciesId(speciesId)) {
         return null;
     }
     
@@ -1371,9 +1571,9 @@ async function updatePokemonNames(pokemonData) {
             continue;
         }
         
-        // Ensure species is a valid number
+        // Ensure species is a valid number (support Gen 1-7: species IDs 1-807)
         const speciesId = parseInt(p.species);
-        if (isNaN(speciesId) || speciesId <= 0 || speciesId > 386) {
+        if (isNaN(speciesId) || speciesId <= 0 || speciesId > 807) {
             // Invalid species ID - file might be corrupted or wrong format
             updated.push({
                 ...p,
@@ -1410,20 +1610,13 @@ async function updatePokemonNames(pokemonData) {
     return updated;
 }
 
-// Get sprite URL from PokeAPI, ensuring it's Gen 3 or below
+// Get sprite URL from PokeAPI for all generations
 // Uses cached URLs to reduce API calls
 function getSpriteUrl(speciesId, isShiny = false) {
     // Validate and convert to number
     const id = parseInt(speciesId);
-    if (isNaN(id) || id <= 0 || id > 386) {
+    if (!isValidSpeciesId(id)) {
         // Silently return null for invalid species (filtered out elsewhere)
-        return null;
-    }
-    
-    // Only allow Gen 3 Pokemon (species IDs 1-386)
-    // Generation 3 includes: Bulbasaur (1) to Deoxys (386)
-    if (!isGen3OrBelow(id)) {
-        // Silently return null for invalid species (file might be corrupted or wrong format)
         return null;
     }
     
@@ -1433,8 +1626,7 @@ function getSpriteUrl(speciesId, isShiny = false) {
         return spriteCache.get(cacheKey);
     }
     
-    // Use PokeAPI sprite URL
-    // For Generation 3, Pokemon species ID matches PokeAPI Pokemon ID (1-386)
+    // Use PokeAPI sprite URL (supports all generations up to Gen 6)
     // PokeAPI sprites: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png
     // Shiny sprites: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/{id}.png
     let url;
@@ -1793,8 +1985,8 @@ async function showPokemonModal(pokemon) {
                         <span class="modal-label">Ball:</span>
                         <span class="modal-value">
                             <span class="ball-display">
-                                <img class="ball-thumbnail" src="" alt="${pokemon.ball || '-'}" data-ball-name="${pokemon.ball || ''}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px; display: none;">
-                                ${pokemon.ball || '-'}
+                                <img class="ball-thumbnail" src="" alt="${pokemon.ballName || pokemon.ball || '-'}" data-ball-name="${pokemon.ballName || pokemon.ball || ''}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px; display: none;">
+                                ${pokemon.ballName || pokemon.ball || '-'}
                             </span>
                         </span>
                     </div>
@@ -1916,8 +2108,9 @@ async function showPokemonModal(pokemon) {
     }
     
     // Load ball thumbnail asynchronously
-    if (pokemon.ball && pokemon.ball !== 'None' && pokemon.ball !== '-') {
-        loadBallThumbnail(pokemon.ball);
+    const ballName = pokemon.ballName || pokemon.ball;
+    if (ballName && ballName !== 'None' && ballName !== '-' && ballName !== 'Ball 0') {
+        loadBallThumbnail(ballName);
     }
     
     // Setup chart toggle buttons
@@ -2273,6 +2466,113 @@ function getEVColor(value) {
 }
 
 // Statistics
+// Store daily Pokemon count
+function updateDailyPokemonCount(totalCount) {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const storageKey = 'pokemonDailyCounts';
+    
+    try {
+        let dailyCounts = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        dailyCounts[today] = totalCount;
+        
+        // Keep only last 7 days
+        const dates = Object.keys(dailyCounts).sort();
+        if (dates.length > 7) {
+            const datesToRemove = dates.slice(0, dates.length - 7);
+            datesToRemove.forEach(date => delete dailyCounts[date]);
+        }
+        
+        localStorage.setItem(storageKey, JSON.stringify(dailyCounts));
+    } catch (error) {
+        console.error('Error updating daily Pokemon count:', error);
+    }
+}
+
+// Get last 7 days of Pokemon counts
+function getLast7DaysCounts() {
+    const storageKey = 'pokemonDailyCounts';
+    try {
+        const dailyCounts = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const dates = Object.keys(dailyCounts).sort();
+        
+        // Get last 7 days
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            last7Days.push({
+                date: dateStr,
+                count: dailyCounts[dateStr] || null,
+                label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            });
+        }
+        
+        return last7Days;
+    } catch (error) {
+        console.error('Error getting daily Pokemon counts:', error);
+        return [];
+    }
+}
+
+// Create line chart for 7-day Pokemon count
+function create7DayLineChart(data) {
+    if (!data || data.length === 0) {
+        return '<p class="no-data">No historical data available yet. Data will appear after viewing statistics multiple times.</p>';
+    }
+    
+    const hasData = data.some(d => d.count !== null);
+    if (!hasData) {
+        return '<p class="no-data">No historical data available yet. Data will appear after viewing statistics multiple times.</p>';
+    }
+    
+    const maxCount = Math.max(...data.map(d => d.count || 0));
+    const minCount = Math.min(...data.map(d => d.count || 0));
+    const range = maxCount - minCount || 1; // Avoid division by zero
+    
+    const width = 600;
+    const height = 200;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    
+    let svg = `<div class="line-chart-container">
+        <svg width="${width}" height="${height}" class="line-chart">
+            <!-- Grid lines -->
+            ${Array.from({ length: 5 }, (_, i) => {
+                const y = padding.top + (chartHeight / 4) * i;
+                const value = maxCount - (range / 4) * i;
+                return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" 
+                    stroke="var(--border-color)" stroke-width="1" opacity="0.3"/>
+                    <text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" 
+                    fill="var(--text-secondary)" font-size="10">${Math.round(value)}</text>`;
+            }).join('')}
+            
+            <!-- Data points and line -->
+            <polyline points="${data.map((d, i) => {
+                if (d.count === null) return null;
+                const x = padding.left + (chartWidth / (data.length - 1)) * i;
+                const y = padding.top + chartHeight - ((d.count - minCount) / range) * chartHeight;
+                return `${x},${y}`;
+            }).filter(p => p !== null).join(' ')}" 
+                fill="none" stroke="var(--accent-color)" stroke-width="2"/>
+            
+            ${data.map((d, i) => {
+                if (d.count === null) return '';
+                const x = padding.left + (chartWidth / (data.length - 1)) * i;
+                const y = padding.top + chartHeight - ((d.count - minCount) / range) * chartHeight;
+                return `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent-color)" stroke="var(--bg-secondary)" stroke-width="2">
+                    <title>${d.label}: ${d.count} Pokemon</title>
+                </circle>
+                <text x="${x}" y="${height - padding.bottom + 15}" text-anchor="middle" 
+                    fill="var(--text-secondary)" font-size="10" transform="rotate(-45 ${x} ${height - padding.bottom + 15})">${d.label}</text>`;
+            }).join('')}
+        </svg>
+    </div>`;
+    
+    return svg;
+}
+
 function showStatistics() {
     console.log('showStatistics called');
     console.log('statisticsBody:', statisticsBody);
@@ -2295,6 +2595,9 @@ function showStatistics() {
         statisticsBody.innerHTML = '<p class="no-statistics">No valid Pokemon found in database.</p>';
         return;
     }
+    
+    // Update daily count
+    updateDailyPokemonCount(validPokemon.length);
     
     // Calculate statistics
     const stats = calculateStatistics(validPokemon);
@@ -2453,7 +2756,16 @@ function displayStatistics(stats) {
     html += `<div class="statistic-card"><div class="statistic-value">${stats.uniqueSpecies}</div><div class="statistic-label">Unique Species</div></div>`;
     html += `<div class="statistic-card"><div class="statistic-value">${stats.shinyCount}</div><div class="statistic-label">Shiny Pokemon</div></div>`;
     html += `<div class="statistic-card"><div class="statistic-value">${((stats.shinyCount / stats.total) * 100).toFixed(2)}%</div><div class="statistic-label">Shiny Rate</div></div>`;
-    html += '</div></div>';
+    html += '</div>';
+    
+    // 7-Day Pokemon Count Graph
+    html += '<div class="statistics-graph-section">';
+    html += '<h4>Total Pokemon Over 7 Days</h4>';
+    const dailyData = getLast7DaysCounts();
+    html += create7DayLineChart(dailyData);
+    html += '</div>';
+    
+    html += '</div>';
     
     // Most Common Pokemon
     html += '<div class="statistics-section">';
@@ -2831,6 +3143,7 @@ const updateCardWidth = (val) => {
 
 // Save File Management
 const loadSaveBtn = document.getElementById('loadSaveBtn');
+const closeSaveFileSection = document.getElementById('closeSaveFileSection');
 const saveFileSection = document.getElementById('saveFileSection');
 const saveFileInput = document.getElementById('saveFileInput');
 const loadSaveFileBtn = document.getElementById('loadSaveFileBtn');
@@ -2844,9 +3157,22 @@ let saveFileLoaded = false;
 let selectionMode = false; // Track if we're in selection mode (independent of save file)
 
 // Event listeners for save file management
-loadSaveBtn.addEventListener('click', () => {
-    saveFileSection.classList.toggle('hidden');
-});
+if (loadSaveBtn) {
+    loadSaveBtn.addEventListener('click', () => {
+        saveFileSection.classList.toggle('hidden');
+        // Close advanced options modal if open
+        if (advancedOptionsModal && !advancedOptionsModal.classList.contains('hidden')) {
+            advancedOptionsModal.classList.add('hidden');
+        }
+    });
+}
+
+// Close save file section
+if (closeSaveFileSection) {
+    closeSaveFileSection.addEventListener('click', () => {
+        saveFileSection.classList.add('hidden');
+    });
+}
 
 loadSaveFileBtn.addEventListener('click', () => {
     saveFileInput.click();
@@ -3164,6 +3490,30 @@ async function exportSaveFile() {
 }
 
 // Load database list from server
+let allDatabases = []; // Store all databases for folder management
+
+// Update scan target database dropdown (defined early so it can be called from loadDatabases)
+function updateScanTargetDb() {
+    const scanTargetDb = document.getElementById('scanTargetDb');
+    if (!scanTargetDb) return;
+    
+    // Preserve the current selection before clearing
+    const currentValue = scanTargetDb.value;
+    
+    scanTargetDb.innerHTML = '<option value="">Select a database...</option>';
+    allDatabases.forEach(db => {
+        const option = document.createElement('option');
+        option.value = db.id;
+        option.textContent = `${db.name} (${db.fileCount || 0} files)`;
+        scanTargetDb.appendChild(option);
+    });
+    
+    // Restore the previous selection if it still exists
+    if (currentValue && allDatabases.some(db => db.id === currentValue)) {
+        scanTargetDb.value = currentValue;
+    }
+}
+
 async function loadDatabases() {
     try {
         const response = await fetch('/api/databases');
@@ -3171,6 +3521,7 @@ async function loadDatabases() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const databases = await response.json();
+        allDatabases = databases; // Store for folder management
         
         // Update database select dropdown
         if (databaseSelect) {
@@ -3181,11 +3532,847 @@ async function loadDatabases() {
                 option.textContent = `${db.name} (${db.fileCount || db.count || 0} files)`;
                 databaseSelect.appendChild(option);
             });
+            
+            // If currentDatabase is not in the list, set it to the first available database
+            const currentDbExists = databases.some(db => db.id === currentDatabase);
+            if (!currentDbExists && databases.length > 0) {
+                console.log(`[Frontend] currentDatabase "${currentDatabase}" not found, setting to first database: ${databases[0].id}`);
+                currentDatabase = databases[0].id;
+                localStorage.setItem('selectedDatabase', currentDatabase);
+                databaseSelect.value = currentDatabase;
+            } else if (!currentDatabase && databases.length > 0) {
+                console.log(`[Frontend] No currentDatabase set, setting to first database: ${databases[0].id}`);
+                currentDatabase = databases[0].id;
+                localStorage.setItem('selectedDatabase', currentDatabase);
+                databaseSelect.value = currentDatabase;
+            }
+            
+            console.log(`[Frontend] Database selection: ${currentDatabase}, available: ${databases.map(d => d.id).join(', ')}`);
+        }
+        
+        // Update folder list in modal if it's open
+        if (folderList) {
+            displayFolderList();
+        }
+        
+        // Update scan target DB dropdown if advanced options modal is open
+        const advancedOptionsModal = document.getElementById('advancedOptionsModal');
+        if (advancedOptionsModal && !advancedOptionsModal.classList.contains('hidden')) {
+            updateScanTargetDb();
         }
     } catch (err) {
         console.error('Error loading databases:', err);
     }
 }
+
+// Folder Management
+const manageFoldersBtn = document.getElementById('manageFoldersBtn');
+const folderManagementModal = document.getElementById('folderManagementModal');
+const closeFolderManagement = document.getElementById('closeFolderManagement');
+const folderList = document.getElementById('folderList');
+const newFolderName = document.getElementById('newFolderName');
+const newFolderPath = document.getElementById('newFolderPath');
+const addFolderBtn = document.getElementById('addFolderBtn');
+
+// Open folder management modal
+if (manageFoldersBtn) {
+    manageFoldersBtn.addEventListener('click', () => {
+        folderManagementModal.classList.remove('hidden');
+        displayFolderList();
+    });
+}
+
+// Close folder management modal
+if (closeFolderManagement) {
+    closeFolderManagement.addEventListener('click', () => {
+        folderManagementModal.classList.add('hidden');
+    });
+}
+
+// Close modal when clicking outside
+if (folderManagementModal) {
+    folderManagementModal.addEventListener('click', (e) => {
+        if (e.target === folderManagementModal) {
+            folderManagementModal.classList.add('hidden');
+        }
+    });
+}
+
+// Display folder list
+function displayFolderList() {
+    if (!folderList) return;
+    
+    folderList.innerHTML = '';
+    
+    if (allDatabases.length === 0) {
+        folderList.innerHTML = '<p>No folders configured</p>';
+        return;
+    }
+    
+    allDatabases.forEach((db, index) => {
+        const folderItem = document.createElement('div');
+        folderItem.className = 'folder-item';
+        folderItem.dataset.folderId = db.id;
+        
+        const folderInfo = document.createElement('div');
+        folderInfo.className = 'folder-info';
+        
+        const folderNameContainer = document.createElement('div');
+        folderNameContainer.className = 'folder-name-container';
+        
+        const folderName = document.createElement('div');
+        folderName.className = 'folder-name';
+        folderName.textContent = db.name;
+        folderName.dataset.folderId = db.id;
+        
+        const folderNameInput = document.createElement('input');
+        folderNameInput.type = 'text';
+        folderNameInput.className = 'folder-name-input hidden';
+        folderNameInput.value = db.name;
+        folderNameInput.dataset.folderId = db.id;
+        
+        folderNameContainer.appendChild(folderName);
+        folderNameContainer.appendChild(folderNameInput);
+        
+        const folderPath = document.createElement('div');
+        folderPath.className = 'folder-path';
+        folderPath.textContent = db.path;
+        
+        const folderStats = document.createElement('div');
+        folderStats.className = 'folder-stats';
+        folderStats.textContent = `${db.fileCount || 0} .pk3 files`;
+        
+        folderInfo.appendChild(folderNameContainer);
+        folderInfo.appendChild(folderPath);
+        folderInfo.appendChild(folderStats);
+        
+        const folderActions = document.createElement('div');
+        folderActions.className = 'folder-actions';
+        
+        // Reorder buttons
+        const reorderContainer = document.createElement('div');
+        reorderContainer.className = 'reorder-buttons';
+        
+        const moveUpBtn = document.createElement('button');
+        moveUpBtn.className = 'btn btn-secondary btn-small btn-icon';
+        moveUpBtn.innerHTML = '↑';
+        moveUpBtn.title = 'Move up';
+        moveUpBtn.disabled = index === 0;
+        moveUpBtn.addEventListener('click', () => moveFolder(db.id, 'up'));
+        reorderContainer.appendChild(moveUpBtn);
+        
+        const moveDownBtn = document.createElement('button');
+        moveDownBtn.className = 'btn btn-secondary btn-small btn-icon';
+        moveDownBtn.innerHTML = '↓';
+        moveDownBtn.title = 'Move down';
+        moveDownBtn.disabled = index === allDatabases.length - 1;
+        moveDownBtn.addEventListener('click', () => moveFolder(db.id, 'down'));
+        reorderContainer.appendChild(moveDownBtn);
+        
+        folderActions.appendChild(reorderContainer);
+        
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-secondary btn-small';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => editFolderName(db.id));
+        folderActions.appendChild(editBtn);
+        
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger btn-small';
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => removeFolder(db.id, db.name));
+        folderActions.appendChild(removeBtn);
+        
+        folderItem.appendChild(folderInfo);
+        folderItem.appendChild(folderActions);
+        folderList.appendChild(folderItem);
+    });
+}
+
+// Edit folder name
+function editFolderName(folderId) {
+    const folderName = document.querySelector(`.folder-name[data-folder-id="${folderId}"]`);
+    const folderNameInput = document.querySelector(`.folder-name-input[data-folder-id="${folderId}"]`);
+    
+    if (!folderName || !folderNameInput) return;
+    
+    // Show input, hide name
+    folderName.classList.add('hidden');
+    folderNameInput.classList.remove('hidden');
+    folderNameInput.focus();
+    folderNameInput.select();
+    
+    // Save on Enter or blur
+    const saveEdit = async () => {
+        const newName = folderNameInput.value.trim();
+        if (newName && newName !== folderName.textContent) {
+            try {
+                const response = await fetch(`/api/databases/${folderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to update folder name');
+                }
+                
+                // Reload databases to update the list
+                await loadDatabases();
+            } catch (error) {
+                console.error('Error updating folder name:', error);
+                alert(`Failed to update folder name: ${error.message}`);
+                // Reset input value
+                folderNameInput.value = folderName.textContent;
+            }
+        } else {
+            // Reset input value if unchanged
+            folderNameInput.value = folderName.textContent;
+        }
+        
+        // Hide input, show name
+        folderNameInput.classList.add('hidden');
+        folderName.classList.remove('hidden');
+    };
+    
+    // Cancel on Escape
+    const cancelEdit = () => {
+        folderNameInput.value = folderName.textContent;
+        folderNameInput.classList.add('hidden');
+        folderName.classList.remove('hidden');
+    };
+    
+    folderNameInput.addEventListener('blur', saveEdit, { once: true });
+    folderNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            folderNameInput.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEdit();
+        }
+    }, { once: true });
+}
+
+// Move folder up or down
+async function moveFolder(folderId, direction) {
+    const currentIndex = allDatabases.findIndex(db => db.id === folderId);
+    if (currentIndex === -1) return;
+    
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= allDatabases.length) return;
+    
+    // Swap in local array
+    [allDatabases[currentIndex], allDatabases[newIndex]] = 
+        [allDatabases[newIndex], allDatabases[currentIndex]];
+    
+    // Update server
+    try {
+        const folderIds = allDatabases.map(db => db.id);
+        const response = await fetch('/api/databases/reorder', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ folderIds: folderIds })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to reorder folders');
+        }
+        
+        // Reload databases to update the list
+        await loadDatabases();
+    } catch (error) {
+        console.error('Error reordering folders:', error);
+        alert(`Failed to reorder folders: ${error.message}`);
+        // Reload to reset
+        await loadDatabases();
+    }
+}
+
+// Add new folder
+if (addFolderBtn) {
+    addFolderBtn.addEventListener('click', async () => {
+        const name = newFolderName.value.trim();
+        const folderPath = newFolderPath.value.trim();
+        
+        if (!name || !folderPath) {
+            alert('Please enter both folder name and path');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/databases', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    folderPath: folderPath
+                })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to add folder');
+            }
+            
+            // Clear form
+            newFolderName.value = '';
+            newFolderPath.value = '';
+            
+            // Reload databases
+            await loadDatabases();
+            
+            alert('Folder added successfully!');
+        } catch (error) {
+            console.error('Error adding folder:', error);
+            alert(`Failed to add folder: ${error.message}`);
+        }
+    });
+}
+
+// Remove folder
+async function removeFolder(folderId, folderName) {
+    if (!confirm(`Are you sure you want to remove "${folderName}"?\n\nNote: The folder must be empty to be removed.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/databases/${folderId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to remove folder');
+        }
+        
+        // Reload databases
+        await loadDatabases();
+        
+        alert('Folder removed successfully!');
+    } catch (error) {
+        console.error('Error removing folder:', error);
+        alert(`Failed to remove folder: ${error.message}`);
+    }
+}
+
+// Advanced Options Modal
+const advancedOptionsBtn = document.getElementById('advancedOptionsBtn');
+const advancedOptionsModal = document.getElementById('advancedOptionsModal');
+const closeAdvancedOptions = document.getElementById('closeAdvancedOptions');
+const scanSourceFolder = document.getElementById('scanSourceFolder');
+const scanTargetDb = document.getElementById('scanTargetDb');
+const scanAndMoveBtn = document.getElementById('scanAndMoveBtn');
+const scanResults = document.getElementById('scanResults');
+const enableAutoScan = document.getElementById('enableAutoScan');
+const scanIntervalGroup = document.getElementById('scanIntervalGroup');
+const scanInterval = document.getElementById('scanInterval');
+const stopAutoScanBtn = document.getElementById('stopAutoScanBtn');
+const scanStatus = document.getElementById('scanStatus');
+const saveScannerConfigBtn = document.getElementById('saveScannerConfigBtn');
+
+// Auto-scan state
+let autoScanInterval = null;
+let isAutoScanning = false;
+
+// Scanner configuration storage key
+const SCANNER_CONFIG_KEY = 'folderScannerConfig';
+
+// Save scanner configuration
+function saveScannerConfig() {
+    const sourceFolderEl = document.getElementById('scanSourceFolder');
+    const targetDbEl = document.getElementById('scanTargetDb');
+    const autoScanEl = document.getElementById('enableAutoScan');
+    const intervalEl = document.getElementById('scanInterval');
+    
+    const config = {
+        sourceFolder: sourceFolderEl ? sourceFolderEl.value.trim() : '',
+        targetDbId: targetDbEl ? targetDbEl.value : '',
+        enableAutoScan: autoScanEl ? autoScanEl.checked : false,
+        scanInterval: intervalEl ? parseInt(intervalEl.value) || 5 : 5
+    };
+    
+    // Only save if targetDbId is not empty
+    if (!config.targetDbId) {
+        alert('Please select a target database before saving');
+        return;
+    }
+    
+    localStorage.setItem(SCANNER_CONFIG_KEY, JSON.stringify(config));
+    alert('Scanner configuration saved!');
+}
+
+// Load scanner configuration
+function loadScannerConfig() {
+    try {
+        const saved = localStorage.getItem(SCANNER_CONFIG_KEY);
+        if (!saved) return;
+        
+        const config = JSON.parse(saved);
+        
+        const sourceFolderEl = document.getElementById('scanSourceFolder');
+        const targetDbEl = document.getElementById('scanTargetDb');
+        const autoScanEl = document.getElementById('enableAutoScan');
+        const intervalEl = document.getElementById('scanInterval');
+        const scanIntervalGroup = document.getElementById('scanIntervalGroup');
+        
+        if (sourceFolderEl && config.sourceFolder) {
+            sourceFolderEl.value = config.sourceFolder;
+        }
+        
+        if (targetDbEl && config.targetDbId) {
+            // Ensure the target database still exists before setting the value
+            const targetDbExists = Array.from(targetDbEl.options).some(opt => opt.value === config.targetDbId);
+            if (targetDbExists) {
+                targetDbEl.value = config.targetDbId;
+            }
+        }
+        
+        if (autoScanEl) {
+            autoScanEl.checked = config.enableAutoScan || false;
+            if (autoScanEl.checked && scanIntervalGroup) {
+                scanIntervalGroup.style.display = 'block';
+            }
+        }
+        
+        if (intervalEl && config.scanInterval) {
+            intervalEl.value = config.scanInterval;
+        }
+    } catch (error) {
+        console.error('Error loading scanner config:', error);
+    }
+}
+
+// Start auto-scan if it was enabled in saved configuration
+async function startAutoScanIfEnabled() {
+    try {
+        const saved = localStorage.getItem(SCANNER_CONFIG_KEY);
+        if (!saved) return;
+        
+        const config = JSON.parse(saved);
+        
+        // Only start if auto-scan was enabled
+        if (!config.enableAutoScan) return;
+        
+        // Check if source and target are configured
+        if (!config.sourceFolder || !config.targetDbId) return;
+        
+        const sourceFolderEl = document.getElementById('scanSourceFolder');
+        const targetDbEl = document.getElementById('scanTargetDb');
+        const autoScanEl = document.getElementById('enableAutoScan');
+        const intervalEl = document.getElementById('scanInterval');
+        
+        if (!sourceFolderEl || !targetDbEl || !autoScanEl || !intervalEl) {
+            // Elements not ready yet, try again after a short delay
+            setTimeout(startAutoScanIfEnabled, 500);
+            return;
+        }
+        
+        // Ensure values are set
+        sourceFolderEl.value = config.sourceFolder;
+        targetDbEl.value = config.targetDbId;
+        autoScanEl.checked = true;
+        intervalEl.value = config.scanInterval || 5;
+        
+        const intervalMinutes = parseInt(intervalEl.value) || 5;
+        
+        if (intervalMinutes < 1) {
+            return;
+        }
+        
+        // Stop any existing interval first
+        if (autoScanInterval) {
+            clearInterval(autoScanInterval);
+            autoScanInterval = null;
+        }
+        
+        // Start auto-scan
+        isAutoScanning = true;
+        const stopAutoScanBtn = document.getElementById('stopAutoScanBtn');
+        const scanStatus = document.getElementById('scanStatus');
+        const scanIntervalGroup = document.getElementById('scanIntervalGroup');
+        
+        if (stopAutoScanBtn) {
+            stopAutoScanBtn.style.display = 'inline-block';
+        }
+        if (scanStatus) {
+            scanStatus.innerHTML = `<div class="scan-result-success"><p>Auto-scanning every ${intervalMinutes} minute(s)...</p></div>`;
+            scanStatus.classList.remove('hidden');
+        }
+        if (scanIntervalGroup) {
+            scanIntervalGroup.style.display = 'block';
+        }
+        
+        // Perform initial scan
+        await performScanAndMove();
+        
+        // Set up interval
+        const intervalMs = intervalMinutes * 60 * 1000;
+        autoScanInterval = setInterval(async () => {
+            await performScanAndMove();
+        }, intervalMs);
+    } catch (error) {
+        console.error('Error starting auto-scan:', error);
+    }
+}
+
+// Save scanner configuration button
+if (saveScannerConfigBtn) {
+    saveScannerConfigBtn.addEventListener('click', async () => {
+        saveScannerConfig();
+        
+        // Check if auto-scan should be started
+        const autoScanEl = document.getElementById('enableAutoScan');
+        const intervalEl = document.getElementById('scanInterval');
+        const sourceFolderEl = document.getElementById('scanSourceFolder');
+        const targetDbEl = document.getElementById('scanTargetDb');
+        
+        if (autoScanEl && autoScanEl.checked && intervalEl) {
+            const source = sourceFolderEl ? sourceFolderEl.value.trim() : '';
+            const targetId = targetDbEl ? targetDbEl.value : '';
+            
+            // Only start auto-scan if source and target are configured
+            if (source && targetId) {
+                const intervalMinutes = intervalEl.value ? parseInt(intervalEl.value) : 5;
+                
+                if (intervalMinutes < 1) {
+                    alert('Scan interval must be at least 1 minute');
+                    return;
+                }
+                
+                // Stop any existing interval first
+                if (autoScanInterval) {
+                    clearInterval(autoScanInterval);
+                    autoScanInterval = null;
+                }
+                
+                // Start auto-scan
+                isAutoScanning = true;
+                const stopAutoScanBtn = document.getElementById('stopAutoScanBtn');
+                const scanStatus = document.getElementById('scanStatus');
+                
+                if (stopAutoScanBtn) {
+                    stopAutoScanBtn.style.display = 'inline-block';
+                }
+                if (scanStatus) {
+                    scanStatus.innerHTML = `<div class="scan-result-success"><p>Auto-scanning every ${intervalMinutes} minute(s)...</p></div>`;
+                    scanStatus.classList.remove('hidden');
+                }
+                
+                // Perform initial scan
+                await performScanAndMove();
+                
+                // Set up interval
+                const intervalMs = intervalMinutes * 60 * 1000;
+                autoScanInterval = setInterval(async () => {
+                    await performScanAndMove();
+                }, intervalMs);
+            }
+        } else {
+            // If auto-scan is disabled, stop any running scan
+            if (autoScanInterval) {
+                clearInterval(autoScanInterval);
+                autoScanInterval = null;
+                isAutoScanning = false;
+                
+                const stopAutoScanBtn = document.getElementById('stopAutoScanBtn');
+                const scanStatus = document.getElementById('scanStatus');
+                
+                if (stopAutoScanBtn) {
+                    stopAutoScanBtn.style.display = 'none';
+                }
+                if (scanStatus) {
+                    scanStatus.classList.add('hidden');
+                }
+            }
+        }
+    });
+}
+
+// Open advanced options modal
+if (advancedOptionsBtn) {
+    advancedOptionsBtn.addEventListener('click', () => {
+        advancedOptionsModal.classList.remove('hidden');
+        // Populate target database dropdown first
+        updateScanTargetDb();
+        // Load saved configuration after dropdown is populated
+        // Use setTimeout to ensure dropdown is fully updated
+        setTimeout(() => {
+            loadScannerConfig();
+        }, 0);
+        // Re-initialize scan button to ensure it's set up
+        initializeScanButton();
+    });
+}
+
+// Close advanced options modal
+if (closeAdvancedOptions) {
+    closeAdvancedOptions.addEventListener('click', () => {
+        advancedOptionsModal.classList.add('hidden');
+    });
+}
+
+// Close modal when clicking outside
+if (advancedOptionsModal) {
+    advancedOptionsModal.addEventListener('click', (e) => {
+        if (e.target === advancedOptionsModal) {
+            advancedOptionsModal.classList.add('hidden');
+        }
+    });
+}
+
+
+// Toggle auto-scan checkbox
+if (enableAutoScan) {
+    enableAutoScan.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            if (scanIntervalGroup) {
+                scanIntervalGroup.style.display = 'block';
+            }
+        } else {
+            if (scanIntervalGroup) {
+                scanIntervalGroup.style.display = 'none';
+            }
+            stopAutoScan();
+        }
+    });
+}
+
+// Stop auto-scan
+function stopAutoScan() {
+    if (autoScanInterval) {
+        clearInterval(autoScanInterval);
+        autoScanInterval = null;
+    }
+    isAutoScanning = false;
+    if (stopAutoScanBtn) {
+        stopAutoScanBtn.style.display = 'none';
+    }
+    if (scanStatus) {
+        scanStatus.classList.add('hidden');
+    }
+    if (enableAutoScan) {
+        enableAutoScan.checked = false;
+    }
+    if (scanIntervalGroup) {
+        scanIntervalGroup.style.display = 'none';
+    }
+}
+
+// Stop auto-scan button
+if (stopAutoScanBtn) {
+    stopAutoScanBtn.addEventListener('click', () => {
+        stopAutoScan();
+    });
+}
+
+// Perform scan and move operation
+async function performScanAndMove() {
+    if (!scanSourceFolder || !scanTargetDb) {
+        return;
+    }
+    
+    const source = scanSourceFolder.value.trim();
+    const targetId = scanTargetDb.value;
+    
+    if (!source || !targetId) {
+        if (scanStatus) {
+            scanStatus.innerHTML = '<div class="scan-result-error"><p>Please enter a source folder and select a target database</p></div>';
+            scanStatus.classList.remove('hidden');
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/databases/scan-and-move', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sourceFolder: source,
+                targetDbId: targetId
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to scan and move files');
+        }
+        
+        const result = await response.json();
+        
+        // Display results
+        let resultHtml = `<div class="scan-result-success">
+            <h4>Scan Complete</h4>
+            <p><strong>Total files found:</strong> ${result.totalFound}</p>
+            <p><strong>Files moved:</strong> ${result.filesMoved}</p>
+            <p><strong>Files skipped:</strong> ${result.filesSkipped}</p>
+        </div>`;
+        
+        if (result.errors && result.errors.length > 0) {
+            resultHtml += `<div class="scan-result-errors">
+                <h4>Errors (${result.errors.length}):</h4>
+                <ul>`;
+            result.errors.forEach(err => {
+                resultHtml += `<li>${err.file}: ${err.error}</li>`;
+            });
+            resultHtml += `</ul></div>`;
+        }
+        
+        if (isAutoScanning) {
+            // Update status for auto-scan
+            if (scanStatus) {
+                const now = new Date().toLocaleTimeString();
+                scanStatus.innerHTML = `<div class="scan-result-success">
+                    <p><strong>Last scan:</strong> ${now} - Moved ${result.filesMoved} file(s), skipped ${result.filesSkipped}</p>
+                </div>`;
+                scanStatus.classList.remove('hidden');
+            }
+        } else {
+            // Show full results for manual scan
+            if (scanResults) {
+                scanResults.innerHTML = resultHtml;
+                scanResults.classList.remove('hidden');
+            }
+        }
+        
+        // Show notification if files were moved
+        if (result.filesMoved > 0) {
+            showDbReloadNotification(result.filesMoved, targetId);
+        }
+        
+        // Reload databases to update file counts
+        await loadDatabases();
+        updateScanTargetDb();
+        
+    } catch (error) {
+        console.error('Error scanning and moving files:', error);
+        if (isAutoScanning) {
+            if (scanStatus) {
+                const now = new Date().toLocaleTimeString();
+                scanStatus.innerHTML = `<div class="scan-result-error">
+                    <p><strong>Last scan (${now}):</strong> ${error.message}</p>
+                </div>`;
+                scanStatus.classList.remove('hidden');
+            }
+        } else {
+            if (scanResults) {
+                scanResults.innerHTML = `<div class="scan-result-error">
+                    <h4>Error</h4>
+                    <p>${error.message}</p>
+                </div>`;
+                scanResults.classList.remove('hidden');
+            }
+        }
+    }
+}
+
+// Initialize scan button listener
+function initializeScanButton() {
+    const btn = document.getElementById('scanAndMoveBtn');
+    if (!btn) {
+        return;
+    }
+    
+    // Remove existing listener if any (by cloning and replacing)
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    
+    newBtn.addEventListener('click', async () => {
+        // Get elements dynamically to ensure they exist
+        const sourceFolderEl = document.getElementById('scanSourceFolder');
+        const targetDbEl = document.getElementById('scanTargetDb');
+        const autoScanEl = document.getElementById('enableAutoScan');
+        const intervalEl = document.getElementById('scanInterval');
+        
+        if (!sourceFolderEl || !targetDbEl) {
+            alert('Scanner elements not found');
+            return;
+        }
+        
+        const source = sourceFolderEl.value ? sourceFolderEl.value.trim() : '';
+        const targetId = targetDbEl.value ? targetDbEl.value : '';
+        
+        if (!source || !targetId) {
+            alert('Please enter a source folder and select a target database');
+            return;
+        }
+        
+        // Check if auto-scan is enabled
+        if (autoScanEl && autoScanEl.checked && intervalEl) {
+            const intervalMinutes = intervalEl.value ? parseInt(intervalEl.value) : 5;
+            
+            if (intervalMinutes < 1) {
+                alert('Scan interval must be at least 1 minute');
+                return;
+            }
+            
+            // Stop any existing interval first
+            if (autoScanInterval) {
+                clearInterval(autoScanInterval);
+                autoScanInterval = null;
+            }
+            
+            // Start auto-scan
+            isAutoScanning = true;
+            if (stopAutoScanBtn) {
+                stopAutoScanBtn.style.display = 'inline-block';
+            }
+            if (scanStatus) {
+                scanStatus.innerHTML = `<div class="scan-result-success"><p>Auto-scanning every ${intervalMinutes} minute(s)...</p></div>`;
+                scanStatus.classList.remove('hidden');
+            }
+            
+            // Perform initial scan
+            await performScanAndMove();
+            
+            // Set up interval
+            const intervalMs = intervalMinutes * 60 * 1000;
+            autoScanInterval = setInterval(async () => {
+                await performScanAndMove();
+            }, intervalMs);
+            
+            return;
+        }
+        
+        // Manual scan
+        if (!confirm(`This will recursively scan "${source}" for .pk3 files and move them to the selected database. Continue?`)) {
+            return;
+        }
+        
+        // Disable button and show loading
+        newBtn.disabled = true;
+        newBtn.textContent = 'Scanning...';
+        if (scanResults) {
+            scanResults.classList.add('hidden');
+        }
+        
+        await performScanAndMove();
+        
+        // Re-enable button
+        newBtn.disabled = false;
+        newBtn.textContent = 'Scan and Move Files';
+        
+        // Clear source folder input only for manual scans
+        if (!isAutoScanning && sourceFolderEl) {
+            sourceFolderEl.value = '';
+        }
+    });
+}
+
+// Initialize scan button on page load
+initializeScanButton();
 
 // Auto-load Pokemon when DOM is ready
 if (document.readyState === 'loading') {
@@ -3201,6 +4388,14 @@ if (document.readyState === 'loading') {
 
         // init card width slider
         updateCardWidth(cardWidthSlider.value);
+        
+        // Load scanner configuration after databases are loaded
+        updateScanTargetDb();
+        loadScannerConfig();
+        // Start auto-scan if it was enabled
+        setTimeout(() => {
+            startAutoScanIfEnabled();
+        }, 1000);
     });
 } else {
     // DOM is already ready, load immediately
@@ -3210,6 +4405,14 @@ if (document.readyState === 'loading') {
             databaseSelect.value = currentDatabase;
         }
         loadPokemon();
+        
+        // Load scanner configuration after databases are loaded
+        updateScanTargetDb();
+        loadScannerConfig();
+        // Start auto-scan if it was enabled
+        setTimeout(() => {
+            startAutoScanIfEnabled();
+        }, 1000);
     })();
 }
 

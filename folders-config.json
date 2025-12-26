@@ -1,0 +1,19 @@
+[
+  {
+    "id": "db5",
+    "name": "Bots-DB",
+    "path": "G:\\Gits\\gen3-save-manager\\pk3-db-bots"
+  },
+  {
+    "id": "db3",
+    "name": "Pkhex-Legal",
+    "path": "C:\\Users\\nobod\\Desktop\\pkhex\\pkmdbLEGAL",
+    "protected": false
+  },
+  {
+    "id": "db4",
+    "name": "PkHex-Bots(ROM Dumps)",
+    "path": "C:\\Users\\nobod\\Desktop\\pkhex\\pkmdb",
+    "protected": false
+  }
+]

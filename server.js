@@ -3,6 +3,9 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const PK3Parser = require('./pk3-parser');
+const PK4Parser = require('./pk4-parser');
+const PK6Parser = require('./pk6-parser');
+const PK7Parser = require('./pk7-parser');
 const SAV3Parser = require('./sav3-parser');
 const multer = require('multer');
 const archiver = require('archiver');
@@ -64,6 +67,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.raw({ limit: '128kb', type: 'application/octet-stream' }));
+
 app.use(express.static('public'));
 
 // Configure multer for file uploads
@@ -75,13 +79,48 @@ const upload = multer({
 // Default folder path - user can change this
 const DEFAULT_PK3_FOLDER = path.join(__dirname, 'pk3-files');
 
+// Path to the folders configuration file
+const FOLDERS_CONFIG_PATH = path.join(__dirname, 'folders-config.json');
+
+// Load folders from JSON file or initialize with defaults
+function loadFolders() {
+  if (fs.existsSync(FOLDERS_CONFIG_PATH)) {
+    try {
+      const data = fs.readFileSync(FOLDERS_CONFIG_PATH, 'utf8');
+      const folders = JSON.parse(data);
+      return folders;
+    } catch (error) {
+      console.error('Error loading folders config:', error);
+      // Fall back to defaults if file is corrupted
+      return getDefaultFolders();
+    }
+  } else {
+    // Initialize with default folders
+    const defaultFolders = getDefaultFolders();
+    saveFolders(defaultFolders);
+    return defaultFolders;
+  }
+}
+
+// Get default folders configuration
+function getDefaultFolders() {
+  return [
+    { id: 'db1', name: 'Database 1', path: path.join(__dirname, 'pk3-files') }
+  ];
+}
+
+// Save folders to JSON file
+function saveFolders(folders) {
+  try {
+    fs.writeFileSync(FOLDERS_CONFIG_PATH, JSON.stringify(folders, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving folders config:', error);
+    throw error;
+  }
+}
+
 // Available Pokemon database folders
-const PK3_DATABASES = [
-  { id: 'db1', name: 'Database 1', path: path.join(__dirname, 'pk3-files') },
-  { id: 'db2', name: 'Database 2', path: path.join(__dirname, 'pk3-files-2') },
-  { id: 'db3', name: 'Database 3', path: path.join(__dirname, 'pk3-files-3') },
-  { id: 'db4', name: 'Database 4', path: path.join(__dirname, 'pk3-files-4') }
-];
+let PK3_DATABASES = loadFolders();
 
 // Ensure all database directories exist
 PK3_DATABASES.forEach(db => {
@@ -98,14 +137,349 @@ function getFolderPath(dbId) {
 
 // API endpoint to get available databases
 app.get('/api/databases', (req, res) => {
+  // Reload folders to get latest state
+  PK3_DATABASES = loadFolders();
   res.json(PK3_DATABASES.map(db => ({
     id: db.id,
     name: db.name,
     exists: fs.existsSync(db.path),
     fileCount: fs.existsSync(db.path) 
-      ? fs.readdirSync(db.path).filter(f => f.toLowerCase().endsWith('.pk3')).length 
-      : 0
+      ? fs.readdirSync(db.path).filter(f => {
+          const lower = f.toLowerCase();
+          return lower.endsWith('.pk3') || lower.endsWith('.pk4') || lower.endsWith('.pk5') || lower.endsWith('.pk6') || lower.endsWith('.pk7');
+        }).length 
+      : 0,
+    path: db.path
   })));
+});
+
+// API endpoint to add a new folder
+app.post('/api/databases', express.json(), (req, res) => {
+  try {
+    const { name, folderPath } = req.body;
+    
+    if (!name || !folderPath) {
+      return res.status(400).json({ error: 'Name and folder path are required' });
+    }
+    
+    // Validate folder path (must be absolute or relative to project root)
+    let resolvedPath;
+    if (path.isAbsolute(folderPath)) {
+      resolvedPath = folderPath;
+    } else {
+      resolvedPath = path.join(__dirname, folderPath);
+    }
+    
+    // Check if folder already exists in the list
+    const existing = PK3_DATABASES.find(db => db.path === resolvedPath);
+    if (existing) {
+      return res.status(400).json({ error: 'Folder already exists in the database list' });
+    }
+    
+    // Generate a unique ID
+    const maxId = PK3_DATABASES.reduce((max, db) => {
+      const match = db.id.match(/^db(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1]);
+        return Math.max(max, num);
+      }
+      return max;
+    }, 0);
+    const newId = `db${maxId + 1}`;
+    
+    // Create the folder if it doesn't exist
+    if (!fs.existsSync(resolvedPath)) {
+      fs.mkdirSync(resolvedPath, { recursive: true });
+    }
+    
+    // Add to database list
+    const newFolder = {
+      id: newId,
+      name: name,
+      path: resolvedPath
+    };
+    
+    PK3_DATABASES.push(newFolder);
+    saveFolders(PK3_DATABASES);
+    
+    res.json({ success: true, folder: newFolder });
+  } catch (error) {
+    console.error('Error adding folder:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to reorder folders (must come before /:id route to avoid route conflict)
+app.put('/api/databases/reorder', express.json(), (req, res) => {
+  try {
+    const { folderIds } = req.body;
+    
+    if (!folderIds || !Array.isArray(folderIds)) {
+      return res.status(400).json({ error: 'folderIds array is required' });
+    }
+    
+    // Validate that all IDs exist and match current folders
+    const currentIds = PK3_DATABASES.map(db => db.id);
+    if (folderIds.length !== currentIds.length || 
+        !folderIds.every(id => currentIds.includes(id))) {
+      return res.status(400).json({ error: 'Invalid folder IDs provided' });
+    }
+    
+    // Reorder folders based on the provided order
+    const reorderedFolders = folderIds.map(id => 
+      PK3_DATABASES.find(db => db.id === id)
+    ).filter(Boolean);
+    
+    PK3_DATABASES = reorderedFolders;
+    saveFolders(PK3_DATABASES);
+    
+    res.json({ success: true, folders: PK3_DATABASES });
+  } catch (error) {
+    console.error('Error reordering folders:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to update a folder's name
+app.put('/api/databases/:id', express.json(), (req, res) => {
+  try {
+    const folderId = req.params.id;
+    const { name } = req.body;
+    
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+    
+    const folder = PK3_DATABASES.find(db => db.id === folderId);
+    if (!folder) {
+      return res.status(404).json({ error: 'Folder not found' });
+    }
+    
+    // Update the name
+    folder.name = name.trim();
+    saveFolders(PK3_DATABASES);
+    
+    res.json({ success: true, folder: folder });
+  } catch (error) {
+    console.error('Error updating folder:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper function to recursively find all Pokemon files (.pk3, .pk4, .pk5, .pk6, .pk7) in a directory
+function findPK3FilesRecursive(dirPath, fileList = []) {
+  if (!fs.existsSync(dirPath)) {
+    return fileList;
+  }
+  
+  try {
+    const items = fs.readdirSync(dirPath);
+    
+    for (const item of items) {
+      const fullPath = path.join(dirPath, item);
+      try {
+        const stat = fs.statSync(fullPath);
+        
+        if (stat.isDirectory()) {
+          // Recursively search subdirectories
+          findPK3FilesRecursive(fullPath, fileList);
+        } else if (stat.isFile()) {
+          const lower = item.toLowerCase();
+          if (lower.endsWith('.pk3') || lower.endsWith('.pk4') || lower.endsWith('.pk5') || lower.endsWith('.pk6') || lower.endsWith('.pk7')) {
+            fileList.push(fullPath);
+          }
+        }
+      } catch (statError) {
+        // Silently skip files that can't be accessed
+      }
+    }
+  } catch (readError) {
+    // Silently skip directories that can't be read
+  }
+  
+  return fileList;
+}
+
+// API endpoint to scan and move PK3 files
+app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
+  try {
+    const { sourceFolder, targetDbId } = req.body;
+    
+    if (!sourceFolder || !targetDbId) {
+      return res.status(400).json({ error: 'Source folder and target database are required' });
+    }
+    
+    // Validate source folder
+    let sourcePath;
+    if (path.isAbsolute(sourceFolder)) {
+      sourcePath = sourceFolder;
+    } else {
+      sourcePath = path.join(__dirname, sourceFolder);
+    }
+    
+    if (!fs.existsSync(sourcePath)) {
+      return res.status(404).json({ error: 'Source folder does not exist' });
+    }
+    
+    // Validate target database
+    const targetDb = PK3_DATABASES.find(db => db.id === targetDbId);
+    if (!targetDb) {
+      return res.status(404).json({ error: 'Target database not found' });
+    }
+    
+    // Ensure target folder exists
+    if (!fs.existsSync(targetDb.path)) {
+      fs.mkdirSync(targetDb.path, { recursive: true });
+    }
+    
+    // Recursively find all Pokemon files (.pk3, .pk4, .pk5, .pk6, .pk7)
+    const pk3Files = findPK3FilesRecursive(sourcePath);
+    const timestamp = new Date().toLocaleString();
+    console.log(`[Folder Scanner] Found ${pk3Files.length} Pokemon file(s) in source folder [${timestamp}]`);
+    
+    if (pk3Files.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: 'No Pokemon files found in source folder',
+        filesMoved: 0,
+        filesSkipped: 0,
+        errors: []
+      });
+    }
+    
+    // Move files to target database
+    let filesMoved = 0;
+    let filesSkipped = 0;
+    const errors = [];
+    
+    console.log(`[Folder Scanner] Processing ${pk3Files.length} file(s)... [${timestamp}]`);
+    
+    for (const filePath of pk3Files) {
+      try {
+        const filename = path.basename(filePath);
+        let targetPath = path.join(targetDb.path, filename);
+        
+        // Check if file already exists in target
+        if (fs.existsSync(targetPath)) {
+          // Compare file sizes to see if they're the same
+          const sourceStats = fs.statSync(filePath);
+          const targetStats = fs.statSync(targetPath);
+          
+          if (sourceStats.size === targetStats.size) {
+            // Same file, skip it
+            filesSkipped++;
+            continue;
+          } else {
+            // Different file with same name, rename it
+            const ext = path.extname(filename);
+            const baseName = path.basename(filename, ext);
+            let counter = 1;
+            do {
+              const newFilename = `${baseName}_${counter}${ext}`;
+              targetPath = path.join(targetDb.path, newFilename);
+              counter++;
+            } while (fs.existsSync(targetPath));
+          }
+        }
+        
+        // Move the file (use copy + delete for cross-device support)
+        try {
+          // Copy the file first (works across drives)
+          fs.copyFileSync(filePath, targetPath);
+          
+          // Verify the copy was successful
+          if (!fs.existsSync(targetPath)) {
+            throw new Error('Copy verification failed - target file does not exist');
+          }
+          
+          // Delete the source file
+          fs.unlinkSync(filePath);
+          
+          // Final verification
+          if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
+            filesMoved++;
+          } else {
+            throw new Error(`File move verification failed - target exists: ${fs.existsSync(targetPath)}, source removed: ${!fs.existsSync(filePath)}`);
+          }
+        } catch (moveError) {
+          // If copy succeeded but delete failed, try to clean up the target
+          if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(targetPath);
+            } catch (cleanupError) {
+              // Silently handle cleanup errors
+            }
+          }
+          throw new Error(`Failed to move file: ${moveError.message}`);
+        }
+      } catch (error) {
+        const filename = path.basename(filePath);
+        console.error(`[Folder Scanner] Error moving file ${filename}: ${error.message}`);
+        errors.push({
+          file: filePath,
+          error: error.message
+        });
+      }
+    }
+    
+    const responseData = {
+      success: true,
+      message: `Moved ${filesMoved} file(s) to ${targetDb.name}`,
+      filesMoved: filesMoved,
+      filesSkipped: filesSkipped,
+      totalFound: pk3Files.length,
+      errors: errors
+    };
+    
+    res.json(responseData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to remove a folder
+app.delete('/api/databases/:id', (req, res) => {
+  try {
+    const folderId = req.params.id;
+    const folder = PK3_DATABASES.find(db => db.id === folderId);
+    
+    if (!folder) {
+      return res.status(404).json({ error: 'Folder not found' });
+    }
+    
+    // Check if folder has content
+    if (fs.existsSync(folder.path)) {
+      const files = fs.readdirSync(folder.path);
+      const pkFiles = files.filter(f => {
+        const lower = f.toLowerCase();
+        return lower.endsWith('.pk3') || lower.endsWith('.pk4') || lower.endsWith('.pk5') || lower.endsWith('.pk6') || lower.endsWith('.pk7');
+      });
+      
+      if (pkFiles.length > 0) {
+        return res.status(400).json({ 
+          error: `Cannot remove folder: it contains ${pkFiles.length} Pokemon file(s). Please remove all files first.`,
+          fileCount: pkFiles.length
+        });
+      }
+      
+      // Check for any files (not just .pk3)
+      if (files.length > 0) {
+        return res.status(400).json({ 
+          error: `Cannot remove folder: it contains ${files.length} file(s). Please remove all files first.`,
+          fileCount: files.length
+        });
+      }
+    }
+    
+    // Remove from database list
+    PK3_DATABASES = PK3_DATABASES.filter(db => db.id !== folderId);
+    saveFolders(PK3_DATABASES);
+    
+    res.json({ success: true, message: 'Folder removed successfully' });
+  } catch (error) {
+    console.error('Error removing folder:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // API endpoint to get all .pk3 files from the folder
@@ -113,13 +487,24 @@ app.get('/api/pokemon', (req, res) => {
   const dbId = req.query.db || req.query.folder; // Support both 'db' and 'folder' for backward compatibility
   const folderPath = dbId ? getFolderPath(dbId) : DEFAULT_PK3_FOLDER;
   
+  console.log(`[API] /api/pokemon called with dbId: ${dbId}, folderPath: ${folderPath}`);
+  
   if (!fs.existsSync(folderPath)) {
+    console.error(`[API] Folder not found: ${folderPath}`);
     return res.status(404).json({ error: 'Folder not found' });
   }
 
   try {
-    const files = fs.readdirSync(folderPath)
-      .filter(file => file.toLowerCase().endsWith('.pk3'))
+    console.log(`[API] Reading folder: ${folderPath}`);
+    const allFiles = fs.readdirSync(folderPath);
+    console.log(`[API] Found ${allFiles.length} total files in folder`);
+    
+    const files = allFiles
+      .filter(file => {
+        const lower = file.toLowerCase();
+        const isPokemonFile = lower.endsWith('.pk3') || lower.endsWith('.pk4') || lower.endsWith('.pk5') || lower.endsWith('.pk6') || lower.endsWith('.pk7');
+        return isPokemonFile;
+      })
       .map(file => {
         const filePath = path.join(folderPath, file);
         const stats = fs.statSync(filePath);
@@ -131,11 +516,37 @@ app.get('/api/pokemon', (req, res) => {
         };
       });
 
-    // Parse each .pk3 file
+    console.log(`[API] Filtered to ${files.length} Pokemon files`);
+    
+    if (files.length === 0) {
+      console.warn(`[API] No Pokemon files found in ${folderPath}`);
+      return res.json([]);
+    }
+
+    // Parse each Pokemon file
     const pokemon = files.map(file => {
       try {
         const buffer = fs.readFileSync(file.path);
-        const pokemonData = PK3Parser.parse(buffer, file.filename);
+        const lower = file.filename.toLowerCase();
+        let pokemonData;
+        
+        if (lower.endsWith('.pk3')) {
+          pokemonData = PK3Parser.parse(buffer, file.filename);
+        } else if (lower.endsWith('.pk4') || lower.endsWith('.pk5')) {
+          pokemonData = PK4Parser.parse(buffer, file.filename);
+        } else if (lower.endsWith('.pk6')) {
+          pokemonData = PK6Parser.parse(buffer, file.filename);
+        } else if (lower.endsWith('.pk7')) {
+          pokemonData = PK7Parser.parse(buffer, file.filename);
+        } else {
+          throw new Error('Unsupported file format');
+        }
+        
+        // Validate that we got valid data
+        if (!pokemonData || !pokemonData.species) {
+          throw new Error('Parser returned invalid data: missing species');
+        }
+        
         // Get file stats again to include creation date
         const fileStats = fs.statSync(file.path);
         return {
@@ -145,7 +556,7 @@ app.get('/api/pokemon', (req, res) => {
           fileModified: fileStats.mtime
         };
       } catch (error) {
-        console.error(`Error parsing ${file.filename}:`, error);
+        console.error(`Error parsing ${file.filename}:`, error.message);
         return {
           filename: file.filename,
           error: error.message
@@ -153,13 +564,24 @@ app.get('/api/pokemon', (req, res) => {
       }
     });
 
+    // Log summary
+    const validCount = pokemon.filter(p => !p.error && p.species).length;
+    const errorCount = pokemon.filter(p => p.error).length;
+    console.log(`[API] Parsed ${files.length} files: ${validCount} valid, ${errorCount} errors`);
+    
+    if (validCount === 0 && errorCount > 0) {
+      console.error(`[API] All ${errorCount} files failed to parse. First 3 errors:`, 
+        pokemon.filter(p => p.error).slice(0, 3).map(p => `${p.filename}: ${p.error}`));
+    }
+
+    console.log(`[API] Sending ${pokemon.length} Pokemon objects to client`);
     res.json(pokemon);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// API endpoint to get a specific .pk3 file
+// API endpoint to get a specific Pokemon file
 app.get('/api/pokemon/:filename', (req, res) => {
   const dbId = req.query.db || req.query.folder;
   const folderPath = dbId ? getFolderPath(dbId) : DEFAULT_PK3_FOLDER;
@@ -180,7 +602,20 @@ app.get('/api/pokemon/:filename', (req, res) => {
       return;
     }
     
-    const pokemonData = PK3Parser.parse(buffer);
+    const lower = filename.toLowerCase();
+    let pokemonData;
+    if (lower.endsWith('.pk3')) {
+      pokemonData = PK3Parser.parse(buffer);
+    } else if (lower.endsWith('.pk4') || lower.endsWith('.pk5')) {
+      pokemonData = PK4Parser.parse(buffer, filename);
+    } else if (lower.endsWith('.pk6')) {
+      pokemonData = PK6Parser.parse(buffer, filename);
+    } else if (lower.endsWith('.pk7')) {
+      pokemonData = PK7Parser.parse(buffer, filename);
+    } else {
+      return res.status(400).json({ error: 'Unsupported file format' });
+    }
+    
     res.json(pokemonData);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -213,8 +648,9 @@ app.delete('/api/pokemon/:filename', (req, res) => {
   const folderPath = dbId ? getFolderPath(dbId) : DEFAULT_PK3_FOLDER;
   const filename = req.params.filename;
   
-  // Security: Only allow .pk3 files to be deleted
-  if (!filename.toLowerCase().endsWith('.pk3')) {
+  // Security: Only allow Pokemon files to be deleted
+  const lower = filename.toLowerCase();
+  if (!lower.endsWith('.pk3') && !lower.endsWith('.pk4') && !lower.endsWith('.pk5') && !lower.endsWith('.pk6') && !lower.endsWith('.pk7')) {
     return res.status(400).json({ error: 'Invalid file type' });
   }
   
@@ -256,7 +692,8 @@ app.post('/api/pokemon/download', express.json({ limit: '10mb' }), (req, res) =>
     
     // Security: Validate all filenames
     for (const filename of filenames) {
-      if (!filename.toLowerCase().endsWith('.pk3')) {
+      const lower = filename.toLowerCase();
+      if (!lower.endsWith('.pk3') && !lower.endsWith('.pk4') && !lower.endsWith('.pk5') && !lower.endsWith('.pk6') && !lower.endsWith('.pk7')) {
         return res.status(400).json({ error: `Invalid file type: ${filename}` });
       }
       if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
@@ -654,6 +1091,111 @@ app.get('/api/save/party/:slot', (req, res) => {
     const pokemon = PK3Parser.parse(pokemonData);
     res.json({ ...pokemon, partySlot: slot });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper function to recursively find all .pk3 files in a directory
+function findPK3Files(dir, fileList = []) {
+  try {
+    if (!fs.existsSync(dir)) {
+      return fileList;
+    }
+    
+    const files = fs.readdirSync(dir);
+    
+    for (const file of files) {
+      const filePath = path.join(dir, file);
+      const stat = fs.statSync(filePath);
+      
+      if (stat.isDirectory()) {
+        // Recursively search subdirectories
+        findPK3Files(filePath, fileList);
+      } else if (file.toLowerCase().endsWith('.pk3')) {
+        fileList.push(filePath);
+      }
+    }
+  } catch (error) {
+    console.error(`Error scanning directory ${dir}:`, error);
+  }
+  
+  return fileList;
+}
+
+// API endpoint to scan and move .pk3 files
+app.post('/api/scan-move-files', express.json(), (req, res) => {
+  try {
+    const { sourceFolder, targetDbId, deleteSource } = req.body;
+    
+    if (!sourceFolder || !targetDbId) {
+      return res.status(400).json({ error: 'Source folder and target database are required' });
+    }
+    
+    // Validate source folder exists
+    if (!fs.existsSync(sourceFolder)) {
+      return res.status(400).json({ error: 'Source folder does not exist' });
+    }
+    
+    // Get target folder path
+    const targetFolder = getFolderPath(targetDbId);
+    if (!targetFolder || !fs.existsSync(targetFolder)) {
+      return res.status(400).json({ error: 'Target database folder does not exist' });
+    }
+    
+    // Find all .pk3 files recursively
+    const pk3Files = findPK3Files(sourceFolder);
+    
+    if (pk3Files.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: 'No .pk3 files found',
+        moved: 0,
+        skipped: 0,
+        errors: []
+      });
+    }
+    
+    // Move or copy files
+    let moved = 0;
+    let skipped = 0;
+    const errors = [];
+    
+    for (const sourceFile of pk3Files) {
+      try {
+        const filename = path.basename(sourceFile);
+        const targetFile = path.join(targetFolder, filename);
+        
+        // Check if file already exists in target
+        if (fs.existsSync(targetFile)) {
+          skipped++;
+          continue;
+        }
+        
+        if (deleteSource) {
+          // Move file
+          fs.renameSync(sourceFile, targetFile);
+        } else {
+          // Copy file
+          fs.copyFileSync(sourceFile, targetFile);
+        }
+        
+        moved++;
+      } catch (error) {
+        errors.push({ file: sourceFile, error: error.message });
+        console.error(`Error processing ${sourceFile}:`, error);
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Processed ${pk3Files.length} file(s): ${moved} moved/copied, ${skipped} skipped`,
+      moved: moved,
+      skipped: skipped,
+      total: pk3Files.length,
+      errors: errors
+    });
+  } catch (error) {
+    console.error('Error scanning and moving files:', error);
     res.status(500).json({ error: error.message });
   }
 });

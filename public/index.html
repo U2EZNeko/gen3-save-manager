@@ -9,113 +9,152 @@
 <body>
     <div class="container">
         <header>
-            <h1>Gen3 Pokemon Viewer</h1>
-            <p class="subtitle">View and sort your .pk3 Pokemon files</p>
-        </header>
-
-        <div class="controls">
-            <div class="database-controls">
-                <label for="databaseSelect">Database:</label>
-                <select id="databaseSelect" class="select">
-                    <option value="db1">Database 1</option>
-                    <option value="db2">Database 2</option>
-                    <option value="db3">Database 3</option>
-                    <option value="db4">Database 4</option>
-                </select>
-            </div>
-            <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
-            <div class="sort-controls">
-                <label for="sortSelect">Sort by:</label>
-                <select id="sortSelect" class="select">
-                    <option value="ivSum">IV Sum (High to Low)</option>
-                    <option value="ivSumAsc">IV Sum (Low to High)</option>
-                    <option value="evSum">EV Sum (High to Low)</option>
-                    <option value="evSumAsc">EV Sum (Low to High)</option>
-                    <option value="species">Species</option>
-                    <option value="level">Level (High to Low)</option>
-                    <option value="levelAsc">Level (Low to High)</option>
-                    <option value="hp">HP Stat (High to Low)</option>
-                    <option value="attack">Attack Stat (High to Low)</option>
-                    <option value="defense">Defense Stat (High to Low)</option>
-                    <option value="spAttack">Sp. Attack Stat (High to Low)</option>
-                    <option value="spDefense">Sp. Defense Stat (High to Low)</option>
-                    <option value="speed">Speed Stat (High to Low)</option>
-                    <option value="ivHp">IV HP (High to Low)</option>
-                    <option value="ivAttack">IV Attack (High to Low)</option>
-                    <option value="ivDefense">IV Defense (High to Low)</option>
-                    <option value="ivSpAttack">IV Sp. Attack (High to Low)</option>
-                    <option value="ivSpDefense">IV Sp. Defense (High to Low)</option>
-                    <option value="ivSpeed">IV Speed (High to Low)</option>
-                    <option value="experience">Experience (High to Low)</option>
-                    <option value="tidSid">OT Name / Origin Game</option>
-                    <option value="filename">Filename</option>
-                    <option value="dateNewest">Date (Newest First)</option>
-                    <option value="dateOldest">Date (Oldest First)</option>
-                </select>
-            </div>
-            <div class="group-controls">
-                <label>
-                    <input type="checkbox" id="groupByOT" class="checkbox">
-                    Group by OT
-                </label>
-                <label>
-                    <input type="checkbox" id="groupByTIDSID" class="checkbox">
-                    Group by TID/SID
-                </label>
-            </div>
-            <div class="filter-controls">
-                <label>
-                    <input type="checkbox" id="shinyFilter" class="checkbox">
-                    Show Only Shiny
-                </label>
-                <label>
-                    <input type="checkbox" id="compactView" class="checkbox">
-                    Compact View
-                </label>
-            </div>
-            <div class="filter-controls">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search by species or nickname...">
-            </div>
-            <div class="action-controls">
-                <button id="startSelectingBtn" class="btn btn-secondary">Start Selecting</button>
-                <button id="downloadSelectedBtn" class="btn btn-primary hidden">Download Selected</button>
-                <button id="duplicateScannerBtn" class="btn btn-secondary">Scan Duplicates</button>
-                <button id="advancedFilterBtn" class="btn btn-secondary">Advanced Filters</button>
-                <button id="statisticsBtn" class="btn btn-secondary">Statistics</button>
-                <button id="loadSaveBtn" class="btn btn-secondary">Load Save File</button>
-            </div>
-            <div class="theme-controls">
-                <button id="themeToggle" class="btn btn-secondary" title="Toggle light/dark mode">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Gen3 Pokemon Viewer</h1>
+                    <p class="subtitle">View and sort your .pk3 Pokemon files</p>
+                </div>
+                <button id="themeToggle" class="btn btn-secondary theme-toggle" title="Toggle light/dark mode">
                     <span id="themeIcon">🌙</span>
                 </button>
             </div>
-            <div class="size-controls">
-                <label for="cardWidthSlider">
-                    Card width:
-                    <span id="cardWidthValue">280px</span>
-                </label>
-                <input
-                    type="range"
-                    id="cardWidthSlider"
-                    min="220"
-                    max="700"
-                    value="280"
-                    step="10"
-                >
+        </header>
+
+        <div class="controls-section">
+            <!-- Section 1: Refresh Pokemon, DB Selector, Manage Folders, Card Width, Max Display -->
+            <div class="controls-section-1">
+                <div class="database-controls">
+                    <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
+                    <label for="databaseSelect">Database:</label>
+                    <select id="databaseSelect" class="select">
+                        <option value="db1">Database 1</option>
+                        <option value="db2">Database 2</option>
+                        <option value="db3">Database 3</option>
+                        <option value="db4">Database 4</option>
+                    </select>
+                    <button id="manageFoldersBtn" class="btn btn-secondary" title="Manage folders">Manage Folders</button>
+                </div>
+                <div class="size-limit-controls">
+                    <div class="size-controls">
+                        <label for="cardWidthSlider">
+                            Card width:
+                            <span id="cardWidthValue">280px</span>
+                        </label>
+                        <input
+                            type="range"
+                            id="cardWidthSlider"
+                            min="220"
+                            max="700"
+                            value="280"
+                            step="10"
+                        >
+                    </div>
+                    <div class="limit-controls">
+                        <label for="maxDisplayLimit">
+                            Max display:
+                        </label>
+                        <input
+                            type="number"
+                            id="maxDisplayLimit"
+                            min="0"
+                            max="10000"
+                            value="50"
+                            step="10"
+                            placeholder="0 = unlimited"
+                        >
+                    </div>
+                </div>
             </div>
-            <div class="limit-controls">
-                <label for="maxDisplayLimit">
-                    Max display:
-                </label>
-                <input
-                    type="number"
-                    id="maxDisplayLimit"
-                    min="0"
-                    max="10000"
-                    value="50"
-                    step="10"
-                    placeholder="0 = unlimited"
-                >
+
+            <!-- Section 2: DB Statistics -->
+            <div class="controls-section-2">
+                <div class="db-statistics">
+                    <h3>Database Statistics</h3>
+                    <div id="dbStatsDisplay" class="db-stats-content">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Pokemon:</span>
+                            <span id="statTotal" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Unique Species:</span>
+                            <span id="statSpecies" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Shiny:</span>
+                            <span id="statShiny" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Avg IV Sum:</span>
+                            <span id="statIVSum" class="stat-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Sort By, Search bar, Start Selecting, Statistics, Advanced options, and 4 checkboxes -->
+            <div class="controls-section-3">
+                <div class="sort-search-controls">
+                    <div class="sort-controls">
+                        <label for="sortSelect">Sort by:</label>
+                        <select id="sortSelect" class="select">
+                            <option value="ivSum">IV Sum (High to Low)</option>
+                            <option value="ivSumAsc">IV Sum (Low to High)</option>
+                            <option value="evSum">EV Sum (High to Low)</option>
+                            <option value="evSumAsc">EV Sum (Low to High)</option>
+                            <option value="species">Species</option>
+                            <option value="level">Level (High to Low)</option>
+                            <option value="levelAsc">Level (Low to High)</option>
+                            <option value="hp">HP Stat (High to Low)</option>
+                            <option value="attack">Attack Stat (High to Low)</option>
+                            <option value="defense">Defense Stat (High to Low)</option>
+                            <option value="spAttack">Sp. Attack Stat (High to Low)</option>
+                            <option value="spDefense">Sp. Defense Stat (High to Low)</option>
+                            <option value="speed">Speed Stat (High to Low)</option>
+                            <option value="ivHp">IV HP (High to Low)</option>
+                            <option value="ivAttack">IV Attack (High to Low)</option>
+                            <option value="ivDefense">IV Defense (High to Low)</option>
+                            <option value="ivSpAttack">IV Sp. Attack (High to Low)</option>
+                            <option value="ivSpDefense">IV Sp. Defense (High to Low)</option>
+                            <option value="ivSpeed">IV Speed (High to Low)</option>
+                            <option value="experience">Experience (High to Low)</option>
+                            <option value="tidSid">OT Name / Origin Game</option>
+                            <option value="filename">Filename</option>
+                            <option value="dateNewest">Date (Newest First)</option>
+                            <option value="dateOldest">Date (Oldest First)</option>
+                        </select>
+                    </div>
+                    <div class="filter-controls">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search by species or nickname...">
+                    </div>
+                </div>
+                <div class="action-controls">
+                    <button id="startSelectingBtn" class="btn btn-secondary">Start Selecting</button>
+                    <button id="downloadSelectedBtn" class="btn btn-primary hidden">Download Selected</button>
+                    <button id="statisticsBtn" class="btn btn-secondary">Statistics</button>
+                    <button id="advancedOptionsBtn" class="btn btn-secondary">Advanced Options</button>
+                </div>
+                <div class="checkbox-controls">
+                    <div class="group-controls">
+                        <label>
+                            <input type="checkbox" id="groupByOT" class="checkbox">
+                            Group by OT
+                        </label>
+                        <label>
+                            <input type="checkbox" id="groupByTIDSID" class="checkbox">
+                            Group by TID/SID
+                        </label>
+                    </div>
+                    <div class="filter-controls">
+                        <label>
+                            <input type="checkbox" id="shinyFilter" class="checkbox">
+                            Show Only Shiny
+                        </label>
+                        <label>
+                            <input type="checkbox" id="compactView" class="checkbox">
+                            Compact View
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -124,6 +163,7 @@
             <div class="save-file-header">
                 <h3>Save File Manager</h3>
                 <span id="saveFileStatus" class="save-file-status">No save file loaded</span>
+                <span class="save-file-close" id="closeSaveFileSection">&times;</span>
             </div>
             <div id="saveFileLoading" class="save-file-loading hidden">
                 <div class="spinner"></div>
@@ -165,6 +205,21 @@
         </div>
 
         <div id="error" class="error hidden"></div>
+
+        <!-- Database Reload Notification -->
+        <div id="dbReloadNotification" class="db-reload-notification hidden">
+            <div class="notification-content">
+                <span class="notification-icon">📦</span>
+                <div class="notification-text">
+                    <strong>New files detected!</strong>
+                    <span id="notificationMessage">Files have been moved to your database. Reload to see them.</span>
+                </div>
+                <div class="notification-actions">
+                    <button id="reloadDbBtn" class="btn btn-primary btn-small">Reload Database</button>
+                    <button id="dismissNotificationBtn" class="btn btn-secondary btn-small">Dismiss</button>
+                </div>
+            </div>
+        </div>
 
         <div id="stats" class="stats hidden">
             <span id="pokemonCount">0</span> Pokemon loaded
@@ -369,6 +424,91 @@
             <span class="modal-close" id="closeStatistics">&times;</span>
             <h2>Database Statistics</h2>
             <div id="statisticsBody"></div>
+        </div>
+    </div>
+
+    <!-- Folder Management Modal -->
+    <div id="folderManagementModal" class="modal hidden">
+        <div class="modal-content folder-management-content">
+            <span class="modal-close" id="closeFolderManagement">&times;</span>
+            <h2>Manage Folders</h2>
+            <div class="folder-management-body">
+                <div class="folder-list-section">
+                    <h3>Current Folders</h3>
+                    <div id="folderList" class="folder-list"></div>
+                </div>
+                <div class="add-folder-section">
+                    <h3>Add New Folder</h3>
+                    <div class="add-folder-form">
+                        <div class="form-group">
+                            <label for="newFolderName">Folder Name:</label>
+                            <input type="text" id="newFolderName" class="form-input" placeholder="e.g., Database 5">
+                        </div>
+                        <div class="form-group">
+                            <label for="newFolderPath">Folder Path:</label>
+                            <input type="text" id="newFolderPath" class="form-input" placeholder="e.g., pk3-files-5 (relative) or full path">
+                            <small class="form-hint">Enter a relative path (e.g., pk3-files-5) or an absolute path</small>
+                        </div>
+                        <button id="addFolderBtn" class="btn btn-primary">Add Folder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Options Modal -->
+    <div id="advancedOptionsModal" class="modal hidden">
+        <div class="modal-content advanced-options-content">
+            <span class="modal-close" id="closeAdvancedOptions">&times;</span>
+            <h2>Advanced Options</h2>
+            <div class="advanced-options-body">
+                <div class="advanced-option-section">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions-grid">
+                        <button id="duplicateScannerBtn" class="btn btn-secondary">Scan Duplicates</button>
+                        <button id="advancedFilterBtn" class="btn btn-secondary">Advanced Filters</button>
+                        <button id="loadSaveBtn" class="btn btn-secondary">Load Save File</button>
+                    </div>
+                </div>
+                
+                <div class="advanced-option-section">
+                    <h3>Folder Scanner</h3>
+                    <p class="option-description">Recursively scan a folder for .pk3 files and move them to a selected database. Files with the same name will be renamed automatically if they differ.</p>
+                    <div class="scanner-form">
+                        <div class="form-group">
+                            <label for="scanSourceFolder">Source Folder:</label>
+                            <input type="text" id="scanSourceFolder" class="form-input" placeholder="e.g., C:\Pokemon\Saves or ./saves (relative path)">
+                            <small class="form-hint">Enter the folder path to scan recursively for .pk3 files</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="scanTargetDb">Target Database:</label>
+                            <select id="scanTargetDb" class="form-input">
+                                <option value="">Select a database...</option>
+                            </select>
+                            <small class="form-hint">Select the database where files will be moved</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="enableAutoScan" class="checkbox">
+                                Enable automatic scanning
+                            </label>
+                            <small class="form-hint">Automatically scan and move files at regular intervals</small>
+                        </div>
+                        <div class="form-group" id="scanIntervalGroup" style="display: none;">
+                            <label for="scanInterval">Scan Interval (minutes):</label>
+                            <input type="number" id="scanInterval" class="form-input" min="1" value="5" placeholder="5">
+                            <small class="form-hint">How often to scan for new files (minimum 1 minute)</small>
+                        </div>
+                        <div class="scanner-actions">
+                            <button id="saveScannerConfigBtn" class="btn btn-secondary">Save Configuration</button>
+                            <button id="scanAndMoveBtn" class="btn btn-primary">Scan and Move Files</button>
+                            <button id="stopAutoScanBtn" class="btn btn-danger" style="display: none;">Stop Auto-Scan</button>
+                        </div>
+                        <div id="scanStatus" class="scan-status hidden"></div>
+                        <div id="scanResults" class="scan-results hidden"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
