@@ -2,11 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const PK3Parser = require('./pk3-parser');
-const PK4Parser = require('./pk4-parser');
-const PK6Parser = require('./pk6-parser');
-const PK7Parser = require('./pk7-parser');
-const SAV3Parser = require('./sav3-parser');
+const PK3Parser = require('./parsers/pk3-parser');
+const PK4Parser = require('./parsers/pk4-parser');
+const PK6Parser = require('./parsers/pk6-parser');
+const PK7Parser = require('./parsers/pk7-parser');
+const SAV3Parser = require('./parsers/sav3-parser');
 const multer = require('multer');
 const archiver = require('archiver');
 

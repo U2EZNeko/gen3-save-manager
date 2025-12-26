@@ -3,4 +3,11 @@ node_modules/
 .DS_Store
 .env
 
+# PKHeX source code
 /PKHeX-master
+
+# Save files
+*.sav
+
+# Test Pokemon files
+
