@@ -1,19 +1,19 @@
 :root {
     --pokemon-card-min-width: 280px;
     
-    /* Light theme colors */
-    --bg-primary: #f5f5f5;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #e8e8e8;
+    /* Light theme colors - blue tinted */
+    --bg-primary: #f0f4f8;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #e8f0f8;
     --text-primary: #1a1a1a;
     --text-secondary: #666666;
     --text-tertiary: #999999;
-    --border-color: #d0d0d0;
+    --border-color: #c8d8e8;
     --accent-color: #667eea;
     --accent-hover: #7c8ef5;
-    --btn-secondary-bg: #e0e0e0;
-    --btn-secondary-hover: #d0d0d0;
-    --card-bg: #ffffff;
+    --btn-secondary-bg: #e0e8f0;
+    --btn-secondary-hover: #d0d8e8;
+    --card-bg: #fafcff;
     --card-shadow: rgba(0, 0, 0, 0.1);
     --error-bg: #ffe8e8;
     --error-text: #cc0000;
@@ -1982,27 +1982,27 @@ header h1 {
 
 /* Statistics Modal Styles */
 .statistics-content {
-    max-width: 900px;
+    max-width: 1400px;
     max-height: 90vh;
     overflow-y: auto;
     padding: 0;
 }
 
 .statistics-content h2 {
-    padding: 30px 30px 20px 30px;
+    padding: 20px 20px 15px 20px;
     margin: 0;
     color: var(--accent-color);
-    font-size: 2em;
+    font-size: 1.6em;
     border-bottom: 2px solid var(--border-color);
 }
 
 .statistics-container {
-    padding: 20px;
+    padding: 15px;
 }
 
 .statistics-section {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -2012,20 +2012,20 @@ header h1 {
 
 .statistics-section h3 {
     color: var(--accent-color);
-    margin-bottom: 15px;
-    font-size: 1.3em;
+    margin-bottom: 10px;
+    font-size: 1.1em;
 }
 
 .statistics-graph-section {
-    margin-top: 20px;
-    padding-top: 20px;
+    margin-top: 15px;
+    padding-top: 15px;
     border-top: 1px solid var(--border-color);
 }
 
 .statistics-graph-section h4 {
     color: var(--text-primary);
-    margin-bottom: 15px;
-    font-size: 1.1em;
+    margin-bottom: 10px;
+    font-size: 1em;
 }
 
 .line-chart-container {
@@ -2048,15 +2048,15 @@ header h1 {
 
 .statistics-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .statistic-card {
     background: var(--bg-tertiary);
-    padding: 15px;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 6px;
     text-align: center;
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
@@ -2068,34 +2068,35 @@ header h1 {
 }
 
 .statistic-value {
-    font-size: 2em;
+    font-size: 1.6em;
     font-weight: 700;
     color: var(--accent-color);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .statistic-label {
-    font-size: 0.9em;
+    font-size: 0.8em;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .statistics-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 6px;
 }
 
 .statistics-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 15px;
+    gap: 8px;
+    padding: 6px 10px;
     background: var(--bg-tertiary);
-    border-radius: 6px;
+    border-radius: 4px;
     border: 1px solid var(--border-color);
     transition: all 0.2s ease;
+    font-size: 0.9em;
 }
 
 .statistics-item:hover {
@@ -2106,7 +2107,8 @@ header h1 {
 .statistics-rank {
     font-weight: 700;
     color: var(--accent-color);
-    min-width: 30px;
+    min-width: 25px;
+    font-size: 0.9em;
 }
 
 .statistics-name {
@@ -2118,22 +2120,24 @@ header h1 {
 .statistics-count {
     color: var(--text-secondary);
     font-weight: 600;
+    font-size: 0.9em;
 }
 
 .iv-breakdown {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 6px;
+    margin-top: 10px;
 }
 
 .iv-stat-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px 12px;
+    padding: 6px 10px;
     background: var(--bg-tertiary);
-    border-radius: 5px;
+    border-radius: 4px;
     border: 1px solid var(--border-color);
+    font-size: 0.85em;
 }
 
 .iv-stat-name {
@@ -2143,7 +2147,18 @@ header h1 {
 
 .iv-stat-value {
     color: var(--text-secondary);
-    font-size: 0.9em;
+    font-size: 0.85em;
+}
+
+.level-distribution {
+    margin-top: 10px;
+}
+
+.level-distribution h4 {
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
 }
 
 .no-statistics {
@@ -2406,6 +2421,110 @@ header h1 {
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.safari-fixer-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.safari-pokemon-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    background: var(--bg-secondary);
+}
+
+.safari-pokemon-list h4 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.safari-pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+}
+
+.safari-pokemon-item {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    transition: all 0.2s;
+}
+
+.safari-pokemon-item:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
+}
+
+.safari-pokemon-item label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.safari-pokemon-checkbox {
+    margin-top: 4px;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.safari-pokemon-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.safari-pokemon-info strong {
+    color: var(--text-primary);
+    font-size: 1em;
+}
+
+.safari-pokemon-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.85em;
+    color: var(--text-secondary);
+}
+
+.safari-fixer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.safari-fixer-selection-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.safari-fixer-selection-controls .btn {
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.safari-fixer-actions p {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.safari-fixer-actions > .btn {
+    width: 100%;
 }
 
 .scan-status {

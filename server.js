@@ -642,6 +642,162 @@ app.get('/api/pokemon/file/:filename', (req, res) => {
   }
 });
 
+// API endpoint to update a Pokemon's ball
+app.post('/api/pokemon/update-ball', express.json(), (req, res) => {
+  try {
+    const { filename, db, newBall } = req.body;
+    
+    if (!filename || newBall === undefined) {
+      return res.status(400).json({ error: 'Missing filename or newBall' });
+    }
+    
+    const dbId = db || 'db1';
+    const folderPath = getFolderPath(dbId);
+    
+    if (!folderPath) {
+      return res.status(404).json({ error: 'Database not found' });
+    }
+    
+    const filePath = path.join(folderPath, filename);
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Preserve file timestamps (modification time, access time, and birthtime if available)
+    const stats = fs.statSync(filePath);
+    const originalMtime = stats.mtime;
+    const originalAtime = stats.atime;
+    const originalBirthtime = stats.birthtime;
+    
+    // Read the file
+    let buffer = fs.readFileSync(filePath);
+    
+    // Determine format and update ball
+    const lowerFilename = filename.toLowerCase();
+    let updated = false;
+    
+    if (lowerFilename.endsWith('.pk3')) {
+      // PK3: Ball is in origins field at offset 0x46 (bits 11-14)
+      // Need to handle encryption/decryption
+      // Determine format: 100 bytes could be PKHeX export or party format
+      let isPKHeXExport = false;
+      let dataOffset = 0;
+      
+      if (buffer.length === 100) {
+        // Check if it's PKHeX export (species at 0x20 is valid) or party format (encrypted)
+        const speciesAt20 = buffer.readUInt16LE(0x20);
+        isPKHeXExport = (speciesAt20 >= 1 && speciesAt20 <= 386);
+        dataOffset = isPKHeXExport ? 0x20 : 0;
+      } else if (buffer.length === 80) {
+        // Raw 80-byte stored format
+        isPKHeXExport = false;
+        dataOffset = 0;
+      } else {
+        throw new Error(`Invalid PK3 file size: ${buffer.length} bytes (expected 80 or 100)`);
+      }
+      
+      // Check if encrypted (PKHeX exports are already decrypted)
+      const needsDecryption = !isPKHeXExport && PK3Parser.checkIfEncrypted(buffer, dataOffset);
+      let workingBuffer = Buffer.from(buffer);
+      
+      if (needsDecryption) {
+        // Decrypt: for party/raw format, dataOffset is 0 (Pokemon data starts at beginning)
+        workingBuffer = PK3Parser.decryptPK3(workingBuffer, 0);
+      }
+      
+      // Update ball in origins field (offset 0x46 in decrypted data)
+      // For PKHeX exports: origins is at 0x20 + 0x46 = 0x66
+      // For raw/party files: origins is at 0x46 (after decryption, data starts at 0)
+      const originsOffset = dataOffset + 0x46;
+      if (originsOffset + 2 > workingBuffer.length) {
+        throw new Error(`Invalid PK3 file: origins offset ${originsOffset} out of bounds (buffer size: ${workingBuffer.length})`);
+      }
+      
+      const origins = workingBuffer.readUInt16LE(originsOffset);
+      // Clear bits 11-14 and set new ball (ball is in bits 11-14)
+      const clearedOrigins = origins & ~(0xF << 11);
+      const newOrigins = clearedOrigins | ((newBall & 0xF) << 11);
+      workingBuffer.writeUInt16LE(newOrigins, originsOffset);
+      
+      // Re-encrypt if needed (only for files that were encrypted)
+      if (needsDecryption) {
+        // Extract the 80-byte stored data for encryption
+        // After decryption, the stored data is at the start (0x00-0x4F for 80-byte files)
+        // For party format (100 bytes), the stored data is the first 80 bytes
+        const storedData = workingBuffer.slice(0, 80);
+        
+        // Encrypt using SAV3Parser's encryptPKM method
+        const SAV3Parser = require('./parsers/sav3-parser');
+        const tempSave = new SAV3Parser(Buffer.alloc(128 * 1024));
+        const encrypted = tempSave.encryptPKM(storedData);
+        
+        // Reconstruct the file
+        if (buffer.length === 100) {
+          // Party format: encrypted stored data (80 bytes) + party data (20 bytes)
+          const result = Buffer.alloc(100);
+          encrypted.copy(result, 0, 0, 80); // Copy encrypted stored data
+          buffer.copy(result, 80, 80, 100); // Copy party data from original
+          workingBuffer = result;
+        } else {
+          // Raw 80-byte file - replace with encrypted version
+          workingBuffer = encrypted;
+        }
+      }
+      
+      updated = true;
+      // Update buffer reference
+      buffer = workingBuffer;
+    } else if (lowerFilename.endsWith('.pk4') || lowerFilename.endsWith('.pk5')) {
+      // PK4/PK5: Ball offset depends on format
+      const isPKHeXExport = buffer.length === 236;
+      const dataOffset = isPKHeXExport ? 0x20 : 0;
+      
+      // Determine if DPPt or HGSS (check file size or other indicators)
+      // For simplicity, try both offsets
+      let ballOffset = dataOffset + 0x83; // DPPt
+      if (ballOffset >= buffer.length) {
+        ballOffset = dataOffset + 0x86; // HGSS
+      }
+      
+      if (ballOffset < buffer.length) {
+        buffer[ballOffset] = newBall;
+        updated = true;
+      }
+    } else if (lowerFilename.endsWith('.pk6') || lowerFilename.endsWith('.pk7')) {
+      // PK6/PK7: Ball at 0xDC
+      const isPKHeXExport = buffer.length === 260;
+      const dataOffset = isPKHeXExport ? 0x20 : 0;
+      const ballOffset = dataOffset + 0xDC;
+      
+      if (ballOffset < buffer.length) {
+        buffer[ballOffset] = newBall;
+        updated = true;
+      }
+    }
+    
+    if (!updated) {
+      return res.status(400).json({ error: 'Could not update ball for this file format' });
+    }
+    
+    // Write the file back
+    fs.writeFileSync(filePath, buffer);
+    
+    // Restore original file timestamps (modification and access time)
+    fs.utimesSync(filePath, originalAtime, originalMtime);
+    
+    // Note: birthtime (creation time) cannot be restored via fs.utimesSync
+    // On Windows, the birthtime is preserved automatically when using fs.writeFileSync
+    // On Unix systems, birthtime is typically immutable
+    
+    res.json({ success: true, message: 'Ball updated successfully' });
+  } catch (error) {
+    console.error(`Error updating ball for ${req.body.filename}:`, error);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: error.message || 'Unknown error occurred' });
+  }
+});
+
 // API endpoint to delete a .pk3 file
 app.delete('/api/pokemon/:filename', (req, res) => {
   const dbId = req.query.db || req.query.folder;
@@ -818,7 +974,15 @@ app.post('/api/save/import', express.json({ limit: '1mb' }), (req, res) => {
   }
   
   try {
-    const { pokemonData, box, slot, isParty, startFromLastBox } = req.body;
+    const { pokemonData, box, slot, isParty, startFromLastBox, filename } = req.body;
+    
+    // Only allow .pk3 files to be imported to save files
+    if (filename) {
+      const lowerFilename = filename.toLowerCase();
+      if (!lowerFilename.endsWith('.pk3')) {
+        return res.status(400).json({ error: `Only .pk3 files can be imported to save files. File "${filename}" is not a .pk3 file.` });
+      }
+    }
     
     if (!pokemonData || !Array.isArray(pokemonData)) {
       return res.status(400).json({ error: 'Invalid Pokemon data' });

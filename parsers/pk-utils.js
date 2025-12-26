@@ -188,7 +188,7 @@ function getLocationNameGen4(locationID) {
     if (locationID === 49) return 'Newmoon Island';
     if (locationID === 50) return 'Flower Paradise';
     if (locationID === 51) return 'Hall of Origin';
-    if (locationID === 52) return 'Spear Pillar';
+    if (locationID === 52) return 'Great Marsh'; // DPPt Great Marsh (Safari Zone equivalent)
     if (locationID === 53) return 'Pal Park';
     if (locationID === 63) return 'Trophy Garden';
     if (locationID === 64) return 'Iron Island';
@@ -204,6 +204,10 @@ function getLocationNameGen4(locationID) {
     if (locationID === 74) return 'Floaroma Meadow';
     if (locationID === 75) return 'Floaroma Meadow (Flower Paradise)';
     if (locationID === 76) return 'Valor Lakefront';
+    // HGSS locations (112-234)
+    if (locationID === 202) return 'Safari Zone'; // HGSS Safari Zone
+    if (locationID === 203) return 'Seafoam Islands'; // HGSS
+    if (locationID === 228) return 'Safari Zone Gate'; // HGSS
     return gen4Locations[locationID] || `Location ${locationID}`;
   }
 }

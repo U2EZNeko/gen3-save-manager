@@ -10,4 +10,4 @@ node_modules/
 *.sav
 
 # Test Pokemon files
-
+*.pk3

@@ -2558,7 +2558,7 @@ function create7DayLineChart(data) {
     return svg;
 }
 
-function showStatistics() {
+async function showStatistics() {
     console.log('showStatistics called');
     console.log('statisticsBody:', statisticsBody);
     console.log('statisticsModal:', statisticsModal);
@@ -2573,19 +2573,33 @@ function showStatistics() {
     statisticsModal.classList.remove('hidden');
     console.log('Modal should be visible now');
     
-    // Filter out invalid Pokemon
-    const validPokemon = pokemonData.filter(p => !p.error && p.species && p.species > 0 && p.species <= 386);
+    // Filter out invalid Pokemon (support Gen 1-7: species IDs 1-807)
+    const validPokemon = pokemonData.filter(p => !p.error && p.species && p.species > 0 && p.species <= 807);
     
     if (validPokemon.length === 0) {
         statisticsBody.innerHTML = '<p class="no-statistics">No valid Pokemon found in database.</p>';
         return;
     }
     
+    // Ensure species names are loaded before calculating statistics
+    statisticsBody.innerHTML = '<p>Loading species names...</p>';
+    await preloadSpeciesNames(validPokemon);
+    
+    // Update Pokemon data with species names from cache
+    const pokemonWithNames = validPokemon.map(p => {
+        const speciesId = parseInt(p.species);
+        const speciesName = speciesCache.get(speciesId) || p.speciesName || `Unknown (${speciesId})`;
+        return {
+            ...p,
+            speciesName: speciesName
+        };
+    });
+    
     // Update daily count
     updateDailyPokemonCount(validPokemon.length);
     
     // Calculate statistics
-    const stats = calculateStatistics(validPokemon);
+    const stats = calculateStatistics(pokemonWithNames);
     
     // Display statistics
     displayStatistics(stats);
@@ -2608,17 +2622,35 @@ function calculateStatistics(pokemon) {
             speed: { total: 0, count: 0, max: 0, min: 31 }
         },
         levelStats: { total: 0, count: 0, max: 0, min: 100, distribution: {} },
+        evStats: {
+            sum: { total: 0, count: 0, max: 0, min: 510 },
+            hp: { total: 0, count: 0, max: 0, min: 255 },
+            attack: { total: 0, count: 0, max: 0, min: 255 },
+            defense: { total: 0, count: 0, max: 0, min: 255 },
+            spAttack: { total: 0, count: 0, max: 0, min: 255 },
+            spDefense: { total: 0, count: 0, max: 0, min: 255 },
+            speed: { total: 0, count: 0, max: 0, min: 255 }
+        },
         otDistribution: {},
         gameDistribution: {},
         natureDistribution: {},
         abilityDistribution: {},
         ballDistribution: {},
-        metLocationDistribution: {}
+        metLocationDistribution: {},
+        tidSidDistribution: {}
     };
     
     pokemon.forEach(p => {
-        // Species count
-        const speciesName = p.speciesName || `#${p.species}`;
+        // Species count - try to get name from cache if not in object
+        let speciesName = p.speciesName;
+        if (!speciesName || speciesName.startsWith('#') || speciesName.startsWith('Unknown')) {
+            const speciesId = parseInt(p.species);
+            if (speciesId && speciesCache.has(speciesId)) {
+                speciesName = speciesCache.get(speciesId);
+            } else if (!speciesName) {
+                speciesName = `#${p.species}`;
+            }
+        }
         stats.speciesCount[speciesName] = (stats.speciesCount[speciesName] || 0) + 1;
         
         // Shiny count
@@ -2686,6 +2718,31 @@ function calculateStatistics(pokemon) {
         if (p.metLocationName) {
             stats.metLocationDistribution[p.metLocationName] = (stats.metLocationDistribution[p.metLocationName] || 0) + 1;
         }
+        
+        // EV statistics
+        if (p.evs) {
+            const evs = p.evs;
+            const evSum = p.evSum || 0;
+            
+            stats.evStats.sum.total += evSum;
+            stats.evStats.sum.count++;
+            stats.evStats.sum.max = Math.max(stats.evStats.sum.max, evSum);
+            stats.evStats.sum.min = Math.min(stats.evStats.sum.min, evSum);
+            
+            ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
+                const value = evs[stat] || 0;
+                stats.evStats[stat].total += value;
+                stats.evStats[stat].count++;
+                stats.evStats[stat].max = Math.max(stats.evStats[stat].max, value);
+                stats.evStats[stat].min = Math.min(stats.evStats[stat].min, value);
+            });
+        }
+        
+        // TID/SID distribution
+        if (p.tid !== undefined && p.sid !== undefined) {
+            const tidSidKey = `TID:${p.tid || 0} / SID:${p.sid || 0}`;
+            stats.tidSidDistribution[tidSidKey] = (stats.tidSidDistribution[tidSidKey] || 0) + 1;
+        }
     });
     
     // Calculate averages
@@ -2700,6 +2757,16 @@ function calculateStatistics(pokemon) {
     
     if (stats.levelStats.count > 0) {
         stats.levelStats.avg = (stats.levelStats.total / stats.levelStats.count).toFixed(2);
+    }
+    
+    // Calculate EV averages
+    if (stats.evStats.sum.count > 0) {
+        stats.evStats.sum.avg = (stats.evStats.sum.total / stats.evStats.sum.count).toFixed(2);
+        ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
+            if (stats.evStats[stat].count > 0) {
+                stats.evStats[stat].avg = (stats.evStats[stat].total / stats.evStats[stat].count).toFixed(2);
+            }
+        });
     }
     
     // Get top items
@@ -2723,9 +2790,23 @@ function calculateStatistics(pokemon) {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
     
-    stats.topBalls = Object.entries(stats.ballDistribution)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
+    stats.topBalls = Object.keys(stats.ballDistribution).length > 0
+        ? Object.entries(stats.ballDistribution)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+        : [];
+    
+    stats.topMetLocations = Object.keys(stats.metLocationDistribution).length > 0
+        ? Object.entries(stats.metLocationDistribution)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+        : [];
+    
+    stats.topTIDSIDs = Object.keys(stats.tidSidDistribution).length > 0
+        ? Object.entries(stats.tidSidDistribution)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+        : [];
     
     return stats;
 }
@@ -2779,13 +2860,11 @@ function displayStatistics(stats) {
         html += '<h3>IV Statistics</h3>';
         html += '<div class="statistics-grid">';
         html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.avg}</div><div class="statistic-label">Avg IV Sum</div></div>`;
-        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.max}</div><div class="statistic-label">Max IV Sum</div></div>`;
-        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.min}</div><div class="statistic-label">Min IV Sum</div></div>`;
         html += '</div>';
         html += '<div class="iv-breakdown">';
         ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
             const statName = stat === 'spAttack' ? 'Sp. Atk' : stat === 'spDefense' ? 'Sp. Def' : stat.charAt(0).toUpperCase() + stat.slice(1);
-            html += `<div class="iv-stat-item"><span class="iv-stat-name">${statName}:</span><span class="iv-stat-value">Avg: ${stats.ivStats[stat].avg || 0} | Max: ${stats.ivStats[stat].max} | Min: ${stats.ivStats[stat].min}</span></div>`;
+            html += `<div class="iv-stat-item"><span class="iv-stat-name">${statName}:</span><span class="iv-stat-value">Avg: ${stats.ivStats[stat].avg || 0}</span></div>`;
         });
         html += '</div></div>';
     }
@@ -2798,7 +2877,26 @@ function displayStatistics(stats) {
         html += `<div class="statistic-card"><div class="statistic-value">${stats.levelStats.avg}</div><div class="statistic-label">Average Level</div></div>`;
         html += `<div class="statistic-card"><div class="statistic-value">${stats.levelStats.max}</div><div class="statistic-label">Max Level</div></div>`;
         html += `<div class="statistic-card"><div class="statistic-value">${stats.levelStats.min}</div><div class="statistic-label">Min Level</div></div>`;
-        html += '</div></div>';
+        html += '</div>';
+        
+        // Level distribution
+        const levelDistEntries = Object.entries(stats.levelStats.distribution)
+            .sort((a, b) => {
+                const aStart = parseInt(a[0].split('-')[0]);
+                const bStart = parseInt(b[0].split('-')[0]);
+                return aStart - bStart;
+            });
+        if (levelDistEntries.length > 0) {
+            html += '<div class="level-distribution">';
+            html += '<h4>Level Distribution</h4>';
+            html += '<div class="statistics-list">';
+            levelDistEntries.forEach(([range, count]) => {
+                const percentage = ((count / stats.total) * 100).toFixed(1);
+                html += `<div class="statistics-item"><span class="statistics-name">Level ${range}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+            });
+            html += '</div></div>';
+        }
+        html += '</div>';
     }
     
     // OT Distribution
@@ -2847,14 +2945,68 @@ function displayStatistics(stats) {
         html += '</div></div>';
     }
     
+    // EV Statistics
+    if (stats.evStats.sum.count > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>EV Statistics</h3>';
+        html += '<div class="statistics-grid">';
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.evStats.sum.avg}</div><div class="statistic-label">Avg EV Sum</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.evStats.sum.max}</div><div class="statistic-label">Max EV Sum</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.evStats.sum.min}</div><div class="statistic-label">Min EV Sum</div></div>`;
+        html += '</div>';
+        html += '<div class="iv-breakdown">';
+        ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
+            const statName = stat === 'spAttack' ? 'Sp. Atk' : stat === 'spDefense' ? 'Sp. Def' : stat.charAt(0).toUpperCase() + stat.slice(1);
+            html += `<div class="iv-stat-item"><span class="iv-stat-name">${statName}:</span><span class="iv-stat-value">Avg: ${stats.evStats[stat].avg || 0} | Max: ${stats.evStats[stat].max} | Min: ${stats.evStats[stat].min}</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
     // Ball Distribution
-    if (stats.topBalls.length > 0) {
+    if (stats.topBalls && stats.topBalls.length > 0) {
         html += '<div class="statistics-section">';
         html += '<h3>Top Pokeballs</h3>';
         html += '<div class="statistics-list">';
         stats.topBalls.forEach(([ball, count], idx) => {
             const percentage = ((count / stats.total) * 100).toFixed(1);
             html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${ball}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+        });
+        html += '</div></div>';
+    } else if (Object.keys(stats.ballDistribution).length > 0) {
+        // Fallback: if topBalls wasn't calculated but ballDistribution has data
+        html += '<div class="statistics-section">';
+        html += '<h3>Top Pokeballs</h3>';
+        html += '<div class="statistics-list">';
+        Object.entries(stats.ballDistribution)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .forEach(([ball, count], idx) => {
+                const percentage = ((count / stats.total) * 100).toFixed(1);
+                html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${ball}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+            });
+        html += '</div></div>';
+    }
+    
+    // Met Location Distribution
+    if (stats.topMetLocations && stats.topMetLocations.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Top Met Locations</h3>';
+        html += '<div class="statistics-list">';
+        stats.topMetLocations.forEach(([location, count], idx) => {
+            const percentage = ((count / stats.total) * 100).toFixed(1);
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${location}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+        });
+        html += '</div></div>';
+    }
+    
+    // TID/SID Distribution
+    if (stats.topTIDSIDs && stats.topTIDSIDs.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Top TID/SID Combinations</h3>';
+        html += '<div class="statistics-list">';
+        stats.topTIDSIDs.forEach(([tidSid, count], idx) => {
+            const percentage = ((count / stats.total) * 100).toFixed(1);
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${tidSid}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
         });
         html += '</div></div>';
     }
@@ -3313,12 +3465,28 @@ async function importPokemonFiles(files) {
         return;
     }
     
+    // Filter to only allow .pk3 files
+    const pk3Files = Array.from(files).filter(file => {
+        const lowerName = file.name.toLowerCase();
+        return lowerName.endsWith('.pk3');
+    });
+    
+    if (pk3Files.length === 0) {
+        alert('No .pk3 files selected. Only .pk3 files can be imported to save files.');
+        return;
+    }
+    
+    if (pk3Files.length < files.length) {
+        const skipped = files.length - pk3Files.length;
+        alert(`Skipped ${skipped} non-.pk3 file(s). Only .pk3 files can be imported to save files.`);
+    }
+    
     const importTarget = document.querySelector('input[name="importTarget"]:checked').value;
     const startFromLastBox = document.getElementById('startFromLastBox')?.checked || false;
     let successCount = 0;
     let errorCount = 0;
     
-    for (const file of files) {
+    for (const file of pk3Files) {
         try {
             const arrayBuffer = await file.arrayBuffer();
             const buffer = new Uint8Array(arrayBuffer);
@@ -3333,7 +3501,8 @@ async function importPokemonFiles(files) {
                     box: undefined, // Auto-find empty slot
                     slot: undefined, // Auto-find empty slot
                     isParty: importTarget === 'party',
-                    startFromLastBox: startFromLastBox && importTarget === 'box' // Only applies to box imports
+                    startFromLastBox: startFromLastBox && importTarget === 'box', // Only applies to box imports
+                    filename: file.name // Include filename for validation
                 })
             });
             
@@ -3373,8 +3542,24 @@ async function importSelectedPokemon() {
     let successCount = 0;
     let errorCount = 0;
     
+    // Filter to only allow .pk3 files
+    const pk3Filenames = selectedFilenames.filter(filename => {
+        const lowerName = filename.toLowerCase();
+        return lowerName.endsWith('.pk3');
+    });
+    
+    if (pk3Filenames.length === 0) {
+        alert('No .pk3 files selected. Only .pk3 files can be imported to save files.');
+        return;
+    }
+    
+    if (pk3Filenames.length < selectedFilenames.length) {
+        const skipped = selectedFilenames.length - pk3Filenames.length;
+        alert(`Skipped ${skipped} non-.pk3 file(s). Only .pk3 files can be imported to save files.`);
+    }
+    
     // Get Pokemon data for selected files
-    for (const filename of selectedFilenames) {
+    for (const filename of pk3Filenames) {
         try {
             const response = await fetch(`/api/pokemon/${encodeURIComponent(filename)}`);
             if (!response.ok) {
@@ -4105,6 +4290,243 @@ if (closeAdvancedOptions) {
     closeAdvancedOptions.addEventListener('click', () => {
         advancedOptionsModal.classList.add('hidden');
     });
+}
+
+// Safari Zone Ball Fixer
+const findSafariPokemonBtn = document.getElementById('findSafariPokemonBtn');
+const safariPokemonList = document.getElementById('safariPokemonList');
+const safariFixerActions = document.getElementById('safariFixerActions');
+const safariSelectedCount = document.getElementById('safariSelectedCount');
+const replaceSafariBallBtn = document.getElementById('replaceSafariBallBtn');
+const selectAllSafariBtn = document.getElementById('selectAllSafariBtn');
+const deselectAllSafariBtn = document.getElementById('deselectAllSafariBtn');
+const safariSelectedPokemon = new Set();
+
+// Safari Zone location IDs and names
+const safariZoneLocations = {
+    // Gen 3
+    57: true,   // RSE Safari Zone
+    136: true,  // FRLG Safari Zone
+    // Gen 4
+    52: true,   // DPPt Great Marsh (MarshLocation_DPPt)
+    202: true,  // HGSS Safari Zone (SafariLocation_HGSS)
+    228: true,  // HGSS Safari Zone Gate (also Safari Zone)
+    // Note: Location names may vary, so we also check by name
+};
+
+function isSafariZoneLocation(locationName, locationID) {
+    // Check by location ID first (most reliable)
+    if (locationID && safariZoneLocations[locationID]) {
+        return true;
+    }
+    
+    // Check by name (case insensitive, more flexible)
+    if (locationName && locationName !== 'None') {
+        const lowerName = locationName.toLowerCase();
+        return lowerName.includes('safari') || 
+               lowerName.includes('great marsh') ||
+               lowerName.includes('marsh');
+    }
+    
+    return false;
+}
+
+async function findSafariPokemon() {
+    if (!pokemonData || pokemonData.length === 0) {
+        alert('No Pokemon loaded. Please refresh your database first.');
+        return;
+    }
+    
+    safariSelectedPokemon.clear();
+    safariPokemonList.innerHTML = '<p>Searching...</p>';
+    safariPokemonList.classList.remove('hidden');
+    safariFixerActions.classList.add('hidden');
+    
+    // Debug: Log all Pokemon with Safari-related locations
+    console.log('Finding Safari Zone Pokemon...');
+    const allSafariCandidates = pokemonData.filter(p => {
+        if (p.error) return false;
+        const isSafari = isSafariZoneLocation(p.metLocationName, p.metLocation);
+        return isSafari;
+    });
+    console.log(`Found ${allSafariCandidates.length} Pokemon in Safari Zone locations`);
+    if (allSafariCandidates.length > 0) {
+        allSafariCandidates.slice(0, 10).forEach(p => {
+            const ballDisplay = p.ballName || (typeof p.ball === 'string' ? p.ball : `Ball ${p.ball}`);
+            const ballIdDisplay = typeof p.ball === 'number' ? p.ball : (p.ballId || 'N/A');
+            console.log(`  - ${p.speciesName}: Location "${p.metLocationName}" (ID: ${p.metLocation}), Ball: "${ballDisplay}" (ID: ${ballIdDisplay})`);
+        });
+    }
+    
+    const safariPokemon = pokemonData.filter(p => {
+        if (p.error) return false;
+        
+        // Check if caught in Safari Zone
+        const isSafari = isSafariZoneLocation(p.metLocationName, p.metLocation);
+        if (!isSafari) return false;
+        
+        // Check if ball is Pokeball (ID 4) or "Poké Ball"
+        // Get ball ID (preferred) or ball name
+        const ballId = p.ballId || (typeof p.ball === 'number' ? p.ball : 0);
+        const ballName = (p.ballName || (typeof p.ball === 'string' ? p.ball : '')).toLowerCase().trim();
+        
+        // Pokeball is ID 4, or name variations of "Poké Ball"
+        // Also treat undefined/null/missing ball as Pokeball (default)
+        const isPokeball = ballId === 4 || 
+                          ballName === 'poké ball' || 
+                          ballName === 'pokeball' || 
+                          ballName === 'poke ball' ||
+                          ballName === 'pokéball' ||
+                          (ballName.length > 0 && ballName.includes('poké') && !ballName.includes('safari') && !ballName.includes('great') && !ballName.includes('ultra') && !ballName.includes('master')) ||
+                          (ballName.length > 0 && ballName.includes('poke') && !ballName.includes('safari') && !ballName.includes('great') && !ballName.includes('ultra') && !ballName.includes('master')) ||
+                          (ballId === 0 && !ballName); // Treat missing/zero ball as Pokeball (default)
+        
+        return isPokeball;
+    });
+    
+    console.log(`Found ${safariPokemon.length} Safari Zone Pokemon with Pokeball`);
+    
+    if (safariPokemon.length === 0) {
+        safariPokemonList.innerHTML = '<p class="no-data">No Pokemon found caught in Safari Zone with Pokeball.</p>';
+        return;
+    }
+    
+    let html = `<h4>Found ${safariPokemon.length} Pokemon:</h4>`;
+    html += '<div class="safari-pokemon-grid">';
+    
+    safariPokemon.forEach(p => {
+        const speciesName = p.speciesName || `#${p.species}`;
+        const locationName = p.metLocationName || `Location ${p.metLocation}`;
+        html += `
+            <div class="safari-pokemon-item">
+                <label>
+                    <input type="checkbox" class="safari-pokemon-checkbox" data-filename="${p.filename}">
+                    <div class="safari-pokemon-info">
+                        <strong>${speciesName}</strong>
+                        <div class="safari-pokemon-details">
+                            <span>Location: ${locationName}</span>
+                            <span>Ball: ${p.ballName || 'Poké Ball'}</span>
+                            <span>File: ${p.filename}</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    safariPokemonList.innerHTML = html;
+    safariFixerActions.classList.remove('hidden');
+    
+    // Add checkbox listeners
+    document.querySelectorAll('.safari-pokemon-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const filename = e.target.dataset.filename;
+            if (e.target.checked) {
+                safariSelectedPokemon.add(filename);
+            } else {
+                safariSelectedPokemon.delete(filename);
+            }
+            updateSafariSelectionUI();
+        });
+    });
+    
+    updateSafariSelectionUI();
+}
+
+function selectAllSafariPokemon() {
+    document.querySelectorAll('.safari-pokemon-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+        const filename = checkbox.dataset.filename;
+        safariSelectedPokemon.add(filename);
+    });
+    updateSafariSelectionUI();
+}
+
+function deselectAllSafariPokemon() {
+    document.querySelectorAll('.safari-pokemon-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    safariSelectedPokemon.clear();
+    updateSafariSelectionUI();
+}
+
+if (selectAllSafariBtn) {
+    selectAllSafariBtn.addEventListener('click', selectAllSafariPokemon);
+}
+
+if (deselectAllSafariBtn) {
+    deselectAllSafariBtn.addEventListener('click', deselectAllSafariPokemon);
+}
+
+function updateSafariSelectionUI() {
+    const count = safariSelectedPokemon.size;
+    safariSelectedCount.textContent = `${count} Pokemon selected`;
+    replaceSafariBallBtn.disabled = count === 0;
+}
+
+async function replaceSafariBalls() {
+    if (safariSelectedPokemon.size === 0) {
+        alert('No Pokemon selected');
+        return;
+    }
+    
+    if (!confirm(`Replace Pokeball with Safari Ball for ${safariSelectedPokemon.size} Pokemon?`)) {
+        return;
+    }
+    
+    replaceSafariBallBtn.disabled = true;
+    replaceSafariBallBtn.textContent = 'Replacing...';
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const filename of safariSelectedPokemon) {
+        try {
+            const response = await fetch(`/api/pokemon/update-ball`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: filename,
+                    db: currentDatabase,
+                    newBall: 5 // Safari Ball ID
+                })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update ball');
+            }
+            
+            successCount++;
+        } catch (error) {
+            errorCount++;
+            console.error(`Error updating ${filename}:`, error);
+        }
+    }
+    
+    replaceSafariBallBtn.disabled = false;
+    replaceSafariBallBtn.textContent = 'Replace with Safari Ball';
+    
+    alert(`Ball replacement complete: ${successCount} successful, ${errorCount} failed`);
+    
+    // Refresh Pokemon data
+    if (successCount > 0) {
+        await loadPokemon();
+        safariSelectedPokemon.clear();
+        safariPokemonList.classList.add('hidden');
+        safariFixerActions.classList.add('hidden');
+    }
+}
+
+if (findSafariPokemonBtn) {
+    findSafariPokemonBtn.addEventListener('click', findSafariPokemon);
+}
+
+if (replaceSafariBallBtn) {
+    replaceSafariBallBtn.addEventListener('click', replaceSafariBalls);
 }
 
 // Close modal when clicking outside

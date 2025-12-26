@@ -491,6 +491,8 @@ class PK3Parser {
     
     // Set ball field for frontend (from pokeball)
     data.ball = this.getBallName(data.origins.pokeball);
+    data.ballName = data.ball; // Also set ballName for consistency
+    data.ballId = data.origins.pokeball; // Store the raw ball ID for checking
     
     // Get met location name
     data.metLocationName = this.getMetLocationName(data.metLocation, data.origins.gameOfOrigin);

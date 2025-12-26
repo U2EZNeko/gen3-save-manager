@@ -131,6 +131,7 @@
                     <button id="startSelectingBtn" class="btn btn-secondary">Start Selecting</button>
                     <button id="downloadSelectedBtn" class="btn btn-primary hidden">Download Selected</button>
                     <button id="statisticsBtn" class="btn btn-secondary">Statistics</button>
+                    <button id="advancedFilterBtn" class="btn btn-secondary">Advanced Filters</button>
                     <button id="advancedOptionsBtn" class="btn btn-secondary">Advanced Options</button>
                 </div>
                 <div class="checkbox-controls">
@@ -351,29 +352,85 @@
             <div class="filter-group">
                 <h4>Origin Game</h4>
                 <select id="originGameFilter" class="filter-select" multiple>
-                    <option value="Ruby">Ruby</option>
-                    <option value="Sapphire">Sapphire</option>
-                    <option value="Emerald">Emerald</option>
-                    <option value="FireRed">FireRed</option>
-                    <option value="LeafGreen">LeafGreen</option>
+                    <optgroup label="Generation 3">
+                        <option value="Ruby">Ruby</option>
+                        <option value="Sapphire">Sapphire</option>
+                        <option value="Emerald">Emerald</option>
+                        <option value="FireRed">FireRed</option>
+                        <option value="LeafGreen">LeafGreen</option>
+                    </optgroup>
+                    <optgroup label="Generation 4">
+                        <option value="Diamond">Diamond</option>
+                        <option value="Pearl">Pearl</option>
+                        <option value="Platinum">Platinum</option>
+                        <option value="HeartGold">HeartGold</option>
+                        <option value="SoulSilver">SoulSilver</option>
+                    </optgroup>
+                    <optgroup label="Generation 5">
+                        <option value="Black">Black</option>
+                        <option value="White">White</option>
+                        <option value="Black 2">Black 2</option>
+                        <option value="White 2">White 2</option>
+                    </optgroup>
+                    <optgroup label="Generation 6">
+                        <option value="X">X</option>
+                        <option value="Y">Y</option>
+                        <option value="Omega Ruby">Omega Ruby</option>
+                        <option value="Alpha Sapphire">Alpha Sapphire</option>
+                        <option value="Channel">Channel</option>
+                        <option value="GO">GO</option>
+                    </optgroup>
+                    <optgroup label="Generation 7">
+                        <option value="Sun">Sun</option>
+                        <option value="Moon">Moon</option>
+                        <option value="Ultra Sun">Ultra Sun</option>
+                        <option value="Ultra Moon">Ultra Moon</option>
+                    </optgroup>
+                    <optgroup label="Let's Go">
+                        <option value="Let's Go Pikachu">Let's Go Pikachu</option>
+                        <option value="Let's Go Eevee">Let's Go Eevee</option>
+                    </optgroup>
+                    <optgroup label="Virtual Console">
+                        <option value="Red">Red</option>
+                        <option value="Blue">Blue</option>
+                        <option value="Yellow">Yellow</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Crystal">Crystal</option>
+                    </optgroup>
                 </select>
             </div>
 
             <div class="filter-group">
                 <h4>Ball Type</h4>
                 <select id="ballFilter" class="filter-select" multiple>
-                    <option value="Pokeball">Pokeball</option>
-                    <option value="Great Ball">Great Ball</option>
-                    <option value="Ultra Ball">Ultra Ball</option>
                     <option value="Master Ball">Master Ball</option>
-                    <option value="Premier Ball">Premier Ball</option>
-                    <option value="Heal Ball">Heal Ball</option>
+                    <option value="Ultra Ball">Ultra Ball</option>
+                    <option value="Great Ball">Great Ball</option>
+                    <option value="Poké Ball">Poké Ball</option>
+                    <option value="Safari Ball">Safari Ball</option>
                     <option value="Net Ball">Net Ball</option>
+                    <option value="Dive Ball">Dive Ball</option>
                     <option value="Nest Ball">Nest Ball</option>
                     <option value="Repeat Ball">Repeat Ball</option>
                     <option value="Timer Ball">Timer Ball</option>
                     <option value="Luxury Ball">Luxury Ball</option>
-                    <option value="Dive Ball">Dive Ball</option>
+                    <option value="Premier Ball">Premier Ball</option>
+                    <option value="Dusk Ball">Dusk Ball</option>
+                    <option value="Heal Ball">Heal Ball</option>
+                    <option value="Quick Ball">Quick Ball</option>
+                    <option value="Cherish Ball">Cherish Ball</option>
+                    <option value="Fast Ball">Fast Ball</option>
+                    <option value="Level Ball">Level Ball</option>
+                    <option value="Lure Ball">Lure Ball</option>
+                    <option value="Heavy Ball">Heavy Ball</option>
+                    <option value="Love Ball">Love Ball</option>
+                    <option value="Friend Ball">Friend Ball</option>
+                    <option value="Moon Ball">Moon Ball</option>
+                    <option value="Sport Ball">Sport Ball</option>
+                    <option value="Park Ball">Park Ball</option>
+                    <option value="Dream Ball">Dream Ball</option>
+                    <option value="Beast Ball">Beast Ball</option>
                 </select>
             </div>
 
@@ -466,7 +523,6 @@
                     <h3>Quick Actions</h3>
                     <div class="quick-actions-grid">
                         <button id="duplicateScannerBtn" class="btn btn-secondary">Scan Duplicates</button>
-                        <button id="advancedFilterBtn" class="btn btn-secondary">Advanced Filters</button>
                         <button id="loadSaveBtn" class="btn btn-secondary">Load Save File</button>
                     </div>
                 </div>
@@ -506,6 +562,23 @@
                         </div>
                         <div id="scanStatus" class="scan-status hidden"></div>
                         <div id="scanResults" class="scan-results hidden"></div>
+                    </div>
+                </div>
+                
+                <div class="advanced-option-section">
+                    <h3>Safari Zone Ball Fixer</h3>
+                    <p class="option-description">Find Pokemon caught in Safari Zone locations but have a Pokeball instead of Safari Ball. Select them and replace with Safari Ball.</p>
+                    <div class="safari-fixer-controls">
+                        <button id="findSafariPokemonBtn" class="btn btn-secondary">Find Safari Zone Pokemon</button>
+                        <div id="safariPokemonList" class="safari-pokemon-list hidden"></div>
+                        <div id="safariFixerActions" class="safari-fixer-actions hidden">
+                            <div class="safari-fixer-selection-controls">
+                                <button id="selectAllSafariBtn" class="btn btn-secondary">Select All</button>
+                                <button id="deselectAllSafariBtn" class="btn btn-secondary">Deselect All</button>
+                            </div>
+                            <p id="safariSelectedCount">0 Pokemon selected</p>
+                            <button id="replaceSafariBallBtn" class="btn btn-primary" disabled>Replace with Safari Ball</button>
+                        </div>
                     </div>
                 </div>
             </div>

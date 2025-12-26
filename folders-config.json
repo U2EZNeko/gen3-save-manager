@@ -15,5 +15,10 @@
     "name": "PkHex-Bots(ROM Dumps)",
     "path": "C:\\Users\\nobod\\Desktop\\pkhex\\pkmdb",
     "protected": false
+  },
+  {
+    "id": "db6",
+    "name": "Bot Discord",
+    "path": "G:\\Gits\\gen3-save-manager\\gen3botdisc"
   }
 ]
