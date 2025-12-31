@@ -25,6 +25,7 @@
             <div class="controls-section-1">
                 <div class="database-controls">
                     <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
+                    <button id="pokedexBtn" class="btn btn-secondary">Pokedex</button>
                     <label for="databaseSelect">Database:</label>
                     <select id="databaseSelect" class="select">
                         <option value="db1">Database 1</option>
@@ -102,6 +103,7 @@
                             <option value="evSum">EV Sum (High to Low)</option>
                             <option value="evSumAsc">EV Sum (Low to High)</option>
                             <option value="species">Species</option>
+                            <option value="nationalDex">National Dex Number</option>
                             <option value="level">Level (High to Low)</option>
                             <option value="levelAsc">Level (Low to High)</option>
                             <option value="hp">HP Stat (High to Low)</option>
@@ -151,6 +153,10 @@
                             Show Only Shiny
                         </label>
                         <label>
+                            <input type="checkbox" id="onePerSpeciesFilter" class="checkbox">
+                            One Per Species (Highest IV)
+                        </label>
+                        <label>
                             <input type="checkbox" id="compactView" class="checkbox">
                             Compact View
                         </label>
@@ -173,6 +179,7 @@
             <div class="save-file-controls">
                 <input type="file" id="saveFileInput" accept=".sav" style="display: none;">
                 <button id="loadSaveFileBtn" class="btn btn-primary">Load Save File</button>
+                <button id="sortBoxesBtn" class="btn btn-secondary" disabled>Sort Boxes by National Dex</button>
                 <button id="exportSaveBtn" class="btn btn-primary" disabled>Export Save File</button>
                 <div class="import-options">
                     <div class="import-target-options">
@@ -187,6 +194,7 @@
                     </div>
                     <div class="import-special-options">
                         <button id="lotterySelectBtn" class="btn btn-secondary">Lottery Select (1 per TID/SID)</button>
+                        <button id="livingDexBtn" class="btn btn-secondary">Living Dex Mode</button>
                         <label>
                             <input type="checkbox" id="startFromLastBox">
                             Start from Last Box
@@ -435,6 +443,14 @@
             </div>
 
             <div class="filter-group">
+                <h4>Location</h4>
+                <div class="filter-row">
+                    <label>Met Location:</label>
+                    <input type="text" id="locationFilter" class="filter-input" placeholder="Filter by location name...">
+                </div>
+            </div>
+
+            <div class="filter-group">
                 <h4>Other Filters</h4>
                 <div class="filter-row">
                     <label>
@@ -567,7 +583,7 @@
                 
                 <div class="advanced-option-section">
                     <h3>Safari Zone Ball Fixer</h3>
-                    <p class="option-description">Find Pokemon caught in Safari Zone locations but have a Pokeball instead of Safari Ball. Select them and replace with Safari Ball.</p>
+                    <p class="option-description">Find Pokemon caught in Safari Zone locations that are not in a Safari Ball. Select them and replace with Safari Ball.</p>
                     <div class="safari-fixer-controls">
                         <button id="findSafariPokemonBtn" class="btn btn-secondary">Find Safari Zone Pokemon</button>
                         <div id="safariPokemonList" class="safari-pokemon-list hidden"></div>
@@ -581,6 +597,58 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="advanced-option-section">
+                    <h3>Invalid Moves Fixer</h3>
+                    <p class="option-description">Find Pokemon with moves that are out of legal range (corrupted moves). Select them and fix by replacing with Tackle and empty moves.</p>
+                    <div class="safari-fixer-controls">
+                        <button id="findInvalidMovesBtn" class="btn btn-secondary">Find Pokemon with Invalid Moves</button>
+                        <div id="invalidMovesList" class="safari-pokemon-list hidden"></div>
+                        <div id="invalidMovesActions" class="safari-fixer-actions hidden">
+                            <div class="safari-fixer-selection-controls">
+                                <button id="selectAllInvalidMovesBtn" class="btn btn-secondary">Select All</button>
+                                <button id="deselectAllInvalidMovesBtn" class="btn btn-secondary">Deselect All</button>
+                            </div>
+                            <p id="invalidMovesSelectedCount">0 Pokemon selected</p>
+                            <button id="fixInvalidMovesBtn" class="btn btn-primary" disabled>Fix Moves (Tackle + Empty)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pokedex Modal -->
+    <div id="pokedexModal" class="modal hidden">
+        <div class="modal-content pokedex-modal">
+            <div class="modal-header">
+                <h2>Pokedex</h2>
+                <span class="modal-close" id="closePokedexModal">&times;</span>
+            </div>
+            <div class="pokedex-content">
+                <div class="pokedex-stats">
+                    <h3>Living Dex Completion</h3>
+                    <div id="pokedexCompletionStats"></div>
+                </div>
+                <div class="pokedex-filters">
+                    <label>
+                        <input type="checkbox" id="pokedexShowOwned" checked>
+                        Show Owned
+                    </label>
+                    <label>
+                        <input type="checkbox" id="pokedexShowMissing" checked>
+                        Show Missing
+                    </label>
+                    <label>
+                        <select id="pokedexGenFilter">
+                            <option value="all">All Generations</option>
+                            <option value="1">Generation 1</option>
+                            <option value="2">Generation 2</option>
+                            <option value="3">Generation 3</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="pokedexGrid" class="pokedex-grid"></div>
             </div>
         </div>
     </div>

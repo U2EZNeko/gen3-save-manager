@@ -791,6 +791,148 @@ class SAV3Parser {
   /**
    * Get save file info
    */
+  /**
+   * Get all box contents (species IDs) - returns a map of box/slot to species ID
+   */
+  getAllBoxContents() {
+    const contents = new Map();
+    
+    for (let box = 0; box < COUNT_BOX; box++) {
+      for (let slot = 0; slot < COUNT_SLOTSPERBOX; slot++) {
+        const pokemon = this.getBoxSlot(box, slot);
+        if (pokemon) {
+          // Read species ID from decrypted data (offset 0x20)
+          const speciesId = pokemon.readUInt16LE(0x20);
+          if (speciesId > 0 && speciesId <= 386) {
+            const key = `${box},${slot}`;
+            contents.set(key, speciesId);
+          }
+        }
+      }
+    }
+    
+    return contents;
+  }
+  
+  /**
+   * Get species IDs already in boxes (as a Set for fast lookup)
+   */
+  getExistingSpecies() {
+    const existing = new Set();
+    const contents = this.getAllBoxContents();
+    
+    for (const speciesId of contents.values()) {
+      existing.add(speciesId);
+    }
+    
+    return existing;
+  }
+  
+  /**
+   * Clear a box slot (set to empty)
+   */
+  clearBoxSlot(box, slot) {
+    if (box < 0 || box >= COUNT_BOX || slot < 0 || slot >= COUNT_SLOTSPERBOX) {
+      return false;
+    }
+    
+    const boxOffset = this.getBoxOffset(box);
+    if (boxOffset < 0) return false;
+    
+    const slotOffset = boxOffset + (slot * SIZE_STORED);
+    if (slotOffset + SIZE_STORED > this.storageBuffer.length) return false;
+    
+    // Clear the slot by writing zeros
+    this.storageBuffer.fill(0, slotOffset, slotOffset + SIZE_STORED);
+    return true;
+  }
+  
+  /**
+   * Sort all boxes by National Dex number
+   * Reads all Pokemon, sorts them by species ID, and writes them back in order
+   */
+  sortBoxesByNationalDex() {
+    // Read all Pokemon from boxes
+    const allPokemon = [];
+    
+    for (let box = 0; box < COUNT_BOX; box++) {
+      for (let slot = 0; slot < COUNT_SLOTSPERBOX; slot++) {
+        const pokemon = this.getBoxSlot(box, slot);
+        if (pokemon) {
+          const speciesId = pokemon.readUInt16LE(0x20);
+          if (speciesId > 0 && speciesId <= 386) {
+            allPokemon.push({
+              data: Buffer.from(pokemon), // Copy the decrypted data
+              species: speciesId,
+              box: box,
+              slot: slot
+            });
+          }
+        }
+      }
+    }
+    
+    // Sort by National Dex number
+    allPokemon.sort((a, b) => a.species - b.species);
+    
+    // Clear all boxes first
+    for (let box = 0; box < COUNT_BOX; box++) {
+      for (let slot = 0; slot < COUNT_SLOTSPERBOX; slot++) {
+        this.clearBoxSlot(box, slot);
+      }
+    }
+    
+    // Write sorted Pokemon back, leaving empty slots for missing species
+    let currentBox = 0;
+    let currentSlot = 0;
+    let pokemonIndex = 0;
+    
+    for (let dexNumber = 1; dexNumber <= 386; dexNumber++) {
+      if (currentBox >= COUNT_BOX) break;
+      
+      // Check if we have this species
+      if (pokemonIndex < allPokemon.length && allPokemon[pokemonIndex].species === dexNumber) {
+        // Write this Pokemon to the current slot
+        const pokemon = allPokemon[pokemonIndex];
+        const boxOffset = this.getBoxOffset(currentBox);
+        const slotOffset = boxOffset + (currentSlot * SIZE_STORED);
+        
+        // Encrypt and write
+        const encrypted = this.encryptPKM(pokemon.data);
+        encrypted.copy(this.storageBuffer, slotOffset, 0, SIZE_STORED);
+        
+        pokemonIndex++;
+      }
+      // If we don't have this species, leave the slot empty (already cleared)
+      
+      // Move to next slot
+      currentSlot++;
+      if (currentSlot >= COUNT_SLOTSPERBOX) {
+        currentSlot = 0;
+        currentBox++;
+      }
+    }
+    
+    // Write any remaining Pokemon (shouldn't happen if species are valid, but handle it)
+    while (pokemonIndex < allPokemon.length && currentBox < COUNT_BOX) {
+      const pokemon = allPokemon[pokemonIndex];
+      const boxOffset = this.getBoxOffset(currentBox);
+      const slotOffset = boxOffset + (currentSlot * SIZE_STORED);
+      
+      const encrypted = this.encryptPKM(pokemon.data);
+      encrypted.copy(this.storageBuffer, slotOffset, 0, SIZE_STORED);
+      
+      pokemonIndex++;
+      currentSlot++;
+      if (currentSlot >= COUNT_SLOTSPERBOX) {
+        currentSlot = 0;
+        currentBox++;
+      }
+    }
+    
+    return allPokemon.length;
+  }
+
   getInfo() {
     // Read OT name from small buffer (first 8 bytes, but only 7 used for non-Japanese)
     // Based on PKHeX: OriginalTrainerTrash => Small[..8], but MaxStringLengthTrainer = 7

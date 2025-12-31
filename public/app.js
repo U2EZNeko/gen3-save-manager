@@ -3,6 +3,7 @@ let pokemonData = [];
 let filteredData = [];
 let selectedPokemon = new Set(); // Track selected Pokemon by filename
 let lastSelectedIndex = -1; // Track last selected card index for range selection
+let statisticsPokemonData = []; // Store Pokemon data for statistics graph updates
 let allPokemonCards = []; // Track all Pokemon cards in current display order
 
 // Index for fast sorting/grouping operations
@@ -46,6 +47,9 @@ let currentDatabase = localStorage.getItem('selectedDatabase') || 'db1';
 // DOM elements
 const databaseSelect = document.getElementById('databaseSelect');
 const loadBtn = document.getElementById('loadBtn');
+const pokedexBtn = document.getElementById('pokedexBtn');
+const pokedexModal = document.getElementById('pokedexModal');
+const closePokedexModal = document.getElementById('closePokedexModal');
 const dbReloadNotification = document.getElementById('dbReloadNotification');
 const reloadDbBtn = document.getElementById('reloadDbBtn');
 const dismissNotificationBtn = document.getElementById('dismissNotificationBtn');
@@ -55,6 +59,7 @@ const searchInput = document.getElementById('searchInput');
 const groupByOT = document.getElementById('groupByOT');
 const groupByTIDSID = document.getElementById('groupByTIDSID');
 const shinyFilter = document.getElementById('shinyFilter');
+const onePerSpeciesFilter = document.getElementById('onePerSpeciesFilter');
 const compactView = document.getElementById('compactView');
 const duplicateScannerBtn = document.getElementById('duplicateScannerBtn');
 const advancedFilterBtn = document.getElementById('advancedFilterBtn');
@@ -134,6 +139,16 @@ if (databaseSelect) {
 // Refresh button - only refreshes Pokemon from the current database, not the database list
 loadBtn.addEventListener('click', loadPokemon);
 
+// Pokedex button - set up event listener
+if (pokedexBtn) {
+    pokedexBtn.addEventListener('click', openPokedex);
+}
+if (closePokedexModal && pokedexModal) {
+    closePokedexModal.addEventListener('click', () => {
+        pokedexModal.classList.add('hidden');
+    });
+}
+
 // Show database reload notification
 function showDbReloadNotification(filesMoved, targetDbId) {
     if (!dbReloadNotification || !notificationMessage) return;
@@ -187,6 +202,7 @@ searchInput.addEventListener('input', filterAndDisplay);
 groupByOT.addEventListener('change', sortAndDisplay);
 groupByTIDSID.addEventListener('change', sortAndDisplay);
 shinyFilter.addEventListener('change', filterAndDisplay);
+onePerSpeciesFilter.addEventListener('change', filterAndDisplay);
 compactView.addEventListener('change', sortAndDisplay);
 if (duplicateScannerBtn) {
     duplicateScannerBtn.addEventListener('click', () => {
@@ -391,8 +407,8 @@ function updateDbStatistics(data) {
         return;
     }
     
-    // Filter valid Pokemon
-    const validPokemon = data.filter(p => !p.error && p.species && p.species > 0 && p.species <= 386);
+    // Filter valid Pokemon (support all generations up to 1025)
+    const validPokemon = data.filter(p => !p.error && p.species && p.species > 0 && p.species <= 1025);
     
     if (validPokemon.length === 0) {
         statTotal.textContent = '0';
@@ -506,6 +522,14 @@ function sortPokemon(data, sortBy) {
                 const nameA = (a.speciesName || '').toLowerCase();
                 const nameB = (b.speciesName || '').toLowerCase();
                 return nameA.localeCompare(nameB);
+            });
+            break;
+        case 'nationalDex':
+            sorted.sort((a, b) => {
+                if (a.error || b.error) return 0;
+                const dexA = a.species || 0;
+                const dexB = b.species || 0;
+                return dexA - dexB;
             });
             break;
         case 'level':
@@ -713,6 +737,14 @@ function filterPokemon(data, searchTerm, shinyOnly = false, advancedFilters = {}
                 if (hasNickname !== advancedFilters.hasNickname) return false;
             }
             
+            // Location
+            if (advancedFilters.location && advancedFilters.location.trim() !== '') {
+                const locationName = (pokemon.metLocationName || '').toLowerCase();
+                const locationId = String(pokemon.metLocation || '');
+                const filterLocation = advancedFilters.location.toLowerCase();
+                if (!locationName.includes(filterLocation) && !locationId.includes(filterLocation)) return false;
+            }
+            
             // OT Name
             if (advancedFilters.otName && advancedFilters.otName.trim() !== '') {
                 const otName = (pokemon.otName || '').toLowerCase();
@@ -741,6 +773,46 @@ function filterPokemon(data, searchTerm, shinyOnly = false, advancedFilters = {}
     return filtered;
 }
 
+// Filter to one Pokemon per species (highest IV sum)
+function filterOnePerSpecies(data) {
+    if (!onePerSpeciesFilter.checked) {
+        return data;
+    }
+    
+    // Group by species
+    const speciesMap = new Map();
+    
+    data.forEach(pokemon => {
+        if (pokemon.error || !pokemon.species) return;
+        
+        const speciesId = pokemon.species;
+        const ivSum = pokemon.ivSum || 0;
+        
+        if (!speciesMap.has(speciesId)) {
+            speciesMap.set(speciesId, pokemon);
+        } else {
+            const existing = speciesMap.get(speciesId);
+            const existingIvSum = existing.ivSum || 0;
+            
+            // Keep the one with higher IV sum
+            // If tied, prefer higher level, then keep existing
+            if (ivSum > existingIvSum) {
+                speciesMap.set(speciesId, pokemon);
+            } else if (ivSum === existingIvSum) {
+                // Tiebreaker: prefer higher level
+                const existingLevel = existing.level || 0;
+                const currentLevel = pokemon.level || 0;
+                if (currentLevel > existingLevel) {
+                    speciesMap.set(speciesId, pokemon);
+                }
+            }
+        }
+    });
+    
+    // Convert map back to array
+    return Array.from(speciesMap.values());
+}
+
 // Sort and display Pokemon
 function sortAndDisplay() {
     console.log(`[Frontend] sortAndDisplay() called, pokemonData.length = ${pokemonData ? pokemonData.length : 'null'}`);
@@ -751,6 +823,12 @@ function sortAndDisplay() {
     // Apply filter first (with advanced filters)
     let data = filterPokemon(pokemonData, searchTerm, shinyOnly, advancedFilters);
     console.log(`[Frontend] After filtering: ${data.length} Pokemon`);
+    
+    // Apply one per species filter if enabled
+    data = filterOnePerSpecies(data);
+    if (onePerSpeciesFilter.checked) {
+        console.log(`[Frontend] After one per species filter: ${data.length} Pokemon`);
+    }
     
     // Then sort
     filteredData = sortPokemon(data, sortBy);
@@ -2473,7 +2551,7 @@ function updateDailyPokemonCount(totalCount) {
     }
 }
 
-// Get last 7 days of Pokemon counts
+// Get last 7 days of Pokemon counts from localStorage (old method)
 function getLast7DaysCounts() {
     const storageKey = 'pokemonDailyCounts';
     try {
@@ -2500,7 +2578,82 @@ function getLast7DaysCounts() {
     }
 }
 
-// Create line chart for 7-day Pokemon count
+// Get Pokemon counts grouped by file date
+function getPokemonCountsByFileDate(pokemon, timeframe = '7d') {
+    if (!pokemon || pokemon.length === 0) {
+        return [];
+    }
+    
+    // Calculate date range based on timeframe
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (timeframe) {
+        case '7d':
+            startDate.setDate(now.getDate() - 7);
+            break;
+        case '30d':
+            startDate.setDate(now.getDate() - 30);
+            break;
+        case '90d':
+            startDate.setDate(now.getDate() - 90);
+            break;
+        case '1y':
+            startDate.setFullYear(now.getFullYear() - 1);
+            break;
+        case 'all':
+            // Find earliest file date
+            const dates = pokemon
+                .map(p => {
+                    const date = p.fileCreated ? new Date(p.fileCreated) : (p.fileModified ? new Date(p.fileModified) : null);
+                    return date;
+                })
+                .filter(d => d !== null);
+            if (dates.length > 0) {
+                startDate = new Date(Math.min(...dates.map(d => d.getTime())));
+            }
+            break;
+        default:
+            startDate.setDate(now.getDate() - 7);
+    }
+    
+    // Group Pokemon by file date (day)
+    const dateCounts = new Map();
+    
+    pokemon.forEach(p => {
+        const fileDate = p.fileCreated ? new Date(p.fileCreated) : (p.fileModified ? new Date(p.fileModified) : null);
+        if (!fileDate || fileDate < startDate) {
+            return; // Skip if no date or before start date
+        }
+        
+        // Round to start of day
+        const dateKey = new Date(fileDate.getFullYear(), fileDate.getMonth(), fileDate.getDate());
+        const dateStr = dateKey.toISOString().split('T')[0];
+        
+        dateCounts.set(dateStr, (dateCounts.get(dateStr) || 0) + 1);
+    });
+    
+    // Generate all dates in range
+    const result = [];
+    const currentDate = new Date(startDate);
+    currentDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(now);
+    endDate.setHours(0, 0, 0, 0);
+    
+    while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        result.push({
+            date: dateStr,
+            count: dateCounts.get(dateStr) || 0,
+            label: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        });
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return result;
+}
+
+// Create line chart for 7-day Pokemon count (old format)
 function create7DayLineChart(data) {
     if (!data || data.length === 0) {
         return '<p class="no-data">No historical data available yet. Data will appear after viewing statistics multiple times.</p>';
@@ -2558,6 +2711,61 @@ function create7DayLineChart(data) {
     return svg;
 }
 
+// Create line chart for Pokemon count by file date
+function createFileDateLineChart(data) {
+    if (!data || data.length === 0) {
+        return '<p class="no-data">No file date data available.</p>';
+    }
+    
+    const maxCount = Math.max(...data.map(d => d.count || 0));
+    const minCount = Math.min(...data.map(d => d.count || 0));
+    const range = maxCount - minCount || 1; // Avoid division by zero
+    
+    const width = 600;
+    const height = 200;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    
+    // For longer timeframes, show fewer labels to avoid crowding
+    const labelInterval = data.length > 30 ? Math.ceil(data.length / 15) : 1;
+    
+    let svg = `<div class="line-chart-container">
+        <svg width="${width}" height="${height}" class="line-chart">
+            <!-- Grid lines -->
+            ${Array.from({ length: 5 }, (_, i) => {
+                const y = padding.top + (chartHeight / 4) * i;
+                const value = maxCount - (range / 4) * i;
+                return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" 
+                    stroke="var(--border-color)" stroke-width="1" opacity="0.3"/>
+                    <text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" 
+                    fill="var(--text-secondary)" font-size="10">${Math.round(value)}</text>`;
+            }).join('')}
+            
+            <!-- Data points and line -->
+            <polyline points="${data.map((d, i) => {
+                const x = padding.left + (chartWidth / (data.length - 1 || 1)) * i;
+                const y = padding.top + chartHeight - ((d.count - minCount) / range) * chartHeight;
+                return `${x},${y}`;
+            }).join(' ')}" 
+                fill="none" stroke="var(--accent-color)" stroke-width="2"/>
+            
+            ${data.map((d, i) => {
+                const x = padding.left + (chartWidth / (data.length - 1 || 1)) * i;
+                const y = padding.top + chartHeight - ((d.count - minCount) / range) * chartHeight;
+                const showLabel = i % labelInterval === 0 || i === data.length - 1;
+                return `<circle cx="${x}" cy="${y}" r="4" fill="var(--accent-color)" stroke="var(--bg-secondary)" stroke-width="2">
+                    <title>${d.label}: ${d.count} Pokemon</title>
+                </circle>
+                ${showLabel ? `<text x="${x}" y="${height - padding.bottom + 15}" text-anchor="middle" 
+                    fill="var(--text-secondary)" font-size="10" transform="rotate(-45 ${x} ${height - padding.bottom + 15})">${d.label}</text>` : ''}`;
+            }).join('')}
+        </svg>
+    </div>`;
+    
+    return svg;
+}
+
 async function showStatistics() {
     console.log('showStatistics called');
     console.log('statisticsBody:', statisticsBody);
@@ -2595,14 +2803,14 @@ async function showStatistics() {
         };
     });
     
-    // Update daily count
+    // Update daily count (for total Pokemon statistics)
     updateDailyPokemonCount(validPokemon.length);
     
     // Calculate statistics
     const stats = calculateStatistics(pokemonWithNames);
     
-    // Display statistics
-    displayStatistics(stats);
+    // Display statistics (pass Pokemon data for file date graph)
+    displayStatistics(stats, pokemonWithNames);
 }
 
 function calculateStatistics(pokemon) {
@@ -2811,7 +3019,11 @@ function calculateStatistics(pokemon) {
     return stats;
 }
 
-function displayStatistics(stats) {
+function displayStatistics(stats, pokemon = []) {
+    // Default mode and timeframe
+    let currentMode = 'fileDate'; // 'fileDate' or 'total'
+    let currentTimeframe = '7d';
+    
     let html = '<div class="statistics-container">';
     
     // Overview
@@ -2824,11 +3036,27 @@ function displayStatistics(stats) {
     html += `<div class="statistic-card"><div class="statistic-value">${((stats.shinyCount / stats.total) * 100).toFixed(2)}%</div><div class="statistic-label">Shiny Rate</div></div>`;
     html += '</div>';
     
-    // 7-Day Pokemon Count Graph
+    // Pokemon Count Graph
     html += '<div class="statistics-graph-section">';
-    html += '<h4>Total Pokemon Over 7 Days</h4>';
-    const dailyData = getLast7DaysCounts();
-    html += create7DayLineChart(dailyData);
+    html += '<div class="graph-header">';
+    html += '<h4 id="graphTitle">Pokemon Count by File Date</h4>';
+    html += '<div class="graph-mode-toggle">';
+    html += '<label class="toggle-switch">';
+    html += '<input type="checkbox" id="graphModeToggle" checked>';
+    html += '<span class="toggle-slider"></span>';
+    html += '<span class="toggle-label">File Date</span>';
+    html += '</label>';
+    html += '</div>';
+    html += '<div class="timeframe-controls" id="timeframeControls">';
+    html += '<button class="timeframe-btn active" data-timeframe="7d">7 Days</button>';
+    html += '<button class="timeframe-btn" data-timeframe="30d">30 Days</button>';
+    html += '<button class="timeframe-btn" data-timeframe="90d">90 Days</button>';
+    html += '<button class="timeframe-btn" data-timeframe="1y">1 Year</button>';
+    html += '<button class="timeframe-btn" data-timeframe="all">All Time</button>';
+    html += '</div>';
+    html += '</div>';
+    const dailyData = getPokemonCountsByFileDate(pokemon, currentTimeframe);
+    html += `<div class="graph-container" data-mode="${currentMode}" data-timeframe="${currentTimeframe}">${createFileDateLineChart(dailyData)}</div>`;
     html += '</div>';
     
     html += '</div>';
@@ -3011,9 +3239,195 @@ function displayStatistics(stats) {
         html += '</div></div>';
     }
     
+    // Pokedex Statistics
+    html += '<div class="statistics-section">';
+    html += '<h3>Living Dex Completion</h3>';
+    html += '<div id="pokedexStatsContainer">Loading...</div>';
+    html += '</div>';
+    
     html += '</div>';
     
     statisticsBody.innerHTML = html;
+    
+    // Store Pokemon data globally for timeframe updates
+    statisticsPokemonData = pokemon;
+    
+    // Set up timeframe button event listeners after a short delay to ensure DOM is ready
+    setTimeout(setupTimeframeControls, 100);
+    
+    // Load Pokedex statistics
+    loadPokedexStatistics();
+}
+
+// Load Pokedex statistics for the statistics modal
+async function loadPokedexStatistics() {
+    const container = document.getElementById('pokedexStatsContainer');
+    if (!container) return;
+    
+    try {
+        const dbId = currentDatabase || 'db1';
+        const response = await fetch(`/api/pokedex?db=${dbId}`);
+        if (!response.ok) {
+            container.innerHTML = '<p>Failed to load Pokedex statistics</p>';
+            return;
+        }
+        
+        const data = await response.json();
+        const { completionStats } = data;
+        
+        if (!completionStats || Object.keys(completionStats).length === 0) {
+            container.innerHTML = '<p>No Pokedex data available</p>';
+            return;
+        }
+        
+        let html = '<div class="pokedex-stats-grid">';
+        
+        // Sort by generation number
+        const sortedGens = Object.keys(completionStats).sort((a, b) => parseInt(a) - parseInt(b));
+        
+        for (const genNum of sortedGens) {
+            const genStats = completionStats[genNum];
+            const livingDexBadge = genStats.livingDex ? '<span class="badge living-dex">Living Dex</span>' : '';
+            const shinyLivingDexBadge = genStats.shinyLivingDex ? '<span class="badge shiny-living-dex">Shiny Living Dex</span>' : '';
+            
+            html += `
+                <div class="pokedex-stat-card">
+                    <h4>${genStats.name}</h4>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${genStats.percentage}%"></div>
+                        </div>
+                        <span>${genStats.owned}/${genStats.total} (${genStats.percentage}%)</span>
+                    </div>
+                    <div class="shiny-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill shiny" style="width: ${genStats.shinyPercentage}%"></div>
+                        </div>
+                        <span>Shiny: ${genStats.shiny}/${genStats.total} (${genStats.shinyPercentage}%)</span>
+                    </div>
+                    <div class="badges">
+                        ${livingDexBadge}
+                        ${shinyLivingDexBadge}
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading Pokedex statistics:', error);
+        container.innerHTML = '<p>Error loading Pokedex statistics</p>';
+    }
+}
+
+// Set up timeframe control buttons and mode toggle for statistics graph
+function setupTimeframeControls() {
+    const graphContainer = document.querySelector('.graph-container');
+    const timeframeButtons = document.querySelectorAll('.timeframe-btn');
+    const modeToggle = document.getElementById('graphModeToggle');
+    const graphTitle = document.getElementById('graphTitle');
+    const timeframeControls = document.getElementById('timeframeControls');
+    
+    if (!graphContainer) {
+        return;
+    }
+    
+    // Set up mode toggle
+    if (modeToggle) {
+        modeToggle.addEventListener('change', function() {
+            const mode = this.checked ? 'fileDate' : 'total';
+            updateStatisticsGraph(null, mode);
+        });
+    }
+    
+    // Set up timeframe buttons (only if in fileDate mode)
+    if (timeframeButtons.length > 0) {
+        timeframeButtons.forEach(btn => {
+            // Remove existing listeners to avoid duplicates
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function() {
+                const timeframe = this.getAttribute('data-timeframe');
+                updateStatisticsGraph(timeframe);
+            });
+        });
+    }
+}
+
+// Update statistics graph based on selected timeframe and mode
+function updateStatisticsGraph(timeframe = null, mode = null) {
+    const graphContainer = document.querySelector('.graph-container');
+    const timeframeButtons = document.querySelectorAll('.timeframe-btn');
+    const modeToggle = document.getElementById('graphModeToggle');
+    const graphTitle = document.getElementById('graphTitle');
+    const timeframeControls = document.getElementById('timeframeControls');
+    
+    if (!graphContainer) {
+        return;
+    }
+    
+    // Get current mode
+    if (mode === null) {
+        mode = modeToggle && modeToggle.checked ? 'fileDate' : 'total';
+    }
+    
+    // Get current timeframe (only used in fileDate mode)
+    if (timeframe === null) {
+        timeframe = graphContainer.getAttribute('data-timeframe') || '7d';
+    }
+    
+    let data, chart, title;
+    
+    if (mode === 'fileDate') {
+        // File date mode - use Pokemon file dates
+        if (statisticsPokemonData.length === 0) {
+            chart = '<p class="no-data">No Pokemon data available.</p>';
+        } else {
+            data = getPokemonCountsByFileDate(statisticsPokemonData, timeframe);
+            chart = createFileDateLineChart(data);
+        }
+        title = 'Pokemon Count by File Date';
+        
+        // Show timeframe controls
+        if (timeframeControls) {
+            timeframeControls.style.display = 'flex';
+        }
+        
+        // Update button states
+        if (timeframeButtons.length > 0) {
+            timeframeButtons.forEach(btn => {
+                if (btn.getAttribute('data-timeframe') === timeframe) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+    } else {
+        // Total mode - use localStorage daily counts
+        data = getLast7DaysCounts();
+        chart = create7DayLineChart(data);
+        title = 'Total Pokemon Over 7 Days';
+        
+        // Hide timeframe controls
+        if (timeframeControls) {
+            timeframeControls.style.display = 'none';
+        }
+    }
+    
+    // Update graph
+    graphContainer.innerHTML = chart;
+    graphContainer.setAttribute('data-mode', mode);
+    if (mode === 'fileDate') {
+        graphContainer.setAttribute('data-timeframe', timeframe);
+    }
+    
+    // Update title
+    if (graphTitle) {
+        graphTitle.textContent = title;
+    }
 }
 
 // Duplicate Scanner
@@ -3238,6 +3652,10 @@ function applyFilters() {
         advancedFilters.hasNickname = true;
     }
     
+    // Location
+    const location = document.getElementById('locationFilter').value.trim();
+    if (location) advancedFilters.location = location;
+    
     const otName = document.getElementById('otNameFilter').value.trim();
     if (otName) advancedFilters.otName = otName;
     
@@ -3284,6 +3702,7 @@ const closeSaveFileSection = document.getElementById('closeSaveFileSection');
 const saveFileSection = document.getElementById('saveFileSection');
 const saveFileInput = document.getElementById('saveFileInput');
 const loadSaveFileBtn = document.getElementById('loadSaveFileBtn');
+const sortBoxesBtn = document.getElementById('sortBoxesBtn');
 const exportSaveBtn = document.getElementById('exportSaveBtn');
 const saveFileStatus = document.getElementById('saveFileStatus');
 const saveFileLoading = document.getElementById('saveFileLoading');
@@ -3331,6 +3750,11 @@ importSelectedBtn.addEventListener('click', importSelectedPokemon);
 const lotterySelectBtn = document.getElementById('lotterySelectBtn');
 if (lotterySelectBtn) {
     lotterySelectBtn.addEventListener('click', performLotterySelect);
+}
+
+const livingDexBtn = document.getElementById('livingDexBtn');
+if (livingDexBtn) {
+    livingDexBtn.addEventListener('click', performLivingDex);
 }
 
 // Perform lottery selection: select 1 random Pokemon per TID/SID combo from currently displayed Pokemon
@@ -3400,6 +3824,89 @@ function performLotterySelect() {
     alert(`Lottery selection complete: ${count} Pokemon selected (1 per TID/SID combo)`);
 }
 
+// Sort boxes by National Dex
+async function sortBoxes() {
+    if (!saveFileLoaded) {
+        alert('Please load a save file first');
+        return;
+    }
+    
+    if (!confirm('This will sort all boxes by National Dex number.\n' +
+                 'Pokemon will be rearranged in National Dex order (1-386),\n' +
+                 'with empty slots left for missing species.\n\n' +
+                 'Continue?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/save/sort-boxes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to sort boxes');
+        }
+        
+        const result = await response.json();
+        alert(`Boxes sorted successfully!\n\n` +
+              `${result.pokemonCount} Pokemon rearranged by National Dex number.`);
+        
+        console.log('Sort boxes result:', result);
+    } catch (error) {
+        console.error('Error sorting boxes:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Living Dex Mode - inject one Pokemon per species sorted by National Dex
+async function performLivingDex() {
+    if (!saveFileLoaded) {
+        alert('Please load a save file first');
+        return;
+    }
+    
+    if (!confirm('Living Dex Mode will:\n' +
+                 '• Sort boxes by National Dex number first\n' +
+                 '• Add 1 Pokemon per species (highest IV sum)\n' +
+                 '• Skip Pokemon already in boxes\n' +
+                 '• Leave empty slots for missing species\n\n' +
+                 'Continue?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/save/living-dex', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                dbId: currentDatabase
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to perform Living Dex injection');
+        }
+        
+        const result = await response.json();
+        alert(`Living Dex injection complete!\n\n` +
+              `Imported: ${result.imported} Pokemon\n` +
+              `Errors: ${result.errors}\n\n` +
+              `Boxes are now sorted by National Dex number.`);
+        
+        console.log('Living Dex results:', result);
+    } catch (error) {
+        console.error('Error in Living Dex mode:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
 // Load save file
 async function loadSaveFile(file) {
     if (!file.name.toLowerCase().endsWith('.sav')) {
@@ -3440,6 +3947,7 @@ async function loadSaveFile(file) {
         saveFileStatus.textContent = `Loaded: ${file.name} - OT: ${data.info.otName}`;
         saveFileStatus.style.color = '#4CAF50';
         exportSaveBtn.disabled = false;
+        if (sortBoxesBtn) sortBoxesBtn.disabled = false;
         
         // Refresh display to show checkboxes
         sortAndDisplay();
@@ -3804,16 +4312,30 @@ function displayFolderList() {
         folderNameContainer.appendChild(folderName);
         folderNameContainer.appendChild(folderNameInput);
         
+        const folderPathContainer = document.createElement('div');
+        folderPathContainer.className = 'folder-path-container';
+        
         const folderPath = document.createElement('div');
         folderPath.className = 'folder-path';
         folderPath.textContent = db.path;
+        folderPath.dataset.folderId = db.id;
+        
+        const folderPathInput = document.createElement('input');
+        folderPathInput.type = 'text';
+        folderPathInput.className = 'folder-path-input hidden';
+        folderPathInput.value = db.path;
+        folderPathInput.dataset.folderId = db.id;
+        folderPathInput.placeholder = 'Enter folder path';
+        
+        folderPathContainer.appendChild(folderPath);
+        folderPathContainer.appendChild(folderPathInput);
         
         const folderStats = document.createElement('div');
         folderStats.className = 'folder-stats';
         folderStats.textContent = `${db.fileCount || 0} .pk3 files`;
         
         folderInfo.appendChild(folderNameContainer);
-        folderInfo.appendChild(folderPath);
+        folderInfo.appendChild(folderPathContainer);
         folderInfo.appendChild(folderStats);
         
         const folderActions = document.createElement('div');
@@ -3845,7 +4367,7 @@ function displayFolderList() {
         const editBtn = document.createElement('button');
         editBtn.className = 'btn btn-secondary btn-small';
         editBtn.textContent = 'Edit';
-        editBtn.addEventListener('click', () => editFolderName(db.id));
+        editBtn.addEventListener('click', () => editFolder(db.id));
         folderActions.appendChild(editBtn);
         
         // Remove button
@@ -3861,72 +4383,127 @@ function displayFolderList() {
     });
 }
 
-// Edit folder name
-function editFolderName(folderId) {
+// Edit folder name and path
+function editFolder(folderId) {
     const folderName = document.querySelector(`.folder-name[data-folder-id="${folderId}"]`);
     const folderNameInput = document.querySelector(`.folder-name-input[data-folder-id="${folderId}"]`);
+    const folderPath = document.querySelector(`.folder-path[data-folder-id="${folderId}"]`);
+    const folderPathInput = document.querySelector(`.folder-path-input[data-folder-id="${folderId}"]`);
     
-    if (!folderName || !folderNameInput) return;
+    if (!folderName || !folderNameInput || !folderPath || !folderPathInput) return;
     
-    // Show input, hide name
+    // Show inputs, hide display elements
     folderName.classList.add('hidden');
     folderNameInput.classList.remove('hidden');
+    folderPath.classList.add('hidden');
+    folderPathInput.classList.remove('hidden');
     folderNameInput.focus();
     folderNameInput.select();
     
-    // Save on Enter or blur
+    // Save on Enter or blur (when both inputs lose focus)
+    let saveTimeout;
     const saveEdit = async () => {
-        const newName = folderNameInput.value.trim();
-        if (newName && newName !== folderName.textContent) {
-            try {
-                const response = await fetch(`/api/databases/${folderId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name: newName })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to update folder name');
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(async () => {
+            const newName = folderNameInput.value.trim();
+            const newPath = folderPathInput.value.trim();
+            const originalName = folderName.textContent.trim();
+            const originalPath = folderPath.textContent.trim();
+            
+            // Check if anything changed
+            const nameChanged = newName !== originalName;
+            const pathChanged = newPath !== originalPath;
+            
+            if (nameChanged || pathChanged) {
+                try {
+                    const updateData = {};
+                    if (nameChanged) {
+                        updateData.name = newName;
+                    }
+                    if (pathChanged) {
+                        updateData.folderPath = newPath;
+                    }
+                    
+                    console.log(`[Frontend] Updating folder ${folderId}:`, updateData);
+                    
+                    const response = await fetch(`/api/databases/${folderId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log(`[Frontend] Update result:`, result);
+                    
+                    // Reload databases to update the list
+                    await loadDatabases();
+                } catch (error) {
+                    console.error('Error updating folder:', error);
+                    alert(`Failed to update folder: ${error.message}`);
+                    // Reset input values to original
+                    folderNameInput.value = originalName;
+                    folderPathInput.value = originalPath;
                 }
-                
-                // Reload databases to update the list
-                await loadDatabases();
-            } catch (error) {
-                console.error('Error updating folder name:', error);
-                alert(`Failed to update folder name: ${error.message}`);
-                // Reset input value
-                folderNameInput.value = folderName.textContent;
+            } else {
+                // No changes, just reset input values
+                folderNameInput.value = originalName;
+                folderPathInput.value = originalPath;
             }
-        } else {
-            // Reset input value if unchanged
-            folderNameInput.value = folderName.textContent;
-        }
-        
-        // Hide input, show name
-        folderNameInput.classList.add('hidden');
-        folderName.classList.remove('hidden');
+            
+            // Hide inputs, show display elements
+            folderNameInput.classList.add('hidden');
+            folderName.classList.remove('hidden');
+            folderPathInput.classList.add('hidden');
+            folderPath.classList.remove('hidden');
+        }, 200); // Small delay to allow blur events to complete
     };
     
     // Cancel on Escape
     const cancelEdit = () => {
+        clearTimeout(saveTimeout);
         folderNameInput.value = folderName.textContent;
+        folderPathInput.value = folderPath.textContent;
         folderNameInput.classList.add('hidden');
         folderName.classList.remove('hidden');
+        folderPathInput.classList.add('hidden');
+        folderPath.classList.remove('hidden');
     };
     
-    folderNameInput.addEventListener('blur', saveEdit, { once: true });
-    folderNameInput.addEventListener('keydown', (e) => {
+    // Handle blur events - save when both inputs lose focus
+    let blurTimeout;
+    const handleBlur = () => {
+        clearTimeout(blurTimeout);
+        blurTimeout = setTimeout(() => {
+            // Check if neither input is focused
+            if (document.activeElement !== folderNameInput && document.activeElement !== folderPathInput) {
+                saveEdit();
+            }
+        }, 100);
+    };
+    
+    folderNameInput.addEventListener('blur', handleBlur, { once: true });
+    folderPathInput.addEventListener('blur', handleBlur, { once: true });
+    
+    // Handle Enter key - save
+    const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            folderNameInput.blur();
+            saveEdit();
         } else if (e.key === 'Escape') {
             e.preventDefault();
             cancelEdit();
         }
-    }, { once: true });
+    };
+    
+    folderNameInput.addEventListener('keydown', handleKeyDown, { once: true });
+    folderPathInput.addEventListener('keydown', handleKeyDown, { once: true });
 }
 
 // Move folder up or down
@@ -4365,29 +4942,25 @@ async function findSafariPokemon() {
         const isSafari = isSafariZoneLocation(p.metLocationName, p.metLocation);
         if (!isSafari) return false;
         
-        // Check if ball is Pokeball (ID 4) or "Poké Ball"
+        // Check if ball is NOT Safari Ball (ID 5)
         // Get ball ID (preferred) or ball name
         const ballId = p.ballId || (typeof p.ball === 'number' ? p.ball : 0);
         const ballName = (p.ballName || (typeof p.ball === 'string' ? p.ball : '')).toLowerCase().trim();
         
-        // Pokeball is ID 4, or name variations of "Poké Ball"
-        // Also treat undefined/null/missing ball as Pokeball (default)
-        const isPokeball = ballId === 4 || 
-                          ballName === 'poké ball' || 
-                          ballName === 'pokeball' || 
-                          ballName === 'poke ball' ||
-                          ballName === 'pokéball' ||
-                          (ballName.length > 0 && ballName.includes('poké') && !ballName.includes('safari') && !ballName.includes('great') && !ballName.includes('ultra') && !ballName.includes('master')) ||
-                          (ballName.length > 0 && ballName.includes('poke') && !ballName.includes('safari') && !ballName.includes('great') && !ballName.includes('ultra') && !ballName.includes('master')) ||
-                          (ballId === 0 && !ballName); // Treat missing/zero ball as Pokeball (default)
+        // Safari Ball is ID 5, or name variations of "Safari Ball"
+        const isSafariBall = ballId === 5 || 
+                            ballName === 'safari ball' || 
+                            ballName === 'safariball' ||
+                            (ballName.length > 0 && ballName.includes('safari'));
         
-        return isPokeball;
+        // Return Pokemon that are NOT in Safari Ball
+        return !isSafariBall;
     });
     
-    console.log(`Found ${safariPokemon.length} Safari Zone Pokemon with Pokeball`);
+    console.log(`Found ${safariPokemon.length} Safari Zone Pokemon without Safari Ball`);
     
     if (safariPokemon.length === 0) {
-        safariPokemonList.innerHTML = '<p class="no-data">No Pokemon found caught in Safari Zone with Pokeball.</p>';
+        safariPokemonList.innerHTML = '<p class="no-data">No Pokemon found caught in Safari Zone without Safari Ball.</p>';
         return;
     }
     
@@ -4405,7 +4978,7 @@ async function findSafariPokemon() {
                         <strong>${speciesName}</strong>
                         <div class="safari-pokemon-details">
                             <span>Location: ${locationName}</span>
-                            <span>Ball: ${p.ballName || 'Poké Ball'}</span>
+                            <span>Current Ball: ${p.ballName || 'Unknown'}</span>
                             <span>File: ${p.filename}</span>
                         </div>
                     </div>
@@ -4527,6 +5100,215 @@ if (findSafariPokemonBtn) {
 
 if (replaceSafariBallBtn) {
     replaceSafariBallBtn.addEventListener('click', replaceSafariBalls);
+}
+
+// Invalid Moves Fixer
+const findInvalidMovesBtn = document.getElementById('findInvalidMovesBtn');
+const invalidMovesList = document.getElementById('invalidMovesList');
+const invalidMovesActions = document.getElementById('invalidMovesActions');
+const invalidMovesSelectedCount = document.getElementById('invalidMovesSelectedCount');
+const fixInvalidMovesBtn = document.getElementById('fixInvalidMovesBtn');
+const selectAllInvalidMovesBtn = document.getElementById('selectAllInvalidMovesBtn');
+const deselectAllInvalidMovesBtn = document.getElementById('deselectAllInvalidMovesBtn');
+const invalidMovesSelectedPokemon = new Set();
+
+// Check if a move is valid for Gen 3 (0 = empty, 1-354 = valid moves)
+function isValidMove(move) {
+    return move === 0 || (move >= 1 && move <= 354);
+}
+
+// Check if Pokemon has invalid moves
+function hasInvalidMoves(pokemon) {
+    // Moves are stored directly on the Pokemon object as move1, move2, move3, move4
+    const move1 = pokemon.move1 || 0;
+    const move2 = pokemon.move2 || 0;
+    const move3 = pokemon.move3 || 0;
+    const move4 = pokemon.move4 || 0;
+    
+    return !isValidMove(move1) || 
+           !isValidMove(move2) || 
+           !isValidMove(move3) || 
+           !isValidMove(move4);
+}
+
+async function findInvalidMovesPokemon() {
+    if (!pokemonData || pokemonData.length === 0) {
+        alert('No Pokemon loaded. Please refresh your database first.');
+        return;
+    }
+    
+    invalidMovesSelectedPokemon.clear();
+    invalidMovesList.innerHTML = '<p>Searching...</p>';
+    invalidMovesList.classList.remove('hidden');
+    invalidMovesActions.classList.add('hidden');
+    
+    // Find Pokemon with invalid moves
+    const invalidMovesPokemon = pokemonData.filter(p => {
+        if (p.error) return false;
+        return hasInvalidMoves(p);
+    });
+    
+    console.log(`Found ${invalidMovesPokemon.length} Pokemon with invalid moves`);
+    
+    if (invalidMovesPokemon.length === 0) {
+        invalidMovesList.innerHTML = '<p class="no-data">No Pokemon found with invalid moves.</p>';
+        return;
+    }
+    
+    let html = '<div class="safari-pokemon-grid">';
+    
+    invalidMovesPokemon.forEach(p => {
+        const speciesName = p.speciesName || `#${p.species}`;
+        const move1 = p.move1 || 0;
+        const move2 = p.move2 || 0;
+        const move3 = p.move3 || 0;
+        const move4 = p.move4 || 0;
+        const moveStr = `Move1: ${move1}, Move2: ${move2}, Move3: ${move3}, Move4: ${move4}`;
+        
+        html += `
+            <div class="safari-pokemon-item">
+                <label>
+                    <input type="checkbox" class="invalid-moves-checkbox" data-filename="${p.filename}">
+                    <div class="safari-pokemon-info">
+                        <strong>${speciesName}</strong>
+                        <div class="safari-pokemon-details">
+                            <span>${moveStr}</span>
+                            <span>File: ${p.filename}</span>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    invalidMovesList.innerHTML = html;
+    invalidMovesActions.classList.remove('hidden');
+    
+    // Add checkbox listeners
+    document.querySelectorAll('.invalid-moves-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const filename = e.target.dataset.filename;
+            if (e.target.checked) {
+                invalidMovesSelectedPokemon.add(filename);
+            } else {
+                invalidMovesSelectedPokemon.delete(filename);
+            }
+            updateInvalidMovesSelectionUI();
+        });
+    });
+    
+    updateInvalidMovesSelectionUI();
+}
+
+function selectAllInvalidMovesPokemon() {
+    document.querySelectorAll('.invalid-moves-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+        const filename = checkbox.dataset.filename;
+        invalidMovesSelectedPokemon.add(filename);
+    });
+    updateInvalidMovesSelectionUI();
+}
+
+function deselectAllInvalidMovesPokemon() {
+    document.querySelectorAll('.invalid-moves-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    invalidMovesSelectedPokemon.clear();
+    updateInvalidMovesSelectionUI();
+}
+
+function updateInvalidMovesSelectionUI() {
+    const count = invalidMovesSelectedPokemon.size;
+    invalidMovesSelectedCount.textContent = `${count} selected`;
+    fixInvalidMovesBtn.disabled = count === 0;
+}
+
+async function fixInvalidMoves() {
+    if (invalidMovesSelectedPokemon.size === 0) {
+        alert('No Pokemon selected');
+        return;
+    }
+    
+    if (!confirm(`Fix invalid moves for ${invalidMovesSelectedPokemon.size} Pokemon? This will set Move1 to Tackle and Move2-4 to empty.`)) {
+        return;
+    }
+    
+    fixInvalidMovesBtn.disabled = true;
+    fixInvalidMovesBtn.textContent = 'Fixing...';
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const filename of invalidMovesSelectedPokemon) {
+        try {
+            const response = await fetch(`/api/pokemon/fix-moves`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: filename,
+                    db: currentDatabase
+                })
+            });
+            
+            if (!response.ok) {
+                let errorMessage = 'Failed to fix moves';
+                try {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const error = await response.json();
+                        errorMessage = error.error || errorMessage;
+                    } else {
+                        const text = await response.text();
+                        errorMessage = text || errorMessage;
+                    }
+                } catch (parseError) {
+                    errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
+            }
+            
+            // Try to parse response as JSON, but don't fail if it's not
+            try {
+                await response.json();
+            } catch (e) {
+                // Response might not be JSON, that's okay if status was OK
+            }
+            
+            successCount++;
+        } catch (error) {
+            errorCount++;
+            console.error(`Error fixing moves for ${filename}:`, error);
+        }
+    }
+    
+    fixInvalidMovesBtn.disabled = false;
+    fixInvalidMovesBtn.textContent = 'Fix Moves (Tackle + Empty)';
+    
+    alert(`Move fix complete: ${successCount} successful, ${errorCount} failed`);
+    
+    // Refresh Pokemon data
+    if (successCount > 0) {
+        await loadPokemon();
+        invalidMovesSelectedPokemon.clear();
+        invalidMovesList.classList.add('hidden');
+        invalidMovesActions.classList.add('hidden');
+    }
+}
+
+if (findInvalidMovesBtn) {
+    findInvalidMovesBtn.addEventListener('click', findInvalidMovesPokemon);
+}
+if (selectAllInvalidMovesBtn) {
+    selectAllInvalidMovesBtn.addEventListener('click', selectAllInvalidMovesPokemon);
+}
+if (deselectAllInvalidMovesBtn) {
+    deselectAllInvalidMovesBtn.addEventListener('click', deselectAllInvalidMovesPokemon);
+}
+if (fixInvalidMovesBtn) {
+    fixInvalidMovesBtn.addEventListener('click', fixInvalidMoves);
 }
 
 // Close modal when clicking outside
@@ -4821,5 +5603,204 @@ if (document.readyState === 'loading') {
             startAutoScanIfEnabled();
         }, 1000);
     })();
+}
+
+// Open Pokedex
+async function openPokedex() {
+    const modal = document.getElementById('pokedexModal');
+    if (!modal) {
+        alert('Pokedex modal not found. Please refresh the page.');
+        return;
+    }
+    modal.classList.remove('hidden');
+    try {
+        await loadPokedexData();
+    } catch (error) {
+        alert(`Error loading Pokedex: ${error.message}`);
+    }
+}
+
+// Load Pokedex data
+async function loadPokedexData() {
+    try {
+        const dbId = currentDatabase || 'db1';
+        const response = await fetch(`/api/pokedex?db=${dbId}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || 'Failed to load Pokedex data');
+        }
+        
+        const data = await response.json();
+        displayPokedex(data);
+    } catch (error) {
+        alert(`Error loading Pokedex: ${error.message}`);
+    }
+}
+
+// Display Pokedex
+function displayPokedex(data) {
+    const { pokedex, completionStats, availableGenerations } = data;
+    
+    console.log('[Pokedex] Data received:', {
+        pokedexSize: Object.keys(pokedex).length,
+        completionStats: completionStats,
+        availableGenerations: availableGenerations,
+        sampleKeys: Object.keys(pokedex).slice(0, 10),
+        sampleEntries: Object.entries(pokedex).slice(0, 5)
+    });
+    
+    // Update generation filter dropdown to only show available generations
+    let genFilterSelect = document.getElementById('pokedexGenFilter');
+    if (genFilterSelect && availableGenerations) {
+        genFilterSelect.innerHTML = '<option value="all">All Generations</option>';
+        for (const genNum of availableGenerations) {
+            const genName = completionStats[genNum]?.name || `Generation ${genNum}`;
+            genFilterSelect.innerHTML += `<option value="${genNum}">${genName}</option>`;
+        }
+    }
+    
+    // Display completion stats
+    const statsContainer = document.getElementById('pokedexCompletionStats');
+    if (statsContainer) {
+        let statsHTML = '';
+        // Sort by generation number
+        const sortedGens = Object.keys(completionStats).sort((a, b) => parseInt(a) - parseInt(b));
+        for (const genNum of sortedGens) {
+            const stats = completionStats[genNum];
+            const livingDexBadge = stats.livingDex ? '<span class="badge living-dex">Living Dex</span>' : '';
+            const shinyLivingDexBadge = stats.shinyLivingDex ? '<span class="badge shiny-living-dex">Shiny Living Dex</span>' : '';
+            
+            statsHTML += `
+                <div class="completion-stat">
+                    <h4>${stats.name}</h4>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${stats.percentage}%"></div>
+                        </div>
+                        <span>${stats.owned}/${stats.total} (${stats.percentage}%)</span>
+                    </div>
+                    <div class="shiny-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill shiny" style="width: ${stats.shinyPercentage}%"></div>
+                        </div>
+                        <span>Shiny: ${stats.shiny}/${stats.total} (${stats.shinyPercentage}%)</span>
+                    </div>
+                    <div class="badges">
+                        ${livingDexBadge}
+                        ${shinyLivingDexBadge}
+                    </div>
+                </div>
+            `;
+        }
+        statsContainer.innerHTML = statsHTML;
+    }
+    
+    // Display Pokemon grid
+    const grid = document.getElementById('pokedexGrid');
+    if (!grid) return;
+    
+    const showOwned = document.getElementById('pokedexShowOwned')?.checked ?? true;
+    const showMissing = document.getElementById('pokedexShowMissing')?.checked ?? true;
+    const genFilter = genFilterSelect?.value ?? 'all';
+    
+    // Generation ranges (all possible)
+    const genRanges = {
+        1: { start: 1, end: 151 },
+        2: { start: 152, end: 251 },
+        3: { start: 252, end: 386 },
+        4: { start: 387, end: 493 },
+        5: { start: 494, end: 649 },
+        6: { start: 650, end: 721 },
+        7: { start: 722, end: 809 },
+        8: { start: 810, end: 905 },
+        9: { start: 906, end: 1025 }
+    };
+    
+    // Determine max species ID to display
+    const pokedexKeys = Object.keys(pokedex).map(Number).filter(k => k > 0);
+    const maxSpeciesId = pokedexKeys.length > 0 ? Math.max(...pokedexKeys) : 0;
+    
+    // If no Pokemon found, show message
+    if (maxSpeciesId === 0) {
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">No Pokemon found in database</div>';
+        return;
+    }
+    
+    let gridHTML = '';
+    
+    // Show all species up to the max found, or up to 1025 if we have completion stats
+    const maxToShow = availableGenerations && availableGenerations.length > 0 
+        ? Math.max(maxSpeciesId, 1025) 
+        : maxSpeciesId;
+    
+    for (let speciesId = 1; speciesId <= maxToShow; speciesId++) {
+        // Determine generation
+        let gen = 1;
+        if (speciesId >= 152 && speciesId <= 251) gen = 2;
+        else if (speciesId >= 252 && speciesId <= 386) gen = 3;
+        else if (speciesId >= 387 && speciesId <= 493) gen = 4;
+        else if (speciesId >= 494 && speciesId <= 649) gen = 5;
+        else if (speciesId >= 650 && speciesId <= 721) gen = 6;
+        else if (speciesId >= 722 && speciesId <= 809) gen = 7;
+        else if (speciesId >= 810 && speciesId <= 905) gen = 8;
+        else if (speciesId >= 906 && speciesId <= 1025) gen = 9;
+        
+        // Apply generation filter
+        if (genFilter !== 'all' && parseInt(genFilter) !== gen) {
+            continue;
+        }
+        
+        // Only show generations that are available
+        if (availableGenerations && !availableGenerations.includes(gen)) {
+            continue;
+        }
+        
+        // Convert speciesId to string for lookup (JSON keys are strings)
+        const entry = pokedex[String(speciesId)] || pokedex[speciesId] || { owned: false, shiny: false };
+        
+        // Apply owned/missing filter
+        if (!showOwned && entry.owned) continue;
+        if (!showMissing && !entry.owned) continue;
+        
+        // Get species name
+        const speciesName = speciesCache.get(speciesId) || `#${speciesId}`;
+        const spriteUrl = getSpriteUrl(speciesId, entry.shiny);
+        
+        let statusClass = 'missing';
+        if (entry.owned && entry.shiny) {
+            statusClass = 'shiny';
+        } else if (entry.owned) {
+            statusClass = 'owned';
+        }
+        
+        gridHTML += `
+            <div class="pokedex-entry ${statusClass}" data-species="${speciesId}">
+                <div class="pokedex-number">#${speciesId}</div>
+                <img src="${spriteUrl}" alt="${speciesName}" class="pokedex-sprite" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png'">
+                <div class="pokedex-name">${speciesName}</div>
+                ${entry.shiny ? '<span class="shiny-indicator">★</span>' : ''}
+            </div>
+        `;
+    }
+    
+    grid.innerHTML = gridHTML;
+    
+    // Add filter event listeners (only once)
+    const showOwnedCheckbox = document.getElementById('pokedexShowOwned');
+    const showMissingCheckbox = document.getElementById('pokedexShowMissing');
+    // genFilterSelect already declared above
+    
+    if (showOwnedCheckbox && !showOwnedCheckbox.dataset.listenerAdded) {
+        showOwnedCheckbox.addEventListener('change', () => loadPokedexData());
+        showOwnedCheckbox.dataset.listenerAdded = 'true';
+    }
+    if (showMissingCheckbox && !showMissingCheckbox.dataset.listenerAdded) {
+        showMissingCheckbox.addEventListener('change', () => loadPokedexData());
+        showMissingCheckbox.dataset.listenerAdded = 'true';
+    }
+    if (genFilterSelect && !genFilterSelect.dataset.listenerAdded) {
+        genFilterSelect.addEventListener('change', () => loadPokedexData());
+        genFilterSelect.dataset.listenerAdded = 'true';
+    }
 }
 
