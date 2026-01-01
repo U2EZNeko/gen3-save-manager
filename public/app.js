@@ -48,6 +48,9 @@ let currentDatabase = localStorage.getItem('selectedDatabase') || 'db1';
 const databaseSelect = document.getElementById('databaseSelect');
 const loadBtn = document.getElementById('loadBtn');
 const pokedexBtn = document.getElementById('pokedexBtn');
+const batchEvolveBtn = document.getElementById('batchEvolveBtn');
+const batchEvolveModal = document.getElementById('batchEvolveModal');
+const closeBatchEvolveModal = document.getElementById('closeBatchEvolveModal');
 const pokedexModal = document.getElementById('pokedexModal');
 const closePokedexModal = document.getElementById('closePokedexModal');
 const dbReloadNotification = document.getElementById('dbReloadNotification');
@@ -60,6 +63,8 @@ const groupByOT = document.getElementById('groupByOT');
 const groupByTIDSID = document.getElementById('groupByTIDSID');
 const shinyFilter = document.getElementById('shinyFilter');
 const onePerSpeciesFilter = document.getElementById('onePerSpeciesFilter');
+const onePerSpeciesLowestFilter = document.getElementById('onePerSpeciesLowestFilter');
+const needsEvolutionFilter = document.getElementById('needsEvolutionFilter');
 const compactView = document.getElementById('compactView');
 const duplicateScannerBtn = document.getElementById('duplicateScannerBtn');
 const advancedFilterBtn = document.getElementById('advancedFilterBtn');
@@ -90,29 +95,75 @@ const themeIcon = document.getElementById('themeIcon');
 // Advanced filter state
 let advancedFilters = {};
 
-// Theme management
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
+// Theme toggle - cycles through light, grey dark, and full black dark
+function getCurrentTheme() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (!theme) return 'light';
+    if (theme === 'dark-grey') return 'grey';
+    if (theme === 'dark-black') return 'black';
+    return 'light';
+}
+
+function setTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+    } else if (theme === 'grey') {
+        document.documentElement.setAttribute('data-theme', 'dark-grey');
+    } else if (theme === 'black') {
+        document.documentElement.setAttribute('data-theme', 'dark-black');
+    }
+    
+    // Update theme config in localStorage
+    const accentColorPicker = document.getElementById('accentColorPicker');
+    const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]:checked');
+    const currentConfig = {
+        accentColor: accentColorPicker ? accentColorPicker.value : '#667eea',
+        darkMode: theme,
+        ivSumStyle: ivSumStyleRadios.length > 0 ? ivSumStyleRadios[0].value : 'gradient'
+    };
+    localStorage.setItem(THEME_CONFIG_KEY, JSON.stringify(currentConfig));
+    
+    // Update radio buttons in advanced options if they exist
+    const darkModeRadios = document.querySelectorAll('input[name="darkMode"]');
+    if (darkModeRadios.length > 0) {
+        darkModeRadios.forEach(radio => {
+            radio.checked = radio.value === theme;
+        });
+    }
 }
 
 function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
+    const currentTheme = getCurrentTheme();
+    let nextTheme;
+    
+    // Cycle through: light -> grey -> black -> light
+    if (currentTheme === 'light') {
+        nextTheme = 'grey';
+    } else if (currentTheme === 'grey') {
+        nextTheme = 'black';
+    } else {
+        nextTheme = 'light';
+    }
+    
+    setTheme(nextTheme);
+    updateThemeIcon(nextTheme);
 }
 
 function updateThemeIcon(theme) {
     if (themeIcon) {
-        themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+        if (theme === 'light') {
+            themeIcon.textContent = '☀️';
+        } else if (theme === 'grey') {
+            themeIcon.textContent = '🌙';
+        } else {
+            themeIcon.textContent = '🌑';
+        }
     }
 }
 
-// Initialize theme on page load
-initTheme();
+// Initialize theme icon on page load
+const currentTheme = getCurrentTheme();
+updateThemeIcon(currentTheme);
 
 // Theme toggle event listener
 if (themeToggle) {
@@ -142,6 +193,10 @@ loadBtn.addEventListener('click', loadPokemon);
 // Pokedex button - set up event listener
 if (pokedexBtn) {
     pokedexBtn.addEventListener('click', openPokedex);
+    batchEvolveBtn.addEventListener('click', openBatchEvolve);
+    closeBatchEvolveModal.addEventListener('click', () => {
+        batchEvolveModal.classList.add('hidden');
+    });
 }
 if (closePokedexModal && pokedexModal) {
     closePokedexModal.addEventListener('click', () => {
@@ -202,7 +257,23 @@ searchInput.addEventListener('input', filterAndDisplay);
 groupByOT.addEventListener('change', sortAndDisplay);
 groupByTIDSID.addEventListener('change', sortAndDisplay);
 shinyFilter.addEventListener('change', filterAndDisplay);
-onePerSpeciesFilter.addEventListener('change', filterAndDisplay);
+onePerSpeciesFilter.addEventListener('change', (e) => {
+    if (e.target.checked && onePerSpeciesLowestFilter) {
+        onePerSpeciesLowestFilter.checked = false;
+    }
+    filterAndDisplay();
+});
+if (onePerSpeciesLowestFilter) {
+    onePerSpeciesLowestFilter.addEventListener('change', (e) => {
+        if (e.target.checked && onePerSpeciesFilter) {
+            onePerSpeciesFilter.checked = false;
+        }
+        filterAndDisplay();
+    });
+}
+if (needsEvolutionFilter) {
+    needsEvolutionFilter.addEventListener('change', filterAndDisplay);
+}
 compactView.addEventListener('change', sortAndDisplay);
 if (duplicateScannerBtn) {
     duplicateScannerBtn.addEventListener('click', () => {
@@ -813,6 +884,76 @@ function filterOnePerSpecies(data) {
     return Array.from(speciesMap.values());
 }
 
+// Filter to one Pokemon per species (lowest IV sum)
+function filterOnePerSpeciesLowest(data) {
+    if (!onePerSpeciesLowestFilter || !onePerSpeciesLowestFilter.checked) {
+        return data;
+    }
+    
+    // Group by species
+    const speciesMap = new Map();
+    
+    data.forEach(pokemon => {
+        if (pokemon.error || !pokemon.species) return;
+        
+        const speciesId = pokemon.species;
+        const ivSum = pokemon.ivSum || 0;
+        
+        if (!speciesMap.has(speciesId)) {
+            speciesMap.set(speciesId, pokemon);
+        } else {
+            const existing = speciesMap.get(speciesId);
+            const existingIvSum = existing.ivSum || 0;
+            
+            // Keep the one with lower IV sum
+            // If tied, prefer lower level, then keep existing
+            if (ivSum < existingIvSum) {
+                speciesMap.set(speciesId, pokemon);
+            } else if (ivSum === existingIvSum) {
+                // Tiebreaker: prefer lower level
+                const existingLevel = existing.level || 0;
+                const currentLevel = pokemon.level || 0;
+                if (currentLevel < existingLevel) {
+                    speciesMap.set(speciesId, pokemon);
+                }
+            }
+        }
+    });
+    
+    // Convert map back to array
+    return Array.from(speciesMap.values());
+}
+
+// Filter to show only Pokemon that need to be evolved for Pokedex completion
+function filterNeedsEvolution(data) {
+    if (!needsEvolutionFilter || !needsEvolutionFilter.checked) {
+        return data;
+    }
+    
+    // Get all species IDs in the database
+    const allSpecies = new Set();
+    pokemonData.forEach(p => {
+        if (!p.error && p.species) {
+            allSpecies.add(p.species);
+        }
+    });
+    
+    // Filter to only Pokemon that:
+    // 1. Can evolve (have an evolution)
+    // 2. The evolved form is NOT in the database
+    return data.filter(pokemon => {
+        if (pokemon.error || !pokemon.species) return false;
+        
+        const evolvedSpecies = getEvolutionSpecies(pokemon.species);
+        if (!evolvedSpecies) {
+            return false; // Can't evolve
+        }
+        
+        // Check if evolved form exists in database
+        return !allSpecies.has(evolvedSpecies);
+    });
+}
+
 // Sort and display Pokemon
 function sortAndDisplay() {
     console.log(`[Frontend] sortAndDisplay() called, pokemonData.length = ${pokemonData ? pokemonData.length : 'null'}`);
@@ -824,10 +965,17 @@ function sortAndDisplay() {
     let data = filterPokemon(pokemonData, searchTerm, shinyOnly, advancedFilters);
     console.log(`[Frontend] After filtering: ${data.length} Pokemon`);
     
-    // Apply one per species filter if enabled
+    // Apply one per species filter if enabled (highest or lowest IV)
     data = filterOnePerSpecies(data);
-    if (onePerSpeciesFilter.checked) {
+    data = filterOnePerSpeciesLowest(data);
+    if (onePerSpeciesFilter.checked || (onePerSpeciesLowestFilter && onePerSpeciesLowestFilter.checked)) {
         console.log(`[Frontend] After one per species filter: ${data.length} Pokemon`);
+    }
+    
+    // Apply needs evolution filter if enabled
+    if (needsEvolutionFilter && needsEvolutionFilter.checked) {
+        data = filterNeedsEvolution(data);
+        console.log(`[Frontend] After needs evolution filter: ${data.length} Pokemon`);
     }
     
     // Then sort
@@ -909,6 +1057,8 @@ async function displayPokemon(pokemon) {
         }
         
         updateStats(displayPokemon.length, pokemon.length);
+        // Update IV sum gradients if enabled
+        updateIVSumGradients();
         console.log(`[Frontend] displayPokemon() completed successfully`);
     } catch (err) {
         console.error('[Frontend] Error in displayPokemon:', err);
@@ -1073,7 +1223,7 @@ async function createPokemonCard(pokemon) {
                     <div class="pokemon-name compact-name">${pokemon.isShiny ? '⭐ ' : ''}${nickname}</div>
                 </div>
             </div>
-            <div class="iv-sum compact-iv-sum">
+            <div class="iv-sum compact-iv-sum" data-iv-sum="${pokemon.ivSum || 0}">
                 IV Sum: ${pokemon.ivSum || 0}
             </div>
         `;
@@ -1094,7 +1244,7 @@ async function createPokemonCard(pokemon) {
                 </div>
             </div>
             
-            <div class="iv-sum">
+            <div class="iv-sum" data-iv-sum="${pokemon.ivSum || 0}">
                 IV Sum: ${pokemon.ivSum || 0}
             </div>
             
@@ -2153,6 +2303,7 @@ async function showPokemonModal(pokemon) {
                     <span class="modal-value" style="font-family: monospace; font-size: 0.9em;">${pokemon.filename}</span>
                 </div>
                 <div class="modal-actions">
+                    ${getEvolutionSpecies(pokemon.species) ? `<button class="btn btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species})" id="evolveBtn">Evolve</button>` : ''}
                     <button class="btn btn-danger" onclick="deletePokemonFile('${pokemon.filename}')">Delete File</button>
                 </div>
             </div>
@@ -2178,6 +2329,223 @@ async function showPokemonModal(pokemon) {
     
     // Setup chart toggle buttons
     setupChartToggles();
+}
+
+// Evolve a single Pokemon
+async function evolvePokemon(filename, currentSpecies) {
+    try {
+        const response = await fetch('/api/pokemon/evolve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename, db: currentDatabase })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to evolve Pokemon');
+        }
+        
+        // Close modals
+        pokemonModal.classList.add('hidden');
+        
+        // If batch evolve modal is open, refresh it
+        if (batchEvolveModal && !batchEvolveModal.classList.contains('hidden')) {
+            await openBatchEvolve();
+        } else {
+            // Otherwise reload Pokemon list
+            await loadPokemon();
+        }
+        
+        alert(`Successfully evolved Pokemon #${data.oldSpecies} to #${data.newSpecies}!`);
+    } catch (error) {
+        alert(`Error evolving Pokemon: ${error.message}`);
+    }
+}
+
+// Open batch evolve modal
+async function openBatchEvolve() {
+    try {
+        const response = await fetch(`/api/pokemon/evolution-suggestions?db=${currentDatabase}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            const errorMsg = data.error || `HTTP ${response.status}: ${response.statusText}`;
+            console.error('[Batch Evolve] Error response:', errorMsg);
+            throw new Error(errorMsg);
+        }
+        
+        if (!data || !data.suggestions) {
+            console.warn('[Batch Evolve] No suggestions data received');
+            data.suggestions = {};
+        }
+        
+        displayBatchEvolveSuggestions(data.suggestions);
+        batchEvolveModal.classList.remove('hidden');
+    } catch (error) {
+        console.error('[Batch Evolve] Error loading evolution suggestions:', error);
+        alert(`Error loading evolution suggestions: ${error.message}`);
+    }
+}
+
+// Display batch evolve suggestions
+async function displayBatchEvolveSuggestions(suggestions) {
+    const container = document.getElementById('batchEvolveSuggestions');
+    
+    container.innerHTML = '';
+    
+    // Sort species by ID
+    const speciesIds = Object.keys(suggestions).map(Number).sort((a, b) => a - b);
+    
+    for (const speciesId of speciesIds) {
+        const pokemonList = suggestions[speciesId];
+        if (pokemonList.length === 0) continue;
+        
+        const speciesName = pokemonList[0].speciesName || `Species ${speciesId}`;
+        const evolvedSpecies = getEvolutionSpecies(speciesId);
+        const evolvedName = evolvedSpecies ? await getSpeciesName(evolvedSpecies) : 'Unknown';
+        
+        const speciesDiv = document.createElement('div');
+        speciesDiv.style.marginBottom = '20px';
+        speciesDiv.style.border = '1px solid #ddd';
+        speciesDiv.style.padding = '10px';
+        speciesDiv.style.borderRadius = '5px';
+        
+        speciesDiv.innerHTML = `
+            <h4>#${speciesId} ${speciesName} → #${evolvedSpecies} ${evolvedName}</h4>
+            <div class="batch-evolve-pokemon-list"></div>
+        `;
+        
+        const pokemonListDiv = speciesDiv.querySelector('.batch-evolve-pokemon-list');
+        
+        for (const pokemon of pokemonList) {
+            const pokemonDiv = document.createElement('div');
+            pokemonDiv.style.display = 'flex';
+            pokemonDiv.style.alignItems = 'center';
+            pokemonDiv.style.padding = '5px';
+            pokemonDiv.style.margin = '5px 0';
+            pokemonDiv.style.border = '1px solid #eee';
+            pokemonDiv.style.borderRadius = '3px';
+            
+            const spriteUrl = getSpriteUrl(pokemon.species, pokemon.isShiny);
+            
+            pokemonDiv.innerHTML = `
+                <input type="checkbox" value="${pokemon.filename}" data-species="${speciesId}" style="margin-right: 10px;" onchange="updateBatchEvolveSelection()">
+                ${spriteUrl ? `<img src="${spriteUrl}" alt="${pokemon.speciesName}" style="width: 40px; height: 40px; margin-right: 10px;">` : ''}
+                <div style="flex: 1;">
+                    <strong>${pokemon.speciesName || 'Unknown'}</strong>
+                    ${pokemon.isShiny ? ' <span style="color: gold;">★</span>' : ''}
+                    <div style="font-size: 0.9em; color: #666;">
+                        Level: ${pokemon.level} | IV Sum: ${pokemon.ivSum} | ${pokemon.filename}
+                    </div>
+                </div>
+                <button class="btn btn-small btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species}); event.stopPropagation();" style="margin-left: 10px;">Evolve</button>
+            `;
+            
+            pokemonListDiv.appendChild(pokemonDiv);
+        }
+        
+        container.appendChild(speciesDiv);
+    }
+    
+    // Set up select all/deselect all buttons
+    document.getElementById('selectAllSuggestionsBtn').onclick = () => {
+        container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.checked = true;
+        });
+        updateBatchEvolveSelection();
+    };
+    
+    document.getElementById('deselectAllSuggestionsBtn').onclick = () => {
+        container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        updateBatchEvolveSelection();
+    };
+    
+    // Set up execute button
+    document.getElementById('executeBatchEvolveBtn').onclick = executeBatchEvolve;
+    
+    updateBatchEvolveSelection();
+}
+
+// Update batch evolve selection count
+function updateBatchEvolveSelection() {
+    const container = document.getElementById('batchEvolveSuggestions');
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    const selectedCount = checkboxes.length;
+    
+    document.getElementById('batchEvolveSelectedCount').textContent = `${selectedCount} selected`;
+    document.getElementById('executeBatchEvolveBtn').disabled = selectedCount === 0;
+}
+
+// Execute batch evolution
+async function executeBatchEvolve() {
+    const container = document.getElementById('batchEvolveSuggestions');
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+    const filenames = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (filenames.length === 0) {
+        alert('Please select at least one Pokemon to evolve.');
+        return;
+    }
+    
+    const confirmed = confirm(`Evolve ${filenames.length} Pokemon?`);
+    if (!confirmed) return;
+    
+    try {
+        const response = await fetch('/api/pokemon/batch-evolve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filenames, db: currentDatabase })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to evolve Pokemon');
+        }
+        
+        // Close modal
+        batchEvolveModal.classList.add('hidden');
+        
+        // Reload Pokemon list
+        await loadPokemon();
+        
+        alert(`Successfully evolved ${data.evolved} Pokemon!${data.failed > 0 ? `\n${data.failed} failed.` : ''}`);
+    } catch (error) {
+        alert(`Error evolving Pokemon: ${error.message}`);
+    }
+}
+
+// Helper to get evolution species (client-side lookup)
+function getEvolutionSpecies(speciesId) {
+    const evolutionMap = {
+        1: 2, 2: 3, 4: 5, 5: 6, 7: 8, 8: 9, 10: 11, 11: 12, 13: 14, 14: 15,
+        16: 17, 17: 18, 19: 20, 21: 22, 23: 24, 25: 26, 27: 28, 29: 30, 30: 31,
+        32: 33, 33: 34, 35: 36, 37: 38, 39: 40, 41: 42, 43: 44, 44: 45, 46: 47,
+        48: 49, 50: 51, 52: 53, 54: 55, 56: 57, 58: 59, 60: 61, 61: 62, 63: 64,
+        64: 65, 66: 67, 67: 68, 69: 70, 70: 71, 72: 73, 74: 75, 75: 76, 77: 78,
+        79: 80, 81: 82, 84: 85, 86: 87, 88: 89, 90: 91, 92: 93, 93: 94, 96: 97,
+        98: 99, 100: 101, 102: 103, 104: 105, 109: 110, 111: 112, 116: 117, 118: 119,
+        120: 121, 129: 130, 133: 134, 138: 139, 140: 141, 147: 148, 148: 149,
+        // Gen 2
+        152: 153, 153: 154, 155: 156, 156: 157, 158: 159, 159: 160, 161: 162, 163: 164,
+        165: 166, 167: 168, 170: 171, 172: 25, 173: 35, 174: 39, 175: 176, 177: 178,
+        179: 180, 180: 181, 183: 184, 187: 188, 188: 189, 194: 195, 198: 199, 200: 201,
+        204: 205, 209: 210, 213: 214, 215: 216, 216: 217, 218: 219, 220: 221, 223: 224,
+        225: 226, 228: 229, 231: 232, 233: 234, 234: 235, 236: 125, 238: 126, 239: 240,
+        // Gen 3
+        252: 253, 253: 254, 255: 256, 256: 257, 258: 259, 259: 260, 261: 262, 263: 264,
+        265: 266, 266: 267, 267: 268, 269: 270, 270: 271, 273: 274, 274: 275, 276: 277,
+        278: 279, 280: 281, 281: 282, 283: 284, 285: 286, 287: 288, 288: 289, 290: 291,
+        293: 294, 294: 295, 296: 297, 298: 183, 300: 301, 304: 305, 305: 306, 307: 308,
+        309: 310, 315: 316, 316: 317, 317: 318, 318: 319, 320: 321, 322: 323, 323: 324,
+        324: 325, 325: 326, 331: 332, 332: 333, 333: 334, 334: 335, 335: 336, 336: 337,
+        339: 340, 340: 341, 341: 342, 347: 348, 348: 349, 349: 350, 352: 353, 353: 354,
+        354: 355, 355: 356
+    };
+    return evolutionMap[speciesId] || null;
 }
 
 // Delete Pokemon file with confirmation
@@ -2766,6 +3134,110 @@ function createFileDateLineChart(data) {
     return svg;
 }
 
+// Create bar chart for 7-day Pokemon count
+function create7DayBarChart(data) {
+    if (!data || data.length === 0) {
+        return '<p class="no-data">No historical data available yet. Data will appear after viewing statistics multiple times.</p>';
+    }
+    
+    const hasData = data.some(d => d.count !== null);
+    if (!hasData) {
+        return '<p class="no-data">No historical data available yet. Data will appear after viewing statistics multiple times.</p>';
+    }
+    
+    const maxCount = Math.max(...data.map(d => d.count || 0));
+    const width = 600;
+    const height = 200;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const barWidth = chartWidth / data.length;
+    
+    let svg = `<div class="bar-chart-container">
+        <svg width="${width}" height="${height}" class="bar-chart">
+            <!-- Grid lines -->
+            ${Array.from({ length: 5 }, (_, i) => {
+                const y = padding.top + (chartHeight / 4) * i;
+                const value = maxCount - (maxCount / 4) * i;
+                return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" 
+                    stroke="var(--border-color)" stroke-width="1" opacity="0.3"/>
+                    <text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" 
+                    fill="var(--text-secondary)" font-size="10">${Math.round(value)}</text>`;
+            }).join('')}
+            
+            <!-- Bars -->
+            ${data.map((d, i) => {
+                if (d.count === null) return '';
+                const barHeight = (d.count / maxCount) * chartHeight;
+                const x = padding.left + (barWidth * i);
+                const y = padding.top + chartHeight - barHeight;
+                return `<g class="bar-group" data-count="${d.count}" data-label="${d.label}">
+                    <rect x="${x}" y="${y}" width="${barWidth * 0.8}" height="${barHeight}" 
+                        fill="var(--accent-color)" stroke="var(--bg-secondary)" stroke-width="1"
+                        class="bar-rect">
+                        <title>${d.label}: ${d.count} Pokemon</title>
+                    </rect>
+                    <text x="${x + barWidth * 0.4}" y="${height - padding.bottom + 15}" text-anchor="middle" 
+                        fill="var(--text-secondary)" font-size="10" transform="rotate(-45 ${x + barWidth * 0.4} ${height - padding.bottom + 15})">${d.label}</text>
+                </g>`;
+            }).join('')}
+        </svg>
+    </div>`;
+    
+    return svg;
+}
+
+// Create bar chart for Pokemon count by file date
+function createFileDateBarChart(data) {
+    if (!data || data.length === 0) {
+        return '<p class="no-data">No file date data available.</p>';
+    }
+    
+    const maxCount = Math.max(...data.map(d => d.count || 0));
+    const width = 600;
+    const height = 200;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const barWidth = chartWidth / data.length;
+    
+    // For longer timeframes, show fewer labels to avoid crowding
+    const labelInterval = data.length > 30 ? Math.ceil(data.length / 15) : 1;
+    
+    let svg = `<div class="bar-chart-container">
+        <svg width="${width}" height="${height}" class="bar-chart">
+            <!-- Grid lines -->
+            ${Array.from({ length: 5 }, (_, i) => {
+                const y = padding.top + (chartHeight / 4) * i;
+                const value = maxCount - (maxCount / 4) * i;
+                return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" 
+                    stroke="var(--border-color)" stroke-width="1" opacity="0.3"/>
+                    <text x="${padding.left - 10}" y="${y + 4}" text-anchor="end" 
+                    fill="var(--text-secondary)" font-size="10">${Math.round(value)}</text>`;
+            }).join('')}
+            
+            <!-- Bars -->
+            ${data.map((d, i) => {
+                const barHeight = (d.count / maxCount) * chartHeight;
+                const x = padding.left + (barWidth * i);
+                const y = padding.top + chartHeight - barHeight;
+                const showLabel = i % labelInterval === 0 || i === data.length - 1;
+                return `<g class="bar-group" data-count="${d.count}" data-label="${d.label}">
+                    <rect x="${x}" y="${y}" width="${barWidth * 0.8}" height="${barHeight}" 
+                        fill="var(--accent-color)" stroke="var(--bg-secondary)" stroke-width="1"
+                        class="bar-rect">
+                        <title>${d.label}: ${d.count} Pokemon</title>
+                    </rect>
+                    ${showLabel ? `<text x="${x + barWidth * 0.4}" y="${height - padding.bottom + 15}" text-anchor="middle" 
+                        fill="var(--text-secondary)" font-size="10" transform="rotate(-45 ${x + barWidth * 0.4} ${height - padding.bottom + 15})">${d.label}</text>` : ''}
+                </g>`;
+            }).join('')}
+        </svg>
+    </div>`;
+    
+    return svg;
+}
+
 async function showStatistics() {
     console.log('showStatistics called');
     console.log('statisticsBody:', statisticsBody);
@@ -3040,12 +3512,18 @@ function displayStatistics(stats, pokemon = []) {
     html += '<div class="statistics-graph-section">';
     html += '<div class="graph-header">';
     html += '<h4 id="graphTitle">Pokemon Count by File Date</h4>';
+    html += '<div class="graph-controls">';
     html += '<div class="graph-mode-toggle">';
     html += '<label class="toggle-switch">';
     html += '<input type="checkbox" id="graphModeToggle" checked>';
     html += '<span class="toggle-slider"></span>';
     html += '<span class="toggle-label">File Date</span>';
     html += '</label>';
+    html += '</div>';
+    html += '<div class="chart-type-toggle">';
+    html += '<button class="chart-type-btn active" data-chart-type="line" id="chartTypeLine">Line</button>';
+    html += '<button class="chart-type-btn" data-chart-type="bar" id="chartTypeBar">Bar</button>';
+    html += '</div>';
     html += '</div>';
     html += '<div class="timeframe-controls" id="timeframeControls">';
     html += '<button class="timeframe-btn active" data-timeframe="7d">7 Days</button>';
@@ -3321,6 +3799,71 @@ async function loadPokedexStatistics() {
     }
 }
 
+// Setup chart tooltips to show exact numbers on hover
+function setupChartTooltips() {
+    // Remove existing tooltips
+    const existingTooltips = document.querySelectorAll('.chart-tooltip');
+    existingTooltips.forEach(t => t.remove());
+    
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.className = 'chart-tooltip';
+    tooltip.style.display = 'none';
+    document.body.appendChild(tooltip);
+    
+    // Add hover events to chart elements
+    const chartContainer = document.querySelector('.graph-container');
+    if (!chartContainer) return;
+    
+    // For line charts - circles
+    const circles = chartContainer.querySelectorAll('circle');
+    circles.forEach(circle => {
+        const title = circle.querySelector('title');
+        if (title) {
+            circle.addEventListener('mouseenter', (e) => {
+                tooltip.textContent = title.textContent;
+                tooltip.style.display = 'block';
+                updateTooltipPosition(e, tooltip);
+            });
+            circle.addEventListener('mousemove', (e) => {
+                updateTooltipPosition(e, tooltip);
+            });
+            circle.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+    });
+    
+    // For bar charts - rectangles
+    const bars = chartContainer.querySelectorAll('.bar-rect, rect.bar-rect');
+    bars.forEach(bar => {
+        const title = bar.querySelector('title');
+        const count = bar.closest('.bar-group')?.getAttribute('data-count');
+        const label = bar.closest('.bar-group')?.getAttribute('data-label');
+        if (title || (count && label)) {
+            const text = title ? title.textContent : `${label}: ${count} Pokemon`;
+            bar.addEventListener('mouseenter', (e) => {
+                tooltip.textContent = text;
+                tooltip.style.display = 'block';
+                updateTooltipPosition(e, tooltip);
+            });
+            bar.addEventListener('mousemove', (e) => {
+                updateTooltipPosition(e, tooltip);
+            });
+            bar.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+    });
+}
+
+function updateTooltipPosition(e, tooltip) {
+    const x = e.clientX + 10;
+    const y = e.clientY - 10;
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+}
+
 // Set up timeframe control buttons and mode toggle for statistics graph
 function setupTimeframeControls() {
     const graphContainer = document.querySelector('.graph-container');
@@ -3354,15 +3897,27 @@ function setupTimeframeControls() {
             });
         });
     }
+    
+    // Setup chart type toggle
+    const chartTypeButtons = document.querySelectorAll('.chart-type-btn');
+    if (chartTypeButtons.length > 0) {
+        chartTypeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const chartType = this.getAttribute('data-chart-type');
+                updateStatisticsGraph(null, null, chartType);
+            });
+        });
+    }
 }
 
 // Update statistics graph based on selected timeframe and mode
-function updateStatisticsGraph(timeframe = null, mode = null) {
+function updateStatisticsGraph(timeframe = null, mode = null, chartType = null) {
     const graphContainer = document.querySelector('.graph-container');
     const timeframeButtons = document.querySelectorAll('.timeframe-btn');
     const modeToggle = document.getElementById('graphModeToggle');
     const graphTitle = document.getElementById('graphTitle');
     const timeframeControls = document.getElementById('timeframeControls');
+    const chartTypeButtons = document.querySelectorAll('.chart-type-btn');
     
     if (!graphContainer) {
         return;
@@ -3371,6 +3926,12 @@ function updateStatisticsGraph(timeframe = null, mode = null) {
     // Get current mode
     if (mode === null) {
         mode = modeToggle && modeToggle.checked ? 'fileDate' : 'total';
+    }
+    
+    // Get current chart type
+    if (chartType === null) {
+        const activeChartBtn = document.querySelector('.chart-type-btn.active');
+        chartType = activeChartBtn ? activeChartBtn.getAttribute('data-chart-type') : 'line';
     }
     
     // Get current timeframe (only used in fileDate mode)
@@ -3386,7 +3947,7 @@ function updateStatisticsGraph(timeframe = null, mode = null) {
             chart = '<p class="no-data">No Pokemon data available.</p>';
         } else {
             data = getPokemonCountsByFileDate(statisticsPokemonData, timeframe);
-            chart = createFileDateLineChart(data);
+            chart = chartType === 'bar' ? createFileDateBarChart(data) : createFileDateLineChart(data);
         }
         title = 'Pokemon Count by File Date';
         
@@ -3408,7 +3969,7 @@ function updateStatisticsGraph(timeframe = null, mode = null) {
     } else {
         // Total mode - use localStorage daily counts
         data = getLast7DaysCounts();
-        chart = create7DayLineChart(data);
+        chart = chartType === 'bar' ? create7DayBarChart(data) : create7DayLineChart(data);
         title = 'Total Pokemon Over 7 Days';
         
         // Hide timeframe controls
@@ -3420,6 +3981,7 @@ function updateStatisticsGraph(timeframe = null, mode = null) {
     // Update graph
     graphContainer.innerHTML = chart;
     graphContainer.setAttribute('data-mode', mode);
+    graphContainer.setAttribute('data-chart-type', chartType);
     if (mode === 'fileDate') {
         graphContainer.setAttribute('data-timeframe', timeframe);
     }
@@ -3428,6 +3990,20 @@ function updateStatisticsGraph(timeframe = null, mode = null) {
     if (graphTitle) {
         graphTitle.textContent = title;
     }
+    
+    // Update chart type button states
+    if (chartTypeButtons.length > 0) {
+        chartTypeButtons.forEach(btn => {
+            if (btn.getAttribute('data-chart-type') === chartType) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+    
+    // Add hover tooltips for exact numbers
+    setupChartTooltips();
 }
 
 // Duplicate Scanner
@@ -4846,6 +5422,261 @@ if (saveScannerConfigBtn) {
     });
 }
 
+// Theme management
+const THEME_CONFIG_KEY = 'themeConfig';
+let ivSumStyle = 'gradient'; // 'gradient' or 'accent'
+
+function loadThemeConfig() {
+    try {
+        const saved = localStorage.getItem(THEME_CONFIG_KEY);
+        let config;
+        
+        if (saved) {
+            config = JSON.parse(saved);
+        } else {
+            // Default to dark grey if no config exists
+            config = {
+                accentColor: '#667eea',
+                darkMode: 'grey',
+                ivSumStyle: 'gradient'
+            };
+        }
+        
+        // Apply accent color
+        if (config.accentColor) {
+            document.documentElement.style.setProperty('--accent-color', config.accentColor);
+            // Calculate hover color (lighter version)
+            const hoverColor = adjustColorBrightness(config.accentColor, 15);
+            document.documentElement.style.setProperty('--accent-hover', hoverColor);
+        }
+        
+        // Apply dark mode (map values to CSS theme attributes)
+        if (config.darkMode) {
+            if (config.darkMode === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+            } else if (config.darkMode === 'grey') {
+                document.documentElement.setAttribute('data-theme', 'dark-grey');
+            } else if (config.darkMode === 'black') {
+                document.documentElement.setAttribute('data-theme', 'dark-black');
+            }
+        } else {
+            // Default to dark grey
+            document.documentElement.setAttribute('data-theme', 'dark-grey');
+        }
+        
+        // Apply IV sum style
+        if (config.ivSumStyle) {
+            ivSumStyle = config.ivSumStyle;
+        }
+        updateIVSumGradients();
+        
+        // Update UI elements
+        const accentColorPicker = document.getElementById('accentColorPicker');
+        const accentColorText = document.getElementById('accentColorText');
+        const darkModeRadios = document.querySelectorAll('input[name="darkMode"]');
+        const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]');
+        
+        if (accentColorPicker && config.accentColor) {
+            accentColorPicker.value = config.accentColor;
+        }
+        if (accentColorText && config.accentColor) {
+            accentColorText.value = config.accentColor;
+        }
+        if (darkModeRadios && config.darkMode) {
+            darkModeRadios.forEach(radio => {
+                radio.checked = radio.value === config.darkMode;
+            });
+        }
+        if (ivSumStyleRadios && config.ivSumStyle) {
+            ivSumStyleRadios.forEach(radio => {
+                radio.checked = radio.value === config.ivSumStyle;
+            });
+        }
+        
+        // Update theme icon after loading config
+        const loadedTheme = config.darkMode || 'grey';
+        updateThemeIcon(loadedTheme);
+    } catch (error) {
+        console.error('Error loading theme config:', error);
+        // On error, default to dark grey
+        document.documentElement.setAttribute('data-theme', 'dark-grey');
+        updateThemeIcon('grey');
+    }
+}
+
+function saveThemeConfig() {
+    const accentColorPicker = document.getElementById('accentColorPicker');
+    const darkModeRadios = document.querySelectorAll('input[name="darkMode"]:checked');
+    const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]:checked');
+    
+    const config = {
+        accentColor: accentColorPicker ? accentColorPicker.value : '#667eea',
+        darkMode: darkModeRadios.length > 0 ? darkModeRadios[0].value : 'grey', // Default to grey
+        ivSumStyle: ivSumStyleRadios.length > 0 ? ivSumStyleRadios[0].value : 'gradient'
+    };
+    
+    localStorage.setItem(THEME_CONFIG_KEY, JSON.stringify(config));
+}
+
+function adjustColorBrightness(hex, percent) {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Adjust brightness
+    const newR = Math.min(255, Math.max(0, r + (r * percent / 100)));
+    const newG = Math.min(255, Math.max(0, g + (g * percent / 100)));
+    const newB = Math.min(255, Math.max(0, b + (b * percent / 100)));
+    
+    // Convert back to hex
+    return '#' + [newR, newG, newB].map(x => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+}
+
+function getIVSumGradientColor(ivSum) {
+    // Range: 0-186
+    // 0 = red (#ff4444 = rgb(255, 68, 68)), 186 = green (#44ff44 = rgb(68, 255, 68))
+    const normalized = Math.max(0, Math.min(186, ivSum)) / 186;
+    
+    // Interpolate between red and green
+    const r = Math.round(255 - (255 - 68) * normalized); // Red: 255 -> 68
+    const g = Math.round(68 + (255 - 68) * normalized); // Green: 68 -> 255
+    const b = Math.round(68); // Blue stays at 68
+    
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function updateIVSumGradients() {
+    const ivSumElements = document.querySelectorAll('.iv-sum, .compact-iv-sum');
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+    
+    ivSumElements.forEach(el => {
+        if (ivSumStyle === 'accent') {
+            // Use accent color
+            const hoverColor = adjustColorBrightness(accentColor, -10);
+            el.style.background = `linear-gradient(135deg, ${accentColor} 0%, ${hoverColor} 100%)`;
+            el.style.backgroundImage = 'none';
+        } else {
+            // Use dynamic gradient (red to green based on IV sum)
+            let ivSum = parseInt(el.getAttribute('data-iv-sum'));
+            
+            if (isNaN(ivSum)) {
+                const text = el.textContent || '';
+                const match = text.match(/IV Sum:\s*(\d+)/);
+                if (match) {
+                    ivSum = parseInt(match[1]);
+                }
+            }
+            
+            if (!isNaN(ivSum)) {
+                // Simple: red (0) to green (186)
+                const normalized = Math.max(0, Math.min(186, ivSum)) / 186;
+                const r = Math.round(255 - (255 - 68) * normalized); // 255 -> 68
+                const g = Math.round(68 + (255 - 68) * normalized); // 68 -> 255
+                const b = 68;
+                const color = `rgb(${r}, ${g}, ${b})`;
+                
+                // Set background color directly
+                el.style.background = color;
+                el.style.backgroundImage = 'none';
+            }
+        }
+    });
+}
+
+// Initialize theme on page load
+loadThemeConfig();
+
+// Update theme icon after theme loads
+setTimeout(() => {
+    const currentTheme = getCurrentTheme();
+    updateThemeIcon(currentTheme);
+}, 50);
+
+// Apply IV sum gradients after theme loads
+setTimeout(() => {
+    updateIVSumGradients();
+}, 100);
+
+// Theme option event listeners
+const accentColorPicker = document.getElementById('accentColorPicker');
+const accentColorText = document.getElementById('accentColorText');
+const darkModeRadios = document.querySelectorAll('input[name="darkMode"]');
+const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]');
+
+if (accentColorPicker) {
+    accentColorPicker.addEventListener('input', (e) => {
+        const color = e.target.value;
+        if (accentColorText) {
+            accentColorText.value = color;
+        }
+        document.documentElement.style.setProperty('--accent-color', color);
+        const hoverColor = adjustColorBrightness(color, 15);
+        document.documentElement.style.setProperty('--accent-hover', hoverColor);
+        // Update IV sum bars if using accent color style
+        if (ivSumStyle === 'accent') {
+            updateIVSumGradients();
+        }
+        saveThemeConfig();
+    });
+}
+
+if (accentColorText) {
+    accentColorText.addEventListener('input', (e) => {
+        const color = e.target.value;
+        if (/^#[0-9A-Fa-f]{6}$/.test(color)) {
+            if (accentColorPicker) {
+                accentColorPicker.value = color;
+            }
+            document.documentElement.style.setProperty('--accent-color', color);
+            const hoverColor = adjustColorBrightness(color, 15);
+            document.documentElement.style.setProperty('--accent-hover', hoverColor);
+            // Update IV sum bars if using accent color style
+            if (ivSumStyle === 'accent') {
+                updateIVSumGradients();
+            }
+            saveThemeConfig();
+        }
+    });
+}
+
+if (darkModeRadios.length > 0) {
+    darkModeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                const theme = e.target.value;
+                if (theme === 'light') {
+                    document.documentElement.removeAttribute('data-theme');
+                } else if (theme === 'grey') {
+                    document.documentElement.setAttribute('data-theme', 'dark-grey');
+                } else if (theme === 'black') {
+                    document.documentElement.setAttribute('data-theme', 'dark-black');
+                }
+                saveThemeConfig();
+            }
+        });
+    });
+}
+
+// IV sum style radio buttons
+if (ivSumStyleRadios.length > 0) {
+    ivSumStyleRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                ivSumStyle = e.target.value;
+                updateIVSumGradients();
+                saveThemeConfig();
+            }
+        });
+    });
+}
+
 // Open advanced options modal
 if (advancedOptionsBtn) {
     advancedOptionsBtn.addEventListener('click', () => {
@@ -5638,7 +6469,7 @@ async function loadPokedexData() {
 }
 
 // Display Pokedex
-function displayPokedex(data) {
+async function displayPokedex(data) {
     const { pokedex, completionStats, availableGenerations } = data;
     
     console.log('[Pokedex] Data received:', {
@@ -5726,12 +6557,63 @@ function displayPokedex(data) {
         return;
     }
     
-    let gridHTML = '';
-    
     // Show all species up to the max found, or up to 1025 if we have completion stats
     const maxToShow = availableGenerations && availableGenerations.length > 0 
         ? Math.max(maxSpeciesId, 1025) 
         : maxSpeciesId;
+    
+    // Collect all species IDs that need names fetched
+    const speciesToFetch = [];
+    for (let speciesId = 1; speciesId <= maxToShow; speciesId++) {
+        // Determine generation
+        let gen = 1;
+        if (speciesId >= 152 && speciesId <= 251) gen = 2;
+        else if (speciesId >= 252 && speciesId <= 386) gen = 3;
+        else if (speciesId >= 387 && speciesId <= 493) gen = 4;
+        else if (speciesId >= 494 && speciesId <= 649) gen = 5;
+        else if (speciesId >= 650 && speciesId <= 721) gen = 6;
+        else if (speciesId >= 722 && speciesId <= 809) gen = 7;
+        else if (speciesId >= 810 && speciesId <= 905) gen = 8;
+        else if (speciesId >= 906 && speciesId <= 1025) gen = 9;
+        
+        // Apply generation filter
+        if (genFilter !== 'all' && parseInt(genFilter) !== gen) {
+            continue;
+        }
+        
+        // Only show generations that are available
+        if (availableGenerations && !availableGenerations.includes(gen)) {
+            continue;
+        }
+        
+        // Convert speciesId to string for lookup (JSON keys are strings)
+        const entry = pokedex[String(speciesId)] || pokedex[speciesId] || { owned: false, shiny: false };
+        
+        // Apply owned/missing filter
+        if (!showOwned && entry.owned) continue;
+        if (!showMissing && !entry.owned) continue;
+        
+        // Check if we need to fetch the name
+        if (!speciesCache.has(speciesId)) {
+            speciesToFetch.push(speciesId);
+        }
+    }
+    
+    // Fetch all missing species names in parallel (with rate limiting)
+    if (speciesToFetch.length > 0) {
+        // Show loading message
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px;">Loading Pokemon names...</div>';
+        
+        // Fetch in batches to avoid overwhelming the API
+        const batchSize = 10;
+        for (let i = 0; i < speciesToFetch.length; i += batchSize) {
+            const batch = speciesToFetch.slice(i, i + batchSize);
+            await Promise.all(batch.map(speciesId => getSpeciesName(speciesId)));
+        }
+    }
+    
+    // Now build the grid with all names available
+    let gridHTML = '';
     
     for (let speciesId = 1; speciesId <= maxToShow; speciesId++) {
         // Determine generation
@@ -5762,7 +6644,7 @@ function displayPokedex(data) {
         if (!showOwned && entry.owned) continue;
         if (!showMissing && !entry.owned) continue;
         
-        // Get species name
+        // Get species name (should be in cache now)
         const speciesName = speciesCache.get(speciesId) || `#${speciesId}`;
         const spriteUrl = getSpriteUrl(speciesId, entry.shiny);
         

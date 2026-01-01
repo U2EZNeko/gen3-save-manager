@@ -14,6 +14,83 @@ const archiver = require('archiver');
 const COUNT_BOX = 14;
 const COUNT_SLOTSPERBOX = 30;
 
+// Species name lookup (Gen 1-3)
+// Simple mapping for common Pokemon names
+const SPECIES_NAMES = {
+  1: 'Bulbasaur', 2: 'Ivysaur', 3: 'Venusaur', 4: 'Charmander', 5: 'Charmeleon', 6: 'Charizard',
+  7: 'Squirtle', 8: 'Wartortle', 9: 'Blastoise', 10: 'Caterpie', 11: 'Metapod', 12: 'Butterfree',
+  13: 'Weedle', 14: 'Kakuna', 15: 'Beedrill', 16: 'Pidgey', 17: 'Pidgeotto', 18: 'Pidgeot',
+  19: 'Rattata', 20: 'Raticate', 21: 'Spearow', 22: 'Fearow', 23: 'Ekans', 24: 'Arbok',
+  25: 'Pikachu', 26: 'Raichu', 27: 'Sandshrew', 28: 'Sandslash', 29: 'Nidoran♀', 30: 'Nidorina',
+  31: 'Nidoqueen', 32: 'Nidoran♂', 33: 'Nidorino', 34: 'Nidoking', 35: 'Clefairy', 36: 'Clefable',
+  37: 'Vulpix', 38: 'Ninetales', 39: 'Jigglypuff', 40: 'Wigglytuff', 41: 'Zubat', 42: 'Golbat',
+  43: 'Oddish', 44: 'Gloom', 45: 'Vileplume', 46: 'Paras', 47: 'Parasect', 48: 'Venonat',
+  49: 'Venomoth', 50: 'Diglett', 51: 'Dugtrio', 52: 'Meowth', 53: 'Persian', 54: 'Psyduck',
+  55: 'Golduck', 56: 'Mankey', 57: 'Primeape', 58: 'Growlithe', 59: 'Arcanine', 60: 'Poliwag',
+  61: 'Poliwhirl', 62: 'Poliwrath', 63: 'Abra', 64: 'Kadabra', 65: 'Alakazam', 66: 'Machop',
+  67: 'Machoke', 68: 'Machamp', 69: 'Bellsprout', 70: 'Weepinbell', 71: 'Victreebel', 72: 'Tentacool',
+  73: 'Tentacruel', 74: 'Geodude', 75: 'Graveler', 76: 'Golem', 77: 'Ponyta', 78: 'Rapidash',
+  79: 'Slowpoke', 80: 'Slowbro', 81: 'Magnemite', 82: 'Magneton', 83: "Farfetch'd", 84: 'Doduo',
+  85: 'Dodrio', 86: 'Seel', 87: 'Dewgong', 88: 'Grimer', 89: 'Muk', 90: 'Shellder',
+  91: 'Cloyster', 92: 'Gastly', 93: 'Haunter', 94: 'Gengar', 95: 'Onix', 96: 'Drowzee',
+  97: 'Hypno', 98: 'Krabby', 99: 'Kingler', 100: 'Voltorb', 101: 'Electrode', 102: 'Exeggcute',
+  103: 'Exeggutor', 104: 'Cubone', 105: 'Marowak', 106: 'Hitmonlee', 107: 'Hitmonchan', 108: 'Lickitung',
+  109: 'Koffing', 110: 'Weezing', 111: 'Rhyhorn', 112: 'Rhydon', 113: 'Chansey', 114: 'Tangela',
+  115: 'Kangaskhan', 116: 'Horsea', 117: 'Seadra', 118: 'Goldeen', 119: 'Seaking', 120: 'Staryu',
+  121: 'Starmie', 122: 'Mr. Mime', 123: 'Scyther', 124: 'Jynx', 125: 'Electabuzz', 126: 'Magmar',
+  127: 'Pinsir', 128: 'Tauros', 129: 'Magikarp', 130: 'Gyarados', 131: 'Lapras', 132: 'Ditto',
+  133: 'Eevee', 134: 'Vaporeon', 135: 'Jolteon', 136: 'Flareon', 137: 'Porygon', 138: 'Omanyte',
+  139: 'Omastar', 140: 'Kabuto', 141: 'Kabutops', 142: 'Aerodactyl', 143: 'Snorlax', 144: 'Articuno',
+  145: 'Zapdos', 146: 'Moltres', 147: 'Dratini', 148: 'Dragonair', 149: 'Dragonite', 150: 'Mewtwo',
+  151: 'Mew',
+  // Gen 2
+  152: 'Chikorita', 153: 'Bayleef', 154: 'Meganium', 155: 'Cyndaquil', 156: 'Quilava', 157: 'Typhlosion',
+  158: 'Totodile', 159: 'Croconaw', 160: 'Feraligatr', 161: 'Sentret', 162: 'Furret', 163: 'Hoothoot',
+  164: 'Noctowl', 165: 'Ledyba', 166: 'Ledian', 167: 'Spinarak', 168: 'Ariados', 169: 'Crobat',
+  170: 'Chinchou', 171: 'Lanturn', 172: 'Pichu', 173: 'Cleffa', 174: 'Igglybuff', 175: 'Togepi',
+  176: 'Togetic', 177: 'Natu', 178: 'Xatu', 179: 'Mareep', 180: 'Flaaffy', 181: 'Ampharos',
+  182: 'Bellossom', 183: 'Marill', 184: 'Azumarill', 185: 'Sudowoodo', 186: 'Politoed', 187: 'Hoppip',
+  188: 'Skiploom', 189: 'Jumpluff', 190: 'Aipom', 191: 'Sunkern', 192: 'Sunflora', 193: 'Yanma',
+  194: 'Wooper', 195: 'Quagsire', 196: 'Espeon', 197: 'Umbreon', 198: 'Murkrow', 199: 'Slowking',
+  200: 'Misdreavus', 201: 'Unown', 202: 'Wobbuffet', 203: 'Girafarig', 204: 'Pineco', 205: 'Forretress',
+  206: 'Dunsparce', 207: 'Gligar', 208: 'Steelix', 209: 'Snubbull', 210: 'Granbull', 211: 'Qwilfish',
+  212: 'Scizor', 213: 'Shuckle', 214: 'Heracross', 215: 'Sneasel', 216: 'Teddiursa', 217: 'Ursaring',
+  218: 'Slugma', 219: 'Magcargo', 220: 'Swinub', 221: 'Piloswine', 222: 'Corsola', 223: 'Remoraid',
+  224: 'Octillery', 225: 'Delibird', 226: 'Mantine', 227: 'Skarmory', 228: 'Houndour', 229: 'Houndoom',
+  230: 'Kingdra', 231: 'Phanpy', 232: 'Donphan', 233: 'Porygon2', 234: 'Stantler', 235: 'Smeargle',
+  236: 'Tyrogue', 237: 'Hitmontop', 238: 'Smoochum', 239: 'Elekid', 240: 'Magby', 241: 'Miltank',
+  242: 'Blissey', 243: 'Raikou', 244: 'Entei', 245: 'Suicune', 246: 'Larvitar', 247: 'Pupitar',
+  248: 'Tyranitar', 249: 'Lugia', 250: 'Ho-Oh', 251: 'Celebi',
+  // Gen 3
+  252: 'Treecko', 253: 'Grovyle', 254: 'Sceptile', 255: 'Torchic', 256: 'Combusken', 257: 'Blaziken',
+  258: 'Mudkip', 259: 'Marshtomp', 260: 'Swampert', 261: 'Poochyena', 262: 'Mightyena', 263: 'Zigzagoon',
+  264: 'Linoone', 265: 'Wurmple', 266: 'Silcoon', 267: 'Beautifly', 268: 'Cascoon', 269: 'Dustox',
+  270: 'Lotad', 271: 'Lombre', 272: 'Ludicolo', 273: 'Seedot', 274: 'Nuzleaf', 275: 'Shiftry',
+  276: 'Taillow', 277: 'Swellow', 278: 'Wingull', 279: 'Pelipper', 280: 'Ralts', 281: 'Kirlia',
+  282: 'Gardevoir', 283: 'Surskit', 284: 'Masquerain', 285: 'Shroomish', 286: 'Breloom', 287: 'Slakoth',
+  288: 'Vigoroth', 289: 'Slaking', 290: 'Nincada', 291: 'Ninjask', 292: 'Shedinja', 293: 'Whismur',
+  294: 'Loudred', 295: 'Exploud', 296: 'Makuhita', 297: 'Hariyama', 298: 'Azurill', 299: 'Nosepass',
+  300: 'Skitty', 301: 'Delcatty', 302: 'Sableye', 303: 'Mawile', 304: 'Aron', 305: 'Lairon',
+  306: 'Aggron', 307: 'Meditite', 308: 'Medicham', 309: 'Electrike', 310: 'Manectric', 311: 'Plusle',
+  312: 'Minun', 313: 'Volbeat', 314: 'Illumise', 315: 'Roselia', 316: 'Gulpin', 317: 'Swalot',
+  318: 'Carvanha', 319: 'Sharpedo', 320: 'Wailmer', 321: 'Wailord', 322: 'Numel', 323: 'Camerupt',
+  324: 'Torkoal', 325: 'Spoink', 326: 'Grumpig', 327: 'Spinda', 328: 'Trapinch', 329: 'Vibrava',
+  330: 'Flygon', 331: 'Cacnea', 332: 'Cacturne', 333: 'Swablu', 334: 'Altaria', 335: 'Zangoose',
+  336: 'Seviper', 337: 'Lunatone', 338: 'Solrock', 339: 'Barboach', 340: 'Whiscash', 341: 'Corphish',
+  342: 'Crawdaunt', 343: 'Baltoy', 344: 'Claydol', 345: 'Lileep', 346: 'Cradily', 347: 'Anorith',
+  348: 'Armaldo', 349: 'Feebas', 350: 'Milotic', 351: 'Castform', 352: 'Kecleon', 353: 'Shuppet',
+  354: 'Banette', 355: 'Duskull', 356: 'Dusclops', 357: 'Tropius', 358: 'Chimecho', 359: 'Absol',
+  360: 'Wynaut', 361: 'Snorunt', 362: 'Glalie', 363: 'Spheal', 364: 'Sealeo', 365: 'Walrein',
+  366: 'Clamperl', 367: 'Huntail', 368: 'Gorebyss', 369: 'Relicanth', 370: 'Luvdisc', 371: 'Bagon',
+  372: 'Shelgon', 373: 'Salamence', 374: 'Beldum', 375: 'Metang', 376: 'Metagross', 377: 'Regirock',
+  378: 'Regice', 379: 'Registeel', 380: 'Latias', 381: 'Latios', 382: 'Kyogre', 383: 'Groudon',
+  384: 'Rayquaza', 385: 'Jirachi', 386: 'Deoxys'
+};
+
+function getSpeciesName(speciesId) {
+  return SPECIES_NAMES[speciesId] || `Species${speciesId}`;
+}
+
 // Convert National Dex ID to Gen 3 internal species ID
 // Based on PKHeX.Core/PKM/Util/Conversion/SpeciesConverter.cs GetInternal3
 function convertNationalToInternal3(nationalSpecies) {
@@ -551,20 +628,10 @@ app.get('/api/pokemon', (req, res) => {
   }
 
   try {
-    console.log(`[API] Reading folder recursively: ${folderPath}`);
+    console.log(`[API] Reading folder: ${folderPath}`);
     // Use recursive search to find all Pokemon files in subdirectories too
     const allFilePaths = findPokemonFilesRecursive(folderPath);
-    console.log(`[API] Found ${allFilePaths.length} Pokemon files (recursive search)`);
-    
-    // Count files by type for debugging
-    const fileCounts = {
-      pk3: allFilePaths.filter(f => f.toLowerCase().endsWith('.pk3')).length,
-      pk4: allFilePaths.filter(f => f.toLowerCase().endsWith('.pk4')).length,
-      pk5: allFilePaths.filter(f => f.toLowerCase().endsWith('.pk5')).length,
-      pk6: allFilePaths.filter(f => f.toLowerCase().endsWith('.pk6')).length,
-      pk7: allFilePaths.filter(f => f.toLowerCase().endsWith('.pk7')).length
-    };
-    console.log(`[API] File type breakdown:`, fileCounts);
+    console.log(`[API] Found ${allFilePaths.length} Pokemon files`);
     
     const files = allFilePaths.map(filePath => {
       const stats = fs.statSync(filePath);
@@ -984,6 +1051,947 @@ app.post('/api/pokemon/update-ball', express.json(), (req, res) => {
     console.error(`Error updating ball for ${req.body.filename}:`, error);
     console.error('Stack:', error.stack);
     res.status(500).json({ error: error.message || 'Unknown error occurred' });
+  }
+});
+
+// Evolution chain mapping (Gen 1-3, simple forward evolution only)
+// Maps species ID to its evolution (if it can evolve)
+const EVOLUTION_CHAIN = {
+  // Gen 1
+  1: 2,    // Bulbasaur -> Ivysaur
+  2: 3,    // Ivysaur -> Venusaur
+  4: 5,    // Charmander -> Charmeleon
+  5: 6,    // Charmeleon -> Charizard
+  7: 8,    // Squirtle -> Wartortle
+  8: 9,    // Wartortle -> Blastoise
+  10: 11,  // Caterpie -> Metapod
+  11: 12,  // Metapod -> Butterfree
+  13: 14,  // Weedle -> Kakuna
+  14: 15,  // Kakuna -> Beedrill
+  16: 17,  // Pidgey -> Pidgeotto
+  17: 18,  // Pidgeotto -> Pidgeot
+  19: 20,  // Rattata -> Raticate
+  21: 22,  // Spearow -> Fearow
+  23: 24,  // Ekans -> Arbok
+  25: 26,  // Pikachu -> Raichu
+  27: 28,  // Sandshrew -> Sandslash
+  29: 30,  // Nidoran♀ -> Nidorina
+  30: 31,  // Nidorina -> Nidoqueen
+  32: 33,  // Nidoran♂ -> Nidorino
+  33: 34,  // Nidorino -> Nidoking
+  35: 36,  // Clefairy -> Clefable
+  37: 38,  // Vulpix -> Ninetales
+  39: 40,  // Jigglypuff -> Wigglytuff
+  41: 42,  // Zubat -> Golbat
+  43: 44,  // Oddish -> Gloom
+  44: 45,  // Gloom -> Vileplume
+  46: 47,  // Paras -> Parasect
+  48: 49,  // Venonat -> Venomoth
+  50: 51,  // Diglett -> Dugtrio
+  52: 53,  // Meowth -> Persian
+  54: 55,  // Psyduck -> Golduck
+  56: 57,  // Mankey -> Primeape
+  58: 59,  // Growlithe -> Arcanine
+  60: 61,  // Poliwag -> Poliwhirl
+  61: 62,  // Poliwhirl -> Poliwrath
+  63: 64,  // Abra -> Kadabra
+  64: 65,  // Kadabra -> Alakazam
+  66: 67,  // Machop -> Machoke
+  67: 68,  // Machoke -> Machamp
+  69: 70,  // Bellsprout -> Weepinbell
+  70: 71,  // Weepinbell -> Victreebel
+  72: 73,  // Tentacool -> Tentacruel
+  74: 75,  // Geodude -> Graveler
+  75: 76,  // Graveler -> Golem
+  77: 78,  // Ponyta -> Rapidash
+  79: 80,  // Slowpoke -> Slowbro
+  81: 82,  // Magnemite -> Magneton
+  84: 85,  // Doduo -> Dodrio
+  86: 87,  // Seel -> Dewgong
+  88: 89,  // Grimer -> Muk
+  90: 91,  // Shellder -> Cloyster
+  92: 93,  // Gastly -> Haunter
+  93: 94,  // Haunter -> Gengar
+  96: 97,  // Drowzee -> Hypno
+  98: 99,  // Krabby -> Kingler
+  100: 101, // Voltorb -> Electrode
+  102: 103, // Exeggcute -> Exeggutor
+  104: 105, // Cubone -> Marowak
+  109: 110, // Koffing -> Weezing
+  111: 112, // Rhyhorn -> Rhydon
+  116: 117, // Horsea -> Seadra
+  118: 119, // Goldeen -> Seaking
+  120: 121, // Staryu -> Starmie
+  129: 130, // Magikarp -> Gyarados
+  133: 134, // Eevee -> Vaporeon (and others, but we'll use first evolution)
+  134: 135, // Vaporeon (no further evolution)
+  136: 137, // Jolteon (no further evolution)
+  137: 138, // Flareon (no further evolution)
+  138: 139, // Porygon -> Porygon2
+  140: 141, // Omanyte -> Omastar
+  147: 148, // Dratini -> Dragonair
+  148: 149, // Dragonair -> Dragonite
+  
+  // Gen 2
+  152: 153, // Chikorita -> Bayleef
+  153: 154, // Bayleef -> Meganium
+  155: 156, // Cyndaquil -> Quilava
+  156: 157, // Quilava -> Typhlosion
+  158: 159, // Totodile -> Croconaw
+  159: 160, // Croconaw -> Feraligatr
+  161: 162, // Sentret -> Furret
+  163: 164, // Hoothoot -> Noctowl
+  165: 166, // Ledyba -> Ledian
+  167: 168, // Spinarak -> Ariados
+  170: 171, // Chinchou -> Lanturn
+  172: 173, // Pichu -> Pikachu
+  173: 174, // Cleffa -> Clefairy
+  174: 175, // Igglybuff -> Jigglypuff
+  175: 176, // Togepi -> Togetic
+  177: 178, // Natu -> Xatu
+  179: 180, // Mareep -> Flaaffy
+  180: 181, // Flaaffy -> Ampharos
+  183: 184, // Marill -> Azumarill
+  187: 188, // Hoppip -> Skiploom
+  188: 189, // Skiploom -> Jumpluff
+  190: 191, // Aipom -> Ambipom (Gen 4, but included for completeness)
+  193: 194, // Yanma -> Yanmega (Gen 4)
+  194: 195, // Wooper -> Quagsire
+  198: 199, // Murkrow -> Honchkrow (Gen 4)
+  200: 201, // Misdreavus -> Mismagius (Gen 4)
+  204: 205, // Pineco -> Forretress
+  206: 207, // Dunsparce -> Dudunsparce (Gen 9, but included)
+  207: 208, // Gligar -> Gliscor (Gen 4)
+  209: 210, // Snubbull -> Granbull
+  211: 212, // Qwilfish -> Overqwil (Gen 8)
+  213: 214, // Shuckle (no evolution)
+  215: 216, // Heracross (no evolution)
+  216: 217, // Sneasel -> Weavile (Gen 4)
+  218: 219, // Teddiursa -> Ursaring
+  220: 221, // Slugma -> Magcargo
+  223: 224, // Remoraid -> Octillery
+  225: 226, // Houndour -> Houndoom
+  228: 229, // Phanpy -> Donphan
+  231: 232, // Tyrogue -> Hitmonlee/Hitmonchan/Hitmontop
+  233: 234, // Larvitar -> Pupitar
+  234: 235, // Pupitar -> Tyranitar
+  236: 237, // Elekid -> Electabuzz
+  238: 239, // Magby -> Magmar
+  239: 240, // Miltank (no evolution)
+  240: 241, // Blissey (no evolution)
+  
+  // Gen 3
+  252: 253, // Treecko -> Grovyle
+  253: 254, // Grovyle -> Sceptile
+  255: 256, // Torchic -> Combusken
+  256: 257, // Combusken -> Blaziken
+  258: 259, // Mudkip -> Marshtomp
+  259: 260, // Marshtomp -> Swampert
+  261: 262, // Poochyena -> Mightyena
+  263: 264, // Zigzagoon -> Linoone
+  265: 266, // Wurmple -> Silcoon/Cascoon
+  266: 267, // Silcoon -> Beautifly
+  267: 268, // Cascoon -> Dustox
+  269: 270, // Lotad -> Lombre
+  270: 271, // Lombre -> Ludicolo
+  273: 274, // Seedot -> Nuzleaf
+  274: 275, // Nuzleaf -> Shiftry
+  276: 277, // Taillow -> Swellow
+  278: 279, // Wingull -> Pelipper
+  280: 281, // Ralts -> Kirlia
+  281: 282, // Kirlia -> Gardevoir
+  283: 284, // Surskit -> Masquerain
+  285: 286, // Shroomish -> Breloom
+  287: 288, // Slakoth -> Vigoroth
+  288: 289, // Vigoroth -> Slaking
+  290: 291, // Nincada -> Ninjask/Shedinja
+  291: 292, // Ninjask (no further evolution)
+  293: 294, // Whismur -> Loudred
+  294: 295, // Loudred -> Exploud
+  296: 297, // Makuhita -> Hariyama
+  298: 299, // Azurill -> Marill
+  299: 300, // Nosepass -> Probopass (Gen 4)
+  300: 301, // Skitty -> Delcatty
+  301: 302, // Sableye (no evolution)
+  302: 303, // Mawile (no evolution)
+  304: 305, // Aron -> Lairon
+  305: 306, // Lairon -> Aggron
+  307: 308, // Meditite -> Medicham
+  309: 310, // Electrike -> Manectric
+  310: 311, // Plusle (no evolution)
+  311: 312, // Minun (no evolution)
+  312: 313, // Volbeat (no evolution)
+  313: 314, // Illumise (no evolution)
+  314: 315, // Roselia -> Roserade (Gen 4)
+  315: 316, // Gulpin -> Swalot
+  316: 317, // Carvanha -> Sharpedo
+  317: 318, // Wailmer -> Wailord
+  318: 319, // Numel -> Camerupt
+  319: 320, // Torkoal (no evolution)
+  320: 321, // Spoink -> Grumpig
+  321: 322, // Spinda (no evolution)
+  322: 323, // Trapinch -> Vibrava
+  323: 324, // Vibrava -> Flygon
+  324: 325, // Cacnea -> Cacturne
+  325: 326, // Swablu -> Altaria
+  326: 327, // Zangoose (no evolution)
+  327: 328, // Seviper (no evolution)
+  328: 329, // Lunatone (no evolution)
+  329: 330, // Solrock (no evolution)
+  331: 332, // Barboach -> Whiscash
+  332: 333, // Corphish -> Crawdaunt
+  333: 334, // Baltoy -> Claydol
+  334: 335, // Lileep -> Cradily
+  335: 336, // Anorith -> Armaldo
+  336: 337, // Feebas -> Milotic
+  337: 338, // Castform (no evolution)
+  338: 339, // Kecleon (no evolution)
+  339: 340, // Shuppet -> Banette
+  340: 341, // Duskull -> Dusclops
+  341: 342, // Dusclops -> Dusknoir (Gen 4)
+  342: 343, // Tropius (no evolution)
+  343: 344, // Chimecho (no evolution)
+  344: 345, // Absol (no evolution)
+  345: 346, // Wynaut -> Wobbuffet
+  346: 347, // Snorunt -> Glalie
+  347: 348, // Spheal -> Sealeo
+  348: 349, // Sealeo -> Walrein
+  349: 350, // Clamperl -> Huntail/Gorebyss
+  350: 351, // Relicanth (no evolution)
+  351: 352, // Luvdisc (no evolution)
+  352: 353, // Bagon -> Shelgon
+  353: 354, // Shelgon -> Salamence
+  354: 355, // Beldum -> Metang
+  355: 356, // Metang -> Metagross
+  356: 357, // Regirock (no evolution)
+  357: 358, // Regice (no evolution)
+  358: 359, // Registeel (no evolution)
+  359: 360, // Latias (no evolution)
+  360: 361, // Latios (no evolution)
+  361: 362, // Kyogre (no evolution)
+  362: 363, // Groudon (no evolution)
+  363: 364, // Rayquaza (no evolution)
+  364: 365, // Jirachi (no evolution)
+  365: 366, // Deoxys (no evolution)
+  366: 367, // Turtwig -> Grotle (Gen 4)
+  367: 368, // Grotle -> Torterra (Gen 4)
+  368: 369, // Chimchar -> Monferno (Gen 4)
+  369: 370, // Monferno -> Infernape (Gen 4)
+  370: 371, // Piplup -> Prinplup (Gen 4)
+  371: 372, // Prinplup -> Empoleon (Gen 4)
+  372: 373, // Starly -> Staravia (Gen 4)
+  373: 374, // Staravia -> Staraptor (Gen 4)
+  374: 375, // Bidoof -> Bibarel (Gen 4)
+  375: 376, // Kricketot -> Kricketune (Gen 4)
+  376: 377, // Shinx -> Luxio (Gen 4)
+  377: 378, // Luxio -> Luxray (Gen 4)
+  378: 379, // Budew -> Roselia (Gen 4)
+  379: 380, // Roserade (Gen 4, no further evolution)
+  380: 381, // Cranidos -> Rampardos (Gen 4)
+  381: 382, // Shieldon -> Bastiodon (Gen 4)
+  382: 383, // Burmy -> Wormadam/Mothim (Gen 4)
+  383: 384, // Combee -> Vespiquen (Gen 4)
+  384: 385, // Pachirisu (Gen 4, no evolution)
+  385: 386, // Buizel -> Floatzel (Gen 4)
+  386: 387, // Cherubi -> Cherrim (Gen 4)
+  387: 388, // Shellos -> Gastrodon (Gen 4)
+  388: 389, // Ambipom (Gen 4, no further evolution)
+  389: 390, // Drifloon -> Drifblim (Gen 4)
+  390: 391, // Buneary -> Lopunny (Gen 4)
+  391: 392, // Mismagius (Gen 4, no further evolution)
+  392: 393, // Honchkrow (Gen 4, no further evolution)
+  393: 394, // Glameow -> Purugly (Gen 4)
+  394: 395, // Chingling -> Chimecho (Gen 4)
+  395: 396, // Stunky -> Skuntank (Gen 4)
+  396: 397, // Bronzor -> Bronzong (Gen 4)
+  397: 398, // Bonsly -> Sudowoodo (Gen 4)
+  398: 399, // Mime Jr. -> Mr. Mime (Gen 4)
+  399: 400, // Happiny -> Chansey (Gen 4)
+  400: 401, // Chatot (Gen 4, no evolution)
+  401: 402, // Spiritomb (Gen 4, no evolution)
+  402: 403, // Gible -> Gabite (Gen 4)
+  403: 404, // Gabite -> Garchomp (Gen 4)
+  404: 405, // Munchlax -> Snorlax (Gen 4)
+  405: 406, // Riolu -> Lucario (Gen 4)
+  406: 407, // Hippopotas -> Hippowdon (Gen 4)
+  407: 408, // Skorupi -> Drapion (Gen 4)
+  408: 409, // Croagunk -> Toxicroak (Gen 4)
+  409: 410, // Carnivine (Gen 4, no evolution)
+  410: 411, // Finneon -> Lumineon (Gen 4)
+  411: 412, // Mantyke -> Mantine (Gen 4)
+  412: 413, // Snover -> Abomasnow (Gen 4)
+  413: 414, // Weavile (Gen 4, no further evolution)
+  414: 415, // Magnezone (Gen 4, no further evolution)
+  415: 416, // Lickilicky (Gen 4, no further evolution)
+  416: 417, // Rhyperior (Gen 4, no further evolution)
+  417: 418, // Tangrowth (Gen 4, no further evolution)
+  418: 419, // Electivire (Gen 4, no further evolution)
+  419: 420, // Magmortar (Gen 4, no further evolution)
+  420: 421, // Togekiss (Gen 4, no further evolution)
+  421: 422, // Yanmega (Gen 4, no further evolution)
+  422: 423, // Leafeon (Gen 4, no further evolution)
+  423: 424, // Glaceon (Gen 4, no further evolution)
+  424: 425, // Gliscor (Gen 4, no further evolution)
+  425: 426, // Mamoswine (Gen 4, no further evolution)
+  426: 427, // Porygon-Z (Gen 4, no further evolution)
+  427: 428, // Gallade (Gen 4, no further evolution)
+  428: 429, // Probopass (Gen 4, no further evolution)
+  429: 430, // Dusknoir (Gen 4, no further evolution)
+  430: 431, // Froslass (Gen 4, no further evolution)
+  431: 432, // Rotom (Gen 4, no evolution)
+  432: 433, // Uxie (Gen 4, no evolution)
+  433: 434, // Mesprit (Gen 4, no evolution)
+  434: 435, // Azelf (Gen 4, no evolution)
+  435: 436, // Dialga (Gen 4, no evolution)
+  436: 437, // Palkia (Gen 4, no evolution)
+  437: 438, // Heatran (Gen 4, no evolution)
+  438: 439, // Regigigas (Gen 4, no evolution)
+  439: 440, // Giratina (Gen 4, no evolution)
+  440: 441, // Cresselia (Gen 4, no evolution)
+  441: 442, // Phione (Gen 4, no evolution)
+  442: 443, // Manaphy (Gen 4, no evolution)
+  443: 444, // Darkrai (Gen 4, no evolution)
+  444: 445, // Shaymin (Gen 4, no evolution)
+  445: 446, // Arceus (Gen 4, no evolution)
+};
+
+// Helper function to get evolution for a species
+function getEvolution(speciesId) {
+  return EVOLUTION_CHAIN[speciesId] || null;
+}
+
+// API endpoint to evolve a single Pokemon
+app.post('/api/pokemon/evolve', express.json(), (req, res) => {
+  try {
+    const { filename, db } = req.body;
+    
+    if (!filename) {
+      return res.status(400).json({ error: 'Missing filename' });
+    }
+    
+    const dbId = db || 'db1';
+    const folderPath = getFolderPath(dbId);
+    
+    if (!folderPath) {
+      return res.status(404).json({ error: 'Database not found' });
+    }
+    
+    const filePath = path.join(folderPath, filename);
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    // Preserve file timestamps
+    const stats = fs.statSync(filePath);
+    const originalMtime = stats.mtime;
+    const originalAtime = stats.atime;
+    const originalBirthtime = stats.birthtime;
+    
+    // Read and parse the file
+    let buffer = fs.readFileSync(filePath);
+    const lowerFilename = filename.toLowerCase();
+    
+    let pokemon;
+    if (lowerFilename.endsWith('.pk3')) {
+      pokemon = PK3Parser.parse(buffer, filename);
+    } else if (lowerFilename.endsWith('.pk4') || lowerFilename.endsWith('.pk5')) {
+      pokemon = PK4Parser.parse(buffer, filename);
+    } else if (lowerFilename.endsWith('.pk6')) {
+      pokemon = PK6Parser.parse(buffer, filename);
+    } else if (lowerFilename.endsWith('.pk7')) {
+      pokemon = PK7Parser.parse(buffer, filename);
+    } else {
+      return res.status(400).json({ error: 'Unsupported file format' });
+    }
+    
+    if (pokemon.error || !pokemon.species) {
+      return res.status(400).json({ error: `Invalid Pokemon file: ${pokemon.error || 'missing species'}` });
+    }
+    
+    // Check if Pokemon can evolve
+    const evolvedSpecies = getEvolution(pokemon.species);
+    if (!evolvedSpecies) {
+      return res.status(400).json({ error: `Pokemon #${pokemon.species} cannot evolve further` });
+    }
+    
+    // Update species in buffer
+    const format = lowerFilename.endsWith('.pk3') ? 'pk3' : 
+                   lowerFilename.endsWith('.pk4') || lowerFilename.endsWith('.pk5') ? 'pk4' :
+                   lowerFilename.endsWith('.pk6') ? 'pk6' : 'pk7';
+    
+    // Determine data offset and species offset
+    let dataOffset = 0;
+    let speciesOffset = 0;
+    let needsEncryption = false;
+    
+    if (format === 'pk3') {
+      // PK3: Check if PKHeX export (100 bytes) or raw (80 bytes)
+      // PKHeX exports have species at 0x20 in header (already decrypted, National Dex format)
+      // Encrypted files have species at dataOffset + 0x20 after decryption (internal ID format)
+      const isPKHeXExport = buffer.length === 100 && buffer.readUInt16LE(0x20) >= 1 && buffer.readUInt16LE(0x20) <= 386;
+      dataOffset = isPKHeXExport ? 0x20 : 0x00;
+      
+      let workingBuffer = Buffer.from(buffer);
+      let isEncrypted = false;
+      
+      if (!isPKHeXExport) {
+        // For non-PKHeX exports, check if encrypted
+        const pidAtOffset = workingBuffer.readUInt32LE(dataOffset + 0x00);
+        if (pidAtOffset === 0 || pidAtOffset > 0xFFFFFFFF) {
+          // PID is invalid, try to decrypt
+          try {
+            const testDecrypted = PK3Parser.decryptPK3(workingBuffer, dataOffset);
+            const testPid = testDecrypted.readUInt32LE(dataOffset + 0x00);
+            if (testPid !== 0 && testPid <= 0xFFFFFFFF) {
+              isEncrypted = true;
+              workingBuffer = testDecrypted;
+            }
+          } catch (e) {
+            // Decryption failed, assume already decrypted
+          }
+        } else {
+          // Check if species is valid (if not, might be encrypted)
+          const speciesAt20 = workingBuffer.readUInt16LE(dataOffset + 0x20);
+          if (speciesAt20 === 0 || speciesAt20 > 386) {
+            try {
+              const testDecrypted = PK3Parser.decryptPK3(workingBuffer, dataOffset);
+              const testSpecies = testDecrypted.readUInt16LE(dataOffset + 0x20);
+              if (testSpecies >= 1 && testSpecies <= 386) {
+                isEncrypted = true;
+                workingBuffer = testDecrypted;
+              }
+            } catch (e) {
+              // Decryption failed
+            }
+          }
+        }
+      }
+      
+      // Determine what species ID to write
+      let speciesToWrite = evolvedSpecies;
+      if (!isPKHeXExport) {
+        // For encrypted/raw files: convert National Dex to internal ID for Gen 3 Pokemon
+        if (evolvedSpecies >= 252 && evolvedSpecies <= 386) {
+          speciesToWrite = convertNationalToInternal3(evolvedSpecies);
+        }
+      }
+      // For PKHeX exports: write National Dex ID directly (PKHeX stores National Dex)
+      
+      // Species offset depends on file format:
+      // - PKHeX export: species is at absolute offset 0x20 (in header)
+      // - Encrypted/raw: species is at dataOffset + 0x20 (Block A after decryption)
+      if (isPKHeXExport) {
+        speciesOffset = 0x20; // Absolute offset in PKHeX export header
+      } else {
+        speciesOffset = dataOffset + 0x20; // Block A offset after decryption
+      }
+      
+      // Write species to buffer
+      if (speciesOffset + 2 > workingBuffer.length) {
+        return res.status(400).json({ error: 'Invalid file structure: species offset out of bounds' });
+      }
+      
+      const oldSpeciesValue = workingBuffer.readUInt16LE(speciesOffset);
+      workingBuffer.writeUInt16LE(speciesToWrite, speciesOffset);
+      const newSpeciesValue = workingBuffer.readUInt16LE(speciesOffset);
+      
+      console.log(`[Evolve] ${filename}: isPKHeXExport=${isPKHeXExport}, isEncrypted=${isEncrypted}, dataOffset=0x${dataOffset.toString(16)}, speciesOffset=0x${speciesOffset.toString(16)}`);
+      console.log(`[Evolve] Old species at offset: ${oldSpeciesValue}, Writing: ${speciesToWrite}, New species at offset: ${newSpeciesValue}`);
+      
+      // If file was encrypted, re-encrypt it using SAV3Parser's proven method
+      if (isEncrypted) {
+        const pokemonData = workingBuffer.slice(dataOffset, dataOffset + 80);
+        
+        // Use SAV3Parser's encryptPKM method which properly handles checksums
+        // Create a minimal SAV3Parser instance just to use its encryptPKM method
+        const dummySaveBuffer = Buffer.alloc(128 * 1024); // Allocate space for a save file
+        const savParser = new SAV3Parser(dummySaveBuffer);
+        const encrypted = savParser.encryptPKM(pokemonData);
+        
+        // Reconstruct buffer with encrypted data
+        const result = Buffer.from(buffer);
+        encrypted.copy(result, dataOffset, 0, 80);
+        if (buffer.length > 80) {
+          // Preserve party data if present
+          buffer.copy(result, 80, 80, buffer.length);
+        }
+        buffer = result;
+      } else {
+        // For PKHeX exports, we also need to update checksum if it exists
+        // PKHeX exports might have checksum at 0x1C in the header
+        if (isPKHeXExport) {
+          // Recalculate checksum for PKHeX export format
+          // Checksum is sum of bytes 0x20-0x4F (data blocks)
+          let checksum = 0;
+          for (let i = 0x20; i < 0x50 && i + 2 <= workingBuffer.length; i += 2) {
+            checksum += workingBuffer.readUInt16LE(i);
+          }
+          checksum = checksum & 0xFFFF;
+          workingBuffer.writeUInt16LE(checksum, 0x1C);
+        }
+        buffer = workingBuffer;
+      }
+    } else if (format === 'pk4') {
+      // PK4/PK5: Check for PKHeX export header
+      const size = buffer.length;
+      const maxSpecies = lowerFilename.endsWith('.pk5') ? 649 : 493;
+      if (size > 136 && size <= 220) {
+        // Check for header offsets
+        if (buffer.readUInt16LE(0x24) >= 1 && buffer.readUInt16LE(0x24) <= maxSpecies) {
+          dataOffset = 0x1C;
+        } else if (buffer.readUInt16LE(0x28) >= 1 && buffer.readUInt16LE(0x28) <= maxSpecies) {
+          dataOffset = 0x20;
+        } else {
+          dataOffset = 0x00;
+        }
+      } else {
+        dataOffset = 0x00;
+      }
+      speciesOffset = dataOffset + 0x08;
+    } else if (format === 'pk6' || format === 'pk7') {
+      // PK6/PK7: Check for PKHeX export header
+      const size = buffer.length;
+      const maxSpecies = format === 'pk6' ? 721 : 807;
+      if (size > 232) {
+        // Check for header offsets
+        if (buffer.readUInt16LE(0x24) >= 1 && buffer.readUInt16LE(0x24) <= maxSpecies) {
+          dataOffset = 0x1C;
+        } else if (buffer.readUInt16LE(0x28) >= 1 && buffer.readUInt16LE(0x28) <= maxSpecies) {
+          dataOffset = 0x20;
+        } else {
+          dataOffset = 0x00;
+        }
+      } else {
+        dataOffset = 0x00;
+      }
+      speciesOffset = dataOffset + 0x08;
+    }
+    
+    // Write new species ID (little-endian, 16-bit)
+    if (speciesOffset + 2 > buffer.length) {
+      return res.status(400).json({ error: 'Invalid file structure: species offset out of bounds' });
+    }
+    
+    buffer.writeUInt16LE(evolvedSpecies, speciesOffset);
+    
+    // Write back to file
+    fs.writeFileSync(filePath, buffer);
+    
+      // Restore timestamps
+      fs.utimesSync(filePath, originalAtime, originalMtime);
+      if (originalBirthtime) {
+        try {
+          fs.utimesSync(filePath, originalAtime, originalBirthtime);
+        } catch (e) {
+          // Birthtime restoration may fail on some systems, ignore
+        }
+      }
+      
+      // Rename file to reflect new species
+      // Filename format: "### ★ - SPECIESNAME - NATURE [IVSUM] - PID.pk3" or "### - SPECIESNAME - NATURE [IVSUM] - PID.pk3"
+      let newFilename = filename;
+      try {
+        // Re-read and parse the file to get the new species name
+        const updatedBuffer = fs.readFileSync(filePath);
+        let evolvedPokemon;
+        if (lowerFilename.endsWith('.pk3')) {
+          evolvedPokemon = PK3Parser.parse(updatedBuffer, filename);
+        } else if (lowerFilename.endsWith('.pk4') || lowerFilename.endsWith('.pk5')) {
+          evolvedPokemon = PK4Parser.parse(updatedBuffer, filename);
+        } else if (lowerFilename.endsWith('.pk6')) {
+          evolvedPokemon = PK6Parser.parse(updatedBuffer, filename);
+        } else if (lowerFilename.endsWith('.pk7')) {
+          evolvedPokemon = PK7Parser.parse(updatedBuffer, filename);
+        }
+        
+        // Get species name from lookup table (parser might return "Loading...")
+        const newSpeciesName = getSpeciesName(evolvedSpecies);
+        
+        // Try to match the filename pattern
+        const filenameMatch = filename.match(/^(\d+)(\s★)?\s-\s([^-]+)\s-\s([^-]+)\s\[(\d+)\]\s-\s([A-F0-9]+)\.(pk3|pk4|pk5|pk6|pk7)$/i);
+        if (filenameMatch) {
+          const [, oldSpeciesNum, shinyStar, oldSpeciesName, nature, ivSum, pid, ext] = filenameMatch;
+          
+          // Update with new species number and name
+          const newSpeciesNum = String(evolvedSpecies).padStart(3, '0');
+          newFilename = `${newSpeciesNum}${shinyStar || ''} - ${newSpeciesName} - ${nature} [${ivSum}] - ${pid}.${ext}`;
+          
+          // If the new filename is different, rename the file
+          if (newFilename !== filename) {
+            const newFilePath = path.join(folderPath, newFilename);
+            // Check if target file already exists
+            if (fs.existsSync(newFilePath)) {
+              // Append a number to make it unique
+              let counter = 1;
+              let uniqueFilename = newFilename;
+              const nameWithoutExt = newFilename.replace(/\.(pk3|pk4|pk5|pk6|pk7)$/i, '');
+              const fileExt = newFilename.match(/\.(pk3|pk4|pk5|pk6|pk7)$/i)?.[1] || 'pk3';
+              while (fs.existsSync(path.join(folderPath, uniqueFilename))) {
+                uniqueFilename = `${nameWithoutExt}_${counter}.${fileExt}`;
+                counter++;
+              }
+              newFilename = uniqueFilename;
+            }
+            
+            fs.renameSync(filePath, path.join(folderPath, newFilename));
+            console.log(`[Evolve] Renamed file: ${filename} -> ${newFilename}`);
+          }
+        } else {
+          // Filename doesn't match expected format, try simpler pattern
+          const simpleMatch = filename.match(/^(\d+)(\s★)?\s-\s([^-]+)\s-\s(.+)\.(pk3|pk4|pk5|pk6|pk7)$/i);
+          if (simpleMatch) {
+            const [, oldSpeciesNum, shinyStar, oldSpeciesName, rest, ext] = simpleMatch;
+            const newSpeciesNum = String(evolvedSpecies).padStart(3, '0');
+            newFilename = `${newSpeciesNum}${shinyStar || ''} - ${newSpeciesName} - ${rest}.${ext}`;
+            
+            if (newFilename !== filename) {
+              const newFilePath = path.join(folderPath, newFilename);
+              if (fs.existsSync(newFilePath)) {
+                let counter = 1;
+                let uniqueFilename = newFilename;
+                const nameWithoutExt = newFilename.replace(/\.(pk3|pk4|pk5|pk6|pk7)$/i, '');
+                const fileExt = newFilename.match(/\.(pk3|pk4|pk5|pk6|pk7)$/i)?.[1] || 'pk3';
+                while (fs.existsSync(path.join(folderPath, uniqueFilename))) {
+                  uniqueFilename = `${nameWithoutExt}_${counter}.${fileExt}`;
+                  counter++;
+                }
+                newFilename = uniqueFilename;
+              }
+              
+              fs.renameSync(filePath, path.join(folderPath, newFilename));
+              console.log(`[Evolve] Renamed file: ${filename} -> ${newFilename}`);
+            }
+          }
+        }
+      } catch (renameError) {
+        console.warn(`[Evolve] Failed to rename file ${filename}:`, renameError.message);
+        // Continue even if rename fails - the evolution still succeeded
+      }
+      
+      res.json({ 
+        success: true, 
+        filename: newFilename, // Return new filename
+        oldFilename: filename,  // Return old filename for reference
+        oldSpecies: pokemon.species,
+        newSpecies: evolvedSpecies
+      });
+  } catch (error) {
+    console.error('Error evolving Pokemon:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to batch evolve Pokemon
+app.post('/api/pokemon/batch-evolve', express.json(), (req, res) => {
+  try {
+    const { filenames, db } = req.body;
+    
+    if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
+      return res.status(400).json({ error: 'Missing or invalid filenames array' });
+    }
+    
+    const dbId = db || 'db1';
+    const folderPath = getFolderPath(dbId);
+    
+    if (!folderPath) {
+      return res.status(404).json({ error: 'Database not found' });
+    }
+    
+    const results = [];
+    const errors = [];
+    
+    for (const filename of filenames) {
+      try {
+        const filePath = path.join(folderPath, filename);
+        
+        if (!fs.existsSync(filePath)) {
+          errors.push({ filename, error: 'File not found' });
+          continue;
+        }
+        
+        // Preserve file timestamps
+        const stats = fs.statSync(filePath);
+        const originalMtime = stats.mtime;
+        const originalAtime = stats.atime;
+        const originalBirthtime = stats.birthtime;
+        
+        // Read and parse the file
+        let buffer = fs.readFileSync(filePath);
+        const lowerFilename = filename.toLowerCase();
+        
+        let pokemon;
+        if (lowerFilename.endsWith('.pk3')) {
+          pokemon = PK3Parser.parse(buffer, filename);
+        } else if (lowerFilename.endsWith('.pk4') || lowerFilename.endsWith('.pk5')) {
+          pokemon = PK4Parser.parse(buffer, filename);
+        } else if (lowerFilename.endsWith('.pk6')) {
+          pokemon = PK6Parser.parse(buffer, filename);
+        } else if (lowerFilename.endsWith('.pk7')) {
+          pokemon = PK7Parser.parse(buffer, filename);
+        } else {
+          errors.push({ filename, error: 'Unsupported file format' });
+          continue;
+        }
+        
+        if (pokemon.error || !pokemon.species) {
+          errors.push({ filename, error: `Invalid Pokemon: ${pokemon.error || 'missing species'}` });
+          continue;
+        }
+        
+        // Check if Pokemon can evolve
+        const evolvedSpecies = getEvolution(pokemon.species);
+        if (!evolvedSpecies) {
+          errors.push({ filename, error: `Cannot evolve further` });
+          continue;
+        }
+        
+        // Update species in buffer (same logic as single evolve)
+        const format = lowerFilename.endsWith('.pk3') ? 'pk3' : 
+                       lowerFilename.endsWith('.pk4') || lowerFilename.endsWith('.pk5') ? 'pk4' :
+                       lowerFilename.endsWith('.pk6') ? 'pk6' : 'pk7';
+        
+        let dataOffset = 0;
+        let speciesOffset = 0;
+        
+        if (format === 'pk3') {
+          const isPKHeXExport = buffer.length === 100;
+          dataOffset = isPKHeXExport ? 0x20 : 0x00;
+          speciesOffset = dataOffset + 0x20;
+        } else if (format === 'pk4') {
+          const size = buffer.length;
+          const maxSpecies = lowerFilename.endsWith('.pk5') ? 649 : 493;
+          if (size > 136 && size <= 220) {
+            if (buffer.readUInt16LE(0x24) >= 1 && buffer.readUInt16LE(0x24) <= maxSpecies) {
+              dataOffset = 0x1C;
+            } else if (buffer.readUInt16LE(0x28) >= 1 && buffer.readUInt16LE(0x28) <= maxSpecies) {
+              dataOffset = 0x20;
+            } else {
+              dataOffset = 0x00;
+            }
+          } else {
+            dataOffset = 0x00;
+          }
+          speciesOffset = dataOffset + 0x08;
+        } else if (format === 'pk6' || format === 'pk7') {
+          const size = buffer.length;
+          const maxSpecies = format === 'pk6' ? 721 : 807;
+          if (size > 232) {
+            if (buffer.readUInt16LE(0x24) >= 1 && buffer.readUInt16LE(0x24) <= maxSpecies) {
+              dataOffset = 0x1C;
+            } else if (buffer.readUInt16LE(0x28) >= 1 && buffer.readUInt16LE(0x28) <= maxSpecies) {
+              dataOffset = 0x20;
+            } else {
+              dataOffset = 0x00;
+            }
+          } else {
+            dataOffset = 0x00;
+          }
+          speciesOffset = dataOffset + 0x08;
+        }
+        
+        if (speciesOffset + 2 > buffer.length) {
+          errors.push({ filename, error: 'Invalid file structure' });
+          continue;
+        }
+        
+        buffer.writeUInt16LE(evolvedSpecies, speciesOffset);
+        
+        // Write back to file
+        fs.writeFileSync(filePath, buffer);
+        
+        // Restore timestamps
+        fs.utimesSync(filePath, originalAtime, originalMtime);
+        if (originalBirthtime) {
+          try {
+            fs.utimesSync(filePath, originalAtime, originalBirthtime);
+          } catch (e) {
+            // Ignore
+          }
+        }
+        
+        results.push({
+          filename,
+          oldSpecies: pokemon.species,
+          newSpecies: evolvedSpecies
+        });
+      } catch (error) {
+        errors.push({ filename, error: error.message });
+      }
+    }
+    
+    res.json({
+      success: true,
+      evolved: results.length,
+      failed: errors.length,
+      results,
+      errors
+    });
+  } catch (error) {
+    console.error('Error batch evolving Pokemon:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get evolution suggestions (top 3 IV sum per species)
+app.get('/api/pokemon/evolution-suggestions', (req, res) => {
+  try {
+    const dbId = req.query.db || req.query.folder || 'db1';
+    console.log(`[Evolution Suggestions] Request for dbId: ${dbId}`);
+    
+    const folderPath = getFolderPath(dbId);
+    console.log(`[Evolution Suggestions] Resolved folder path: ${folderPath}`);
+    
+    if (!folderPath) {
+      console.error(`[Evolution Suggestions] Database "${dbId}" not found in PK3_DATABASES`);
+      return res.status(404).json({ error: `Database "${dbId}" not found` });
+    }
+    
+    if (!fs.existsSync(folderPath)) {
+      console.error(`[Evolution Suggestions] Folder does not exist: ${folderPath}`);
+      return res.status(404).json({ error: `Database folder does not exist: ${folderPath}` });
+    }
+    
+    // Get all Pokemon files
+    console.log(`[Evolution Suggestions] Searching for Pokemon files in: ${folderPath}`);
+    const allFilePaths = findPokemonFilesRecursive(folderPath);
+    console.log(`[Evolution Suggestions] Found ${allFilePaths.length} Pokemon files`);
+    
+    if (allFilePaths.length === 0) {
+      console.log(`[Evolution Suggestions] No Pokemon files found, returning empty suggestions`);
+      return res.json({ suggestions: {} });
+    }
+    
+    const allPokemon = [];
+    
+    for (const filePath of allFilePaths) {
+      try {
+        // Check if file exists and is actually a file (not a directory)
+        if (!fs.existsSync(filePath)) {
+          console.warn(`[Evolution Suggestions] File not found: ${filePath}`);
+          continue;
+        }
+        
+        const stats = fs.statSync(filePath);
+        if (!stats.isFile()) {
+          console.warn(`[Evolution Suggestions] Path is not a file: ${filePath}`);
+          continue;
+        }
+        
+        let buffer;
+        try {
+          buffer = fs.readFileSync(filePath);
+        } catch (readErr) {
+          console.warn(`[Evolution Suggestions] Error reading file ${filePath}:`, readErr.message);
+          continue;
+        }
+        
+        if (!buffer || buffer.length === 0) {
+          console.warn(`[Evolution Suggestions] Empty file: ${filePath}`);
+          continue;
+        }
+        
+        const filename = path.basename(filePath);
+        const lower = filename.toLowerCase();
+        let pokemon;
+        
+        try {
+          if (lower.endsWith('.pk3')) {
+            pokemon = PK3Parser.parse(buffer, filename);
+          } else if (lower.endsWith('.pk4') || lower.endsWith('.pk5')) {
+            pokemon = PK4Parser.parse(buffer, filename);
+          } else if (lower.endsWith('.pk6')) {
+            pokemon = PK6Parser.parse(buffer, filename);
+          } else if (lower.endsWith('.pk7')) {
+            pokemon = PK7Parser.parse(buffer, filename);
+          } else {
+            continue;
+          }
+        } catch (parseErr) {
+          console.warn(`[Evolution Suggestions] Error parsing ${filename}:`, parseErr.message);
+          continue;
+        }
+        
+        if (pokemon.error || !pokemon.species || !getEvolution(pokemon.species)) {
+          continue;
+        }
+        
+        allPokemon.push({
+          ...pokemon,
+          filename,
+          filepath: filePath
+        });
+      } catch (err) {
+        // Skip invalid files
+        console.warn(`[Evolution Suggestions] Unexpected error processing ${filePath}:`, err.message);
+        continue;
+      }
+    }
+    
+    // Group by species and get top 3 by IV sum
+    const speciesMap = new Map();
+    
+    for (const pokemon of allPokemon) {
+      const speciesId = pokemon.species;
+      if (!speciesMap.has(speciesId)) {
+        speciesMap.set(speciesId, []);
+      }
+      speciesMap.get(speciesId).push(pokemon);
+    }
+    
+    // Sort each species by IV sum (descending), then level (descending), then take top 3
+    const suggestions = {};
+    
+    for (const [speciesId, pokemonList] of speciesMap.entries()) {
+      pokemonList.sort((a, b) => {
+        const ivSumA = a.ivSum || 0;
+        const ivSumB = b.ivSum || 0;
+        if (ivSumB !== ivSumA) {
+          return ivSumB - ivSumA;
+        }
+        const levelA = a.level || 0;
+        const levelB = b.level || 0;
+        return levelB - levelA;
+      });
+      
+      suggestions[speciesId] = pokemonList.slice(0, 3).map(p => ({
+        filename: p.filename,
+        species: p.species,
+        speciesName: p.speciesName,
+        level: p.level || 0,
+        ivSum: p.ivSum || 0,
+        isShiny: p.isShiny || false
+      }));
+    }
+    
+    console.log(`[Evolution Suggestions] Returning ${Object.keys(suggestions).length} species with suggestions`);
+    res.json({ suggestions });
+  } catch (error) {
+    console.error('[Evolution Suggestions] Error getting evolution suggestions:', error);
+    console.error('[Evolution Suggestions] Error type:', error.constructor.name);
+    console.error('[Evolution Suggestions] Error code:', error.code);
+    console.error('[Evolution Suggestions] Error path:', error.path);
+    console.error('[Evolution Suggestions] Error syscall:', error.syscall);
+    console.error('[Evolution Suggestions] Stack:', error.stack);
+    
+    // Provide more detailed error message
+    let errorMessage = 'Unknown error occurred';
+    if (error.code === 'ENOENT') {
+      if (error.path) {
+        errorMessage = `File or folder not found: ${error.path}`;
+      } else {
+        errorMessage = 'File or folder not found';
+      }
+    } else if (error.code === 'EACCES') {
+      errorMessage = `Permission denied: ${error.path || 'unknown path'}`;
+    } else if (error.code === 'ENOTDIR') {
+      errorMessage = `Not a directory: ${error.path || 'unknown path'}`;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    console.error(`[Evolution Suggestions] Returning error to client: ${errorMessage}`);
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -2111,36 +3119,16 @@ app.get('/api/pokedex', (req, res) => {
           } else if (lower.endsWith('.pk7')) {
             pokemon = PK7Parser.parse(buffer, filename);
           } else {
-            console.log(`[API] Skipping ${filename}: unknown file type`);
             continue;
           }
         } catch (parseError) {
           console.error(`[API] Error parsing ${filename}:`, parseError.message);
-          console.error(`[API] Stack:`, parseError.stack);
           continue;
         }
         
-        if (!pokemon) {
-          console.log(`[API] Skipping ${filename}: parser returned null/undefined`);
+        if (!pokemon || pokemon.error || !pokemon.species || pokemon.species === 0 || pokemon.species > maxSpeciesId) {
           continue;
         }
-        
-        if (pokemon.error) {
-          console.log(`[API] Skipping ${filename}: ${pokemon.error}`);
-          continue;
-        }
-        
-        if (!pokemon.species || pokemon.species === 0) {
-          console.log(`[API] Skipping ${filename}: invalid species (${pokemon.species})`);
-          continue;
-        }
-        
-        if (pokemon.species > maxSpeciesId) {
-          console.log(`[API] Skipping ${filename}: species ${pokemon.species} exceeds max ${maxSpeciesId}`);
-          continue;
-        }
-        
-        console.log(`[API] Parsed ${filename}: species=${pokemon.species}, shiny=${pokemon.isShiny}, format=${pokemon.format || 'unknown'}`);
         
         const speciesId = pokemon.species;
         const isShiny = pokemon.isShiny === true;
@@ -2213,11 +3201,6 @@ app.get('/api/pokedex', (req, res) => {
     // Determine max species ID in database
     const speciesIdsInDb = Array.from(pokedexData.keys());
     const maxSpeciesInDb = speciesIdsInDb.length > 0 ? Math.max(...speciesIdsInDb) : 0;
-    
-    console.log(`[API] Pokedex summary: ${pokedexData.size} unique species, max species ID: ${maxSpeciesInDb}`);
-    console.log(`[API] Available generations:`, Array.from(availableGenerations).sort((a, b) => a - b));
-    console.log(`[API] Completion stats for ${Object.keys(completionStats).length} generations:`, 
-      Object.keys(completionStats).map(gen => `${gen}: ${completionStats[gen].owned}/${completionStats[gen].total}`).join(', '));
     
     // Determine the max species ID to include based on available generations
     let maxSpeciesToInclude = maxSpeciesInDb;
