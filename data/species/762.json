@@ -1,0 +1,75 @@
+{
+  "id": 762,
+  "name": "steenee",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/392/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "The sepals on its head developed to protect its\nbody. These are quite hard, so even if pecked\nby bird Pokémon, this Pokémon is totally fine.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon is always bouncing around\nenergetically. Other Pokémon are attracted by\nits lively appearance and pleasant aroma.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It’s protected by its hard sepals, so it plays\nwith bird Pokémon without worry. They peck it\nrelentlessly, but it doesn’t care.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It bounces around, swinging the sepals on its\nhead with abandon. They’re quite painful when\nthey smack you!",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "As it twirls like a dancer, a sweet smell spreads\nout around it. Anyone who inhales the scent will\nfeel a surge of happiness.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Any Corvisquire that pecks at this\nPokémon will be greeted with a smack from\nits sepals followed by a sharp kick.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

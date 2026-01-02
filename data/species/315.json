@@ -1,0 +1,240 @@
+{
+  "id": 315,
+  "name": "roselia",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/158/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "ROSELIA shoots sharp thorns as\nprojectiles at any opponent that tries\nto steal the flowers on its arms.\fThe aroma of this POKéMON brings\nserenity to living things.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ruby",
+        "url": "https://pokeapi.co/api/v2/version/7/"
+      }
+    },
+    {
+      "flavor_text": "On extremely rare occasions, a ROSELIA\nis said to appear with its flowers in\nunusual colors.\fThe thorns on this POKéMON’s head\ncontain a vicious poison.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sapphire",
+        "url": "https://pokeapi.co/api/v2/version/8/"
+      }
+    },
+    {
+      "flavor_text": "A ROSELIA that drinks nutritionally rich\nspringwater blooms with lovely flowers.\nThe fragrance of its flowers has the\neffect of making its foes careless.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "emerald",
+        "url": "https://pokeapi.co/api/v2/version/9/"
+      }
+    },
+    {
+      "flavor_text": "Its flowers give off a relaxing fragrance.\nThe stronger its aroma, the healthier\nthe ROSELIA is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "firered",
+        "url": "https://pokeapi.co/api/v2/version/10/"
+      }
+    },
+    {
+      "flavor_text": "Its flowers give off a relaxing fragrance.\nThe stronger its aroma, the healthier\nthe ROSELIA is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "leafgreen",
+        "url": "https://pokeapi.co/api/v2/version/11/"
+      }
+    },
+    {
+      "flavor_text": "ROSELIA raised on clean drinking\nwater are known to grow vividly\ncolored flowers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "diamond",
+        "url": "https://pokeapi.co/api/v2/version/12/"
+      }
+    },
+    {
+      "flavor_text": "The beautiful flowers on its arms\nhave toxic thorns. Don’t even\nthink about picking those flowers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "pearl",
+        "url": "https://pokeapi.co/api/v2/version/13/"
+      }
+    },
+    {
+      "flavor_text": "The more healthy the ROSELIA, the\nmore pleasant its flowers’ aroma.\nIts scent deeply relaxes people.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "platinum",
+        "url": "https://pokeapi.co/api/v2/version/14/"
+      }
+    },
+    {
+      "flavor_text": "ROSELIA that drink nutritionally\nrich springwater are said to reveal\nrare coloration when they bloom.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "heartgold",
+        "url": "https://pokeapi.co/api/v2/version/15/"
+      }
+    },
+    {
+      "flavor_text": "ROSELIA that drink nutritionally\nrich springwater are said to reveal\nrare coloration when they bloom.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "soulsilver",
+        "url": "https://pokeapi.co/api/v2/version/16/"
+      }
+    },
+    {
+      "flavor_text": "The more healthy the Roselia, the\nmore pleasant its flowers’ aroma.\nIts scent deeply relaxes people.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "The more healthy the Roselia, the\nmore pleasant its flowers’ aroma.\nIts scent deeply relaxes people.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "It uses the different poisons in each\nhand separately when it attacks. The\nstronger its aroma, the healthier it is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "It uses the different poisons in each\nhand separately when it attacks. The\nstronger its aroma, the healthier it is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "It uses the different poisons in each hand\nseparately when it attacks. The stronger its aroma,\nthe healthier it is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "Roselia that drink nutritionally rich springwater are\nsaid to reveal rare coloration when they bloom.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "Roselia shoots sharp thorns as projectiles at any opponent that\ntries to steal the flowers on its arms. The aroma of this\nPokémon brings serenity to living things.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "On extremely rare occasions, a Roselia is said to appear with\nits flowers in unusual colors. The thorns on this Pokémon’s\nhead contain a vicious poison.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "Its flowers give off a relaxing fragrance.\nThe stronger its aroma, the healthier\nthe Roselia is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It uses the different poisons in each hand\nseparately when it attacks. The stronger its\naroma, the healthier it is.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    },
+    {
+      "flavor_text": "Though beautiful, it has highly poisonous thorns. There is an old\ntradition in my homeland wherein one would send these thorns\nto an opponent to challenge them to a duel.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "legends-arceus",
+        "url": "https://pokeapi.co/api/v2/version/39/"
+      }
+    }
+  ]
+}

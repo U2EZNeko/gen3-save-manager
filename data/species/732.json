@@ -1,0 +1,53 @@
+{
+  "id": 732,
+  "name": "trumbeak",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/377/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It eats berries and stores their seeds in its\nbeak. When it encounters enemies or prey,\nit fires off all the seeds in a burst.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "By bending its beak, it can produce a variety of\ncalls and brand itself a noisy nuisance for\nits neighbors.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It can bend the tip of its beak to produce over\na hundred different cries at will.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "From its mouth, it fires the seeds of berries\nit has eaten. The scattered seeds give rise\nto new plants.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,295 @@
+{
+  "id": 226,
+  "name": "mantine",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/116/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "As it majestically\nswims, it doesn't\ncare if REMORAID\fattach to it for\nscavenging its\nleftovers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "gold",
+        "url": "https://pokeapi.co/api/v2/version/4/"
+      }
+    },
+    {
+      "flavor_text": "Swimming freely in\nopen seas, it may\nfly out of the\fwater and over the\nwaves if it builds\nup enough speed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "silver",
+        "url": "https://pokeapi.co/api/v2/version/5/"
+      }
+    },
+    {
+      "flavor_text": "It swims along\nfreely, eating\nthings that swim\finto its mouth.\nIts whole body is\nvery coarse.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "crystal",
+        "url": "https://pokeapi.co/api/v2/version/6/"
+      }
+    },
+    {
+      "flavor_text": "On sunny days, schools of MANTINE can\nbe seen elegantly leaping over the\nsea’s waves.\fThis POKéMON is not bothered by the\nREMORAID that hitches rides.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ruby",
+        "url": "https://pokeapi.co/api/v2/version/7/"
+      }
+    },
+    {
+      "flavor_text": "On sunny days, schools of MANTINE can\nbe seen elegantly leaping over the\nsea’s waves.\fThis POKéMON is not bothered by the\nREMORAID that hitches rides.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sapphire",
+        "url": "https://pokeapi.co/api/v2/version/8/"
+      }
+    },
+    {
+      "flavor_text": "On sunny days, schools of MANTINE can be\nseen elegantly leaping over the waves.\nIt is not bothered by the REMORAID that\nhitches rides.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "emerald",
+        "url": "https://pokeapi.co/api/v2/version/9/"
+      }
+    },
+    {
+      "flavor_text": "Swimming freely in open seas, it may fly\nout of the water and over the waves if it\nbuilds up enough speed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "firered",
+        "url": "https://pokeapi.co/api/v2/version/10/"
+      }
+    },
+    {
+      "flavor_text": "As it majestically swims, it doesn’t care\nif REMORAID attach to it to scavenge\nfor its leftovers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "leafgreen",
+        "url": "https://pokeapi.co/api/v2/version/11/"
+      }
+    },
+    {
+      "flavor_text": "When the waves are calm, one may\nencounter a swarm of MANTINE\nswimming as if they are in flight.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "diamond",
+        "url": "https://pokeapi.co/api/v2/version/12/"
+      }
+    },
+    {
+      "flavor_text": "It swims elegantly, mindless of\nREMORAID hitching on to its broad\nfins. It has a docile nature.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "pearl",
+        "url": "https://pokeapi.co/api/v2/version/13/"
+      }
+    },
+    {
+      "flavor_text": "While elegantly swimming in the sea,\nit ignores REMORAID that cling to\nits fins seeking food scraps.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "platinum",
+        "url": "https://pokeapi.co/api/v2/version/14/"
+      }
+    },
+    {
+      "flavor_text": "As it majestically swims, it doesn’t\ncare if REMORAID attach to it for\nscavenging its leftovers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "heartgold",
+        "url": "https://pokeapi.co/api/v2/version/15/"
+      }
+    },
+    {
+      "flavor_text": "Swimming freely in open seas, it may\nfly out of the water and over the\nwaves if it builds up enough speed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "soulsilver",
+        "url": "https://pokeapi.co/api/v2/version/16/"
+      }
+    },
+    {
+      "flavor_text": "While elegantly swimming in the sea,\nit ignores Remoraid that cling to\nits fins seeking food scraps.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "While elegantly swimming in the sea,\nit ignores Remoraid that cling to\nits fins seeking food scraps.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "If it builds up enough speed swimming, it\ncan fly over 300 feet out of the water\nfrom the surface of the ocean.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "If it builds up enough speed swimming, it\ncan fly over 300 feet out of the water\nfrom the surface of the ocean.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "If it builds up enough speed swimming, it can fly\nover 300 feet out of the water from the surface of\nthe ocean.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "While elegantly swimming in the sea, it ignores\nRemoraid that cling to its fins seeking food scraps.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "On sunny days, schools of Mantine can be seen elegantly\nleaping over the sea’s waves. This Pokémon is not bothered\nby the Remoraid that hitches rides.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "On sunny days, schools of Mantine can be seen elegantly\nleaping over the sea’s waves. This Pokémon is not bothered\nby the Remoraid that hitches rides.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "Postcards and posters featuring Mantine\nleaping elegantly above the waves are popular\nsouvenirs of Alola.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Many people have taken up surfing because\nthey admire how magnificently Mantine swims.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "If it builds up enough speed swimming, it\ncan jump out above the waves and glide\nfor over 300 feet.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "As it majestically swims, it doesn’t care if\nRemoraid attach to it to scavenge for its leftovers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    },
+    {
+      "flavor_text": "This calm and gentle Pokémon swims gracefully through the sea.\nAfter building speed, it can leap out of the water. It is often\nmisidentified as a bird Pokémon due to this behavior.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "legends-arceus",
+        "url": "https://pokeapi.co/api/v2/version/39/"
+      }
+    }
+  ]
+}

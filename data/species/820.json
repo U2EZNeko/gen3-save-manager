@@ -1,0 +1,31 @@
+{
+  "id": 820,
+  "name": "greedent",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/433/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It stashes berries in its tail—so many berries that\nthey fall out constantly. But this Pokémon is a bit\nslow-witted, so it doesn’t notice the loss.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Common throughout the Galar region, this\nPokémon has strong teeth and can chew\nthrough the toughest of berry shells.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

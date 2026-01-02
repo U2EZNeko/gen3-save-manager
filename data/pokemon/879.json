@@ -1,0 +1,72 @@
+{
+  "id": 879,
+  "name": "copperajah",
+  "height": 30,
+  "weight": 6500,
+  "base_experience": 175,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "steel"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "sheer-force"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "heavy-metal"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 122,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 130,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 69,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 69,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 30,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/879/"
+  }
+}

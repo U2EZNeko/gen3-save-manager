@@ -1,0 +1,79 @@
+{
+  "id": 573,
+  "name": "cinccino",
+  "height": 5,
+  "weight": 75,
+  "base_experience": 165,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "cute-charm"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "technician"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "skill-link"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 115,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/573/"
+  }
+}

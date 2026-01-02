@@ -1,0 +1,31 @@
+{
+  "id": 873,
+  "name": "frosmoth",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/455/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Icy scales fall from its wings like snow as it flies\nover fields and mountains. The temperature of its\nwings is less than −290 degrees Fahrenheit.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It shows no mercy to any who desecrate fields\nand mountains. It will fly around on its icy wings,\ncausing a blizzard to chase offenders away.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

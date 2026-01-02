@@ -1,0 +1,78 @@
+{
+  "id": 697,
+  "name": "tyrantrum",
+  "height": 25,
+  "weight": 2700,
+  "base_experience": 182,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "rock"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "dragon"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "strong-jaw"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "rock-head"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 82,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 121,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 119,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 69,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 59,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 71,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/697/"
+  }
+}

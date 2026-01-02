@@ -1,0 +1,79 @@
+{
+  "id": 456,
+  "name": "finneon",
+  "height": 4,
+  "weight": 70,
+  "base_experience": 66,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "swift-swim"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "storm-drain"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "water-veil"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 49,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 49,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 56,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 49,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 61,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 66,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/456/"
+  }
+}

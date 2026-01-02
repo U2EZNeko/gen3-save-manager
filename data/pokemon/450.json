@@ -1,0 +1,72 @@
+{
+  "id": 450,
+  "name": "hippowdon",
+  "height": 20,
+  "weight": 3000,
+  "base_experience": 184,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "ground"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "sand-stream"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "sand-force"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 108,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 112,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 118,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 68,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 72,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 47,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/450/"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": 405,
+  "name": "luxray",
+  "height": 14,
+  "weight": 420,
+  "base_experience": 235,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "electric"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "rivalry"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "intimidate"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "guts"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 120,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 79,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 79,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/405/"
+  }
+}

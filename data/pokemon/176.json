@@ -1,0 +1,85 @@
+{
+  "id": 176,
+  "name": "togetic",
+  "height": 6,
+  "weight": 32,
+  "base_experience": 142,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fairy"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "hustle"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "serene-grace"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "super-luck"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 40,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 105,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 40,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/176/"
+  }
+}

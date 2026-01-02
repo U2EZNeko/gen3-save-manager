@@ -1,0 +1,31 @@
+{
+  "id": 859,
+  "name": "impidimp",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/451/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Through its nose, it sucks in the emanations\nproduced by people and Pokémon when they\nfeel annoyed. It thrives off this negative energy.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It sneaks into people’s homes, stealing things\nand feasting on the negative energy of the\nfrustrated occupants.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

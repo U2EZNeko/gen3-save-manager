@@ -1,0 +1,85 @@
+{
+  "id": 1019,
+  "name": "hydrapple",
+  "height": 18,
+  "weight": 930,
+  "base_experience": 270,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "grass"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "dragon"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "supersweet-syrup"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "regenerator"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "sticky-hold"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 106,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 110,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 120,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 44,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/1019/"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "id": 277,
+  "name": "swellow",
+  "height": 7,
+  "weight": 198,
+  "base_experience": 159,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "guts"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "scrappy"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 125,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/277/"
+  }
+}

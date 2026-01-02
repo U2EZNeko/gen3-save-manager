@@ -1,0 +1,31 @@
+{
+  "id": 814,
+  "name": "raboot",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/431/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Its thick and fluffy fur protects it from the cold\nand enables it to use hotter fire moves.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It kicks berries right off the branches of trees\nand then juggles them with its feet, practicing\nits footwork.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

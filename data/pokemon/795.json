@@ -1,0 +1,71 @@
+{
+  "id": 795,
+  "name": "pheromosa",
+  "height": 18,
+  "weight": 250,
+  "base_experience": 257,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "bug"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "fighting"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "beast-boost"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 71,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 137,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 37,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 137,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 37,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 151,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/795/"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": 783,
+  "name": "hakamo-o",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/408/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It leaps at its prey with a courageous shout.\nIts scaly punches tear its opponents to shreds.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It sheds and regrows its scales on a continuous\nbasis. The scales become harder and sharper\neach time they’re regrown.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It makes noise by clanging its scales together.\nWhen the rhythm has reached its peak,\nHakamo-o attacks.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "The scales it sheds can be molded and\nprocessed to make pots and pans. They\nconduct heat well, so they’re a popular item.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "The scaleless, scarred parts of its body are\nsigns of its strength. It shows them off to\ndefeated opponents.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Before attacking its enemies, it clashes its\nscales together and roars. Its sharp claws\nshred the opposition.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": 737,
+  "name": "charjabug",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/379/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Its body is capable of storing electricity. On\ncamping trips, people are grateful to have\none around.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "From the food it digests, it generates electricity,\nand it stores this energy in its electric sac.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It buries itself in fallen leaves and barely\nmoves, munching away on humus. If you\naccidentally step on one, you’ll get a shock!",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Its stout shell provides excellent defense from\nattacks. It uses electricity on\npersistent opponents.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "While its durable shell protects it from attacks,\nCharjabug strikes at enemies with jolts of\nelectricity discharged from the tips of its jaws.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Its digestive processes convert the leaves it eats\ninto electricity. An electric sac in its belly stores\nthe electricity for later use.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

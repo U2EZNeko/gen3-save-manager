@@ -1,0 +1,31 @@
+{
+  "id": 829,
+  "name": "gossifleur",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/437/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It anchors itself in the ground with its single leg,\nthen basks in the sun. After absorbing enough\nsunlight, its petals spread as it blooms brilliantly.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It whirls around in the wind while singing a joyous\nsong. This delightful display has charmed many\ninto raising this Pokémon.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "id": 494,
+  "name": "victini",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/255/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "This Pokémon brings victory. It is said\nthat Trainers with Victini always win,\nregardless of the type of encounter.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "It creates an unlimited supply of\nenergy inside its body, which it\nshares with those who touch it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "When it shares the infinite energy\nit creates, that being’s entire\nbody will be overflowing with power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "When it shares the infinite energy\nit creates, that being’s entire\nbody will be overflowing with power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon brings victory. It is said that Trainers\nwith Victini always win, regardless of the type\nof encounter.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "When it shares the infinite energy it creates,\nthat being’s entire body will be overflowing\nwith power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon brings victory. It is said that Trainers\nwith Victini always win, regardless of the type\nof encounter.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "When it shares the infinite energy it creates,\nthat being’s entire body will be overflowing\nwith power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    }
+  ]
+}

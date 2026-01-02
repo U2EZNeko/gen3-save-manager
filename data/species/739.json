@@ -1,0 +1,53 @@
+{
+  "id": 739,
+  "name": "crabrawler",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/380/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "While guarding its weak points with its pincers,\nit looks for an opening and unleashes punches.\nWhen it loses, it foams at the mouth and faints.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It punches so much, its pincers often come off\nfrom overuse, but they grow back quickly. What\nlittle meat they contain is rich and delicious.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Its hard pincers are well suited to both offense\nand defense. Fights between two Crabrawler\nare like boxing matches.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Crabrawler has been known to mistake\nExeggutor for a coconut tree and climb it. The\nenraged Exeggutor shakes it off and stomps it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

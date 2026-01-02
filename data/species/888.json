@@ -1,0 +1,31 @@
+{
+  "id": 888,
+  "name": "zacian",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/467/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Known as a legendary hero, this Pokémon\nabsorbs metal particles, transforming them\ninto a weapon it uses to battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon has slumbered for many years.\nSome say it’s Zamazenta’s elder sister—others\nsay the two Pokémon are rivals.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

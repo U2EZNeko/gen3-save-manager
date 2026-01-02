@@ -1,0 +1,75 @@
+{
+  "id": 751,
+  "name": "dewpider",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/387/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It crawls onto the land in search of food.\nIts water bubble allows it to breathe and\nprotects its soft head.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "When it comes across enemies or potential prey,\nthis Pokémon smashes its\nwater-bubble-covered head into them.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "When two Dewpider meet, they display their\nwater bubbles to each other. Then the one with\nthe smaller bubble gets out of the other’s way.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It can only breathe oxygen that has dissolved in\nwater, so it wears a water bubble on its head\nwhen it walks around on land.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "It forms a water bubble at the rear of its body\nand then covers its head with it. Meeting another\nDewpider means comparing water-bubble sizes.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Dewpider normally lives underwater. When it\ncomes onto land in search of food, it takes\nwater with it in the form of a bubble on its head.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

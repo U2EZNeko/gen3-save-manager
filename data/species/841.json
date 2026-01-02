@@ -1,0 +1,31 @@
+{
+  "id": 841,
+  "name": "flapple",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/442/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It ate a sour apple, and that induced its\nevolution. In its cheeks, it stores an acid\ncapable of causing chemical burns.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It flies on wings of apple skin and spits a\npowerful acid. It can also change its shape\ninto that of an apple.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

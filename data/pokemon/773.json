@@ -1,0 +1,65 @@
+{
+  "id": 773,
+  "name": "silvally",
+  "height": 23,
+  "weight": 1005,
+  "base_experience": 257,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "rks-system"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/773/"
+  }
+}

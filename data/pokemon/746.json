@@ -1,0 +1,65 @@
+{
+  "id": 746,
+  "name": "wishiwashi-solo",
+  "height": 2,
+  "weight": 3,
+  "base_experience": 61,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "schooling"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 20,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 20,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 25,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 25,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 40,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/746/"
+  }
+}

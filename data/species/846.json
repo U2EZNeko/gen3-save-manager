@@ -1,0 +1,31 @@
+{
+  "id": 846,
+  "name": "arrokuda",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/445/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "If it sees any movement around it, this Pokémon\ncharges for it straightaway, leading with its\nsharply pointed jaw. It’s very proud of that jaw.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "After it’s eaten its fill, its movements become\nextremely sluggish. That’s when Cramorant\nswallows it up.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": 716,
+  "name": "xerneas",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/368/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Legends say it can share eternal life.\nIt slept for a thousand years in the form\nof a tree before its revival.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "When the horns on its head shine\nin seven colors, it is said to be\nsharing everlasting life.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "Legends say it can share eternal life.\nIt slept for a thousand years in the form\nof a tree before its revival.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "When the horns on its head shine\nin seven colors, it is said to be\nsharing everlasting life.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    }
+  ]
+}

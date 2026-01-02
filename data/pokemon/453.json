@@ -1,0 +1,85 @@
+{
+  "id": 453,
+  "name": "croagunk",
+  "height": 7,
+  "weight": 230,
+  "base_experience": 60,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "poison"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "fighting"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "anticipation"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "dry-skin"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "poison-touch"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 48,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 61,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 40,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 61,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 40,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/453/"
+  }
+}

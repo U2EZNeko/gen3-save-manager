@@ -1,0 +1,79 @@
+{
+  "id": 664,
+  "name": "scatterbug",
+  "height": 3,
+  "weight": 25,
+  "base_experience": 40,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "bug"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "shield-dust"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "compound-eyes"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "friend-guard"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 38,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 40,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 27,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 25,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/664/"
+  }
+}

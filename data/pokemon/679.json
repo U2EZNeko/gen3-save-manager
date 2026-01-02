@@ -1,0 +1,71 @@
+{
+  "id": 679,
+  "name": "honedge",
+  "height": 8,
+  "weight": 20,
+  "base_experience": 65,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "steel"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "ghost"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "no-guard"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 37,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 28,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/679/"
+  }
+}

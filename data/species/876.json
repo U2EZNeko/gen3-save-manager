@@ -1,0 +1,31 @@
+{
+  "id": 876,
+  "name": "indeedee",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/458/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It uses the horns on its head to sense the\nemotions of others. Males will act as valets for\nthose they serve, looking after their every need.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Through its horns, it can pick up on the emotions\nof creatures around it. Positive emotions are the\nsource of its strength.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

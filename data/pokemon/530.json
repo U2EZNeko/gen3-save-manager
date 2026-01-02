@@ -1,0 +1,85 @@
+{
+  "id": 530,
+  "name": "excadrill",
+  "height": 7,
+  "weight": 404,
+  "base_experience": 178,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "ground"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "steel"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "sand-rush"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "sand-force"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "mold-breaker"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 110,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 135,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 88,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/530/"
+  }
+}

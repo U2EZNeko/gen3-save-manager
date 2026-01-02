@@ -1,0 +1,97 @@
+{
+  "id": 715,
+  "name": "noivern",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/367/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "They fly around on moonless nights\nand attack careless prey. Nothing can\nbeat them in a battle in the dark.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "The ultrasonic waves it emits from its ears\ncan reduce a large boulder to pebbles.\nIt swoops out of the dark to attack.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "They fly around on moonless nights\nand attack careless prey. Nothing can\nbeat them in a battle in the dark.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "The ultrasonic waves it emits from its ears\ncan reduce a large boulder to pebbles.\nIt swoops out of the dark to attack.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "Although it has a violent disposition, if you give\nit a nice ripe fruit that it loves, Noivern will\nsuddenly become tame.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "This hot-blooded Pokémon attacks anything it\nsees with ultrasonic waves that can\ncrush boulders.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "Aggressive and cruel, this Pokémon will ruthlessly\ntorment enemies that are helpless in the dark.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Flying through the darkness, it weakens enemies\nwith ultrasonic waves that could crush stone.\nIts fangs finish the fight.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

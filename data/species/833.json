@@ -1,0 +1,31 @@
+{
+  "id": 833,
+  "name": "chewtle",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/439/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Apparently the itch of its teething impels it to\nsnap its jaws at anything in front of it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It starts off battles by attacking with its rock-hard\nhorn, but as soon as the opponent flinches, this\nPokémon bites down and never lets go.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

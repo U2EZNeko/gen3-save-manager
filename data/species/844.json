@@ -1,0 +1,31 @@
+{
+  "id": 844,
+  "name": "sandaconda",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/443/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When it contracts its body, over 220 pounds of\nsand sprays from its nose. If it ever runs out of\nsand, it becomes disheartened.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Its unique style of coiling allows it to blast sand\nout of its sand sac more efficiently.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

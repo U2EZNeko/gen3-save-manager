@@ -1,0 +1,75 @@
+{
+  "id": 726,
+  "name": "torracat",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/375/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "At its throat, it bears a bell of fire. The bell rings\nbrightly whenever this Pokémon spits fire.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It boasts powerful front legs. With a single\npunch, it can bend an iron bar right over.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It can act spoiled if it grows close to its Trainer.\nA powerful Pokémon, its sharp claws can leave\nits Trainer’s whole body covered in scratches.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "When its mane is standing on end, you can tell\nit’s feeling good. When it isn’t feeling well, its fur\nwill lie down flat.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "In the midst of battle, the fire pouch on\nTorracat’s neck rings like a bell and produces\nstronger flames than usual.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "When facing a powerful enemy, Torracat’s\nfighting spirit gets pumped up, and its fire bell\nblazes hotter.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

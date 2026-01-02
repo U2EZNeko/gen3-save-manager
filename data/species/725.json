@@ -1,0 +1,75 @@
+{
+  "id": 725,
+  "name": "litten",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/375/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "While grooming itself, it builds up fur inside its\nstomach. It sets the fur alight and spews fiery\nattacks, which change based on how it coughs.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It doesn’t allow its emotions to be easily seen.\nEarning its trust takes time. It prefers solitude.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "If you try too hard to get close to it, it won’t\nopen up to you. Even if you do grow close, giving\nit too much affection is still a no-no.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Its coat regrows twice a year. When the time\ncomes, Litten sets its own body on fire and\nburns away the old fur.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "It spends even the smallest amount of downtime\ngrooming its fur with its tongue. Loose fur gathers\nin its stomach and serves as fuel for fiery moves.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Trying to pet Litten before it trusts you will\nresult in a nasty scratch from its sharp claws.\nBe careful.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": 8,
+  "name": "wartortle",
+  "height": 10,
+  "weight": 225,
+  "base_experience": 142,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "torrent"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "rain-dish"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 59,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 63,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 58,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/8/"
+  }
+}

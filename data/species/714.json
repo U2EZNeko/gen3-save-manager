@@ -1,0 +1,97 @@
+{
+  "id": 714,
+  "name": "noibat",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/367/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "They live in pitch-black caves. Their enormous ears\ncan emit ultrasonic waves of 200,000 hertz.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "Even a robust wrestler will become\ndizzy and unable to stand when exposed\nto its 200,000-hertz ultrasonic waves.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "They live in pitch-black caves. Their enormous ears\ncan emit ultrasonic waves of 200,000 hertz.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "Even a robust wrestler will become\ndizzy and unable to stand when exposed\nto its 200,000-hertz ultrasonic waves.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "Fruits are its favorite foods. This gourmet\ncarefully picks out just the ripe ones using\nits sonar.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It flies around in search of fruit to eat. It uses\nultrasonic waves to detect which fruits are ripe.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "After nightfall, they emerge from the caves they\nnest in during the day. Using their ultrasonic\nwaves, they go on the hunt for ripened fruit.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "No wavelength of sound is beyond Noibat’s\nability to produce. The ultrasonic waves it\ngenerates can overcome much larger Pokémon.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

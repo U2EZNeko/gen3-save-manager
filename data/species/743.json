@@ -1,0 +1,75 @@
+{
+  "id": 743,
+  "name": "ribombee",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/382/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It rolls up pollen into puffs. It makes many\ndifferent varieties, some used as food and\nothers used in battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "Some of Ribombee’s pollen puffs are highly\nnutritious. They are sometimes sold\nas supplements.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Rain makes pollen damp, so Ribombee hates\nrain. When it sees ominous clouds, it finds a\nhollow in a tree, where it waits stock-still.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It can predict the weather from moisture levels\nand wind direction. Ribombee only reveals itself\nwhen there are a few clear days in a row.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "It makes pollen puffs from pollen and nectar.\nThe puffs’ effects depend on the type of\ningredients and how much of each one is used.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Ribombee absolutely hate getting wet or\nrained on. In the cloudy Galar region,\nthey are very seldom seen.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

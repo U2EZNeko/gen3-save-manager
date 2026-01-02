@@ -1,0 +1,86 @@
+{
+  "id": 724,
+  "name": "decidueye",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/374/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It fires arrow quills from its wings with such\nprecision, they can pierce a pebble at distances\nover a hundred yards.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "Although basically cool and cautious, when it’s\ncaught by surprise, it’s seized by panic.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It nocks its arrow quills and shoots them at\nopponents. When it simply can’t afford to miss,\nit tugs the vine on its head to improve its focus.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Decidueye can nock and fire an arrow at an\nenemy in a tenth of a second, so its battles are\ndecided in the blink of an eye.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "As if wielding a bow, it launches the arrow quills\nhidden among the feathers of its wings.\nDecidueye’s shots never miss.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "In a tenth of a second, it can nock and fire an\narrow quill, piercing an opponent’s weak point\nbefore they notice what’s happening.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    },
+    {
+      "flavor_text": "The air stored inside the rachises of Decidueye's feathers\ninsulates the Pokémon against Hisui's extreme cold. This is\nfirm proof that evolution can be influenced by environment.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "legends-arceus",
+        "url": "https://pokeapi.co/api/v2/version/39/"
+      }
+    }
+  ]
+}

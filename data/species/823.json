@@ -1,0 +1,31 @@
+{
+  "id": 823,
+  "name": "corviknight",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/434/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "This Pokémon reigns supreme in the skies of the\nGalar region. The black luster of its steel body\ncould drive terror into the heart of any foe.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "With their great intellect and flying skills, these\nPokémon very successfully act as the Galar\nregion’s airborne taxi service.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

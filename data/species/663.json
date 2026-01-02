@@ -1,0 +1,119 @@
+{
+  "id": 663,
+  "name": "talonflame",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/341/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "In the fever of an exciting battle, it\nshowers embers from the gaps between\nits feathers and takes to the air.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "When attacking prey, it can reach speeds\nof up to 310 mph. It finishes its prey off\nwith a colossal kick.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "In the fever of an exciting battle, it\nshowers embers from the gaps between\nits feathers and takes to the air.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "When attacking prey, it can reach speeds\nof up to 310 mph. It finishes its prey off\nwith a colossal kick.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "Its favorite foods are Wingull and Pikipek.\nIt attacks with a powerful kick and grasps them\nfirmly in its talons.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It zooms directly at its prey at flight speeds of\nclose to 310 mph, while fiery embers scatter\nfrom gaps in its feathers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Its tough wings don’t allow fire to pass through\nthem. A long time ago, firefighters’ outfits were\nmade from Talonflame wings.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Bird Pokémon make up most of its diet.\nIt approaches at high speeds and smacks them\ndown to the ground with its powerful kick.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "Talonflame mainly preys upon other bird\nPokémon. To intimidate opponents, it sends\nembers spewing from gaps between its feathers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Talonflame dives toward prey at speeds of up to\n310 mph and assaults them with powerful kicks,\ngiving the prey no chance to escape.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

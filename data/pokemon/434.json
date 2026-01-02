@@ -1,0 +1,85 @@
+{
+  "id": 434,
+  "name": "stunky",
+  "height": 4,
+  "weight": 192,
+  "base_experience": 66,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "poison"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "dark"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "stench"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "aftermath"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "keen-eye"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 63,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 63,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 47,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 41,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 41,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 74,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/434/"
+  }
+}

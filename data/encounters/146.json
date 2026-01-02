@@ -1,0 +1,438 @@
+[
+  {
+    "location_area": {
+      "name": "mt-silver-top",
+      "url": "https://pokeapi.co/api/v2/location-area/273/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "heartgold",
+          "url": "https://pokeapi.co/api/v2/version/15/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "soulsilver",
+          "url": "https://pokeapi.co/api/v2/version/16/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-victory-road-2-2f",
+      "url": "https://pokeapi.co/api/v2/location-area/332/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "red",
+          "url": "https://pokeapi.co/api/v2/version/1/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "blue",
+          "url": "https://pokeapi.co/api/v2/version/2/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "yellow",
+          "url": "https://pokeapi.co/api/v2/version/3/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "roaming-sinnoh-area",
+      "url": "https://pokeapi.co/api/v2/location-area/797/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 25,
+            "condition_values": [
+              {
+                "name": "story-progress-oak-eterna-city",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/31/"
+              }
+            ],
+            "max_level": 60,
+            "method": {
+              "name": "roaming-grass",
+              "url": "https://pokeapi.co/api/v2/encounter-method/28/"
+            },
+            "min_level": 60
+          },
+          {
+            "chance": 25,
+            "condition_values": [
+              {
+                "name": "story-progress-oak-eterna-city",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/31/"
+              }
+            ],
+            "max_level": 60,
+            "method": {
+              "name": "roaming-water",
+              "url": "https://pokeapi.co/api/v2/encounter-method/29/"
+            },
+            "min_level": 60
+          }
+        ],
+        "max_chance": 50,
+        "version": {
+          "name": "platinum",
+          "url": "https://pokeapi.co/api/v2/version/14/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "mt-ember-summit",
+      "url": "https://pokeapi.co/api/v2/location-area/825/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          },
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 200,
+        "version": {
+          "name": "firered",
+          "url": "https://pokeapi.co/api/v2/version/10/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          },
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 50,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 50
+          }
+        ],
+        "max_chance": 200,
+        "version": {
+          "name": "leafgreen",
+          "url": "https://pokeapi.co/api/v2/version/11/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "ultra-space-wilds-cliff",
+      "url": "https://pokeapi.co/api/v2/location-area/1148/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 60,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 60
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "ultra-sun",
+          "url": "https://pokeapi.co/api/v2/version/29/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 60,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 60
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "ultra-moon",
+          "url": "https://pokeapi.co/api/v2/version/30/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "sea-spirits-den-area",
+      "url": "https://pokeapi.co/api/v2/location-area/1174/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [
+              {
+                "name": "starter-froakie",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/26/"
+              },
+              {
+                "name": "other-found-11-times-roaming",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/82/"
+              }
+            ],
+            "max_level": 70,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 70
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "x",
+          "url": "https://pokeapi.co/api/v2/version/23/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [
+              {
+                "name": "starter-froakie",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/26/"
+              },
+              {
+                "name": "other-found-11-times-roaming",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/82/"
+              }
+            ],
+            "max_level": 70,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 70
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "y",
+          "url": "https://pokeapi.co/api/v2/version/24/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "roaming-kalos-area",
+      "url": "https://pokeapi.co/api/v2/location-area/1182/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [
+              {
+                "name": "starter-froakie",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/26/"
+              }
+            ],
+            "max_level": 70,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 70
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "x",
+          "url": "https://pokeapi.co/api/v2/version/23/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [
+              {
+                "name": "starter-froakie",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/26/"
+              }
+            ],
+            "max_level": 70,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 70
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "y",
+          "url": "https://pokeapi.co/api/v2/version/24/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "ultra-space-ultra-space-wilds-cliff",
+      "url": "https://pokeapi.co/api/v2/location-area/1195/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 15,
+            "condition_values": [],
+            "max_level": 60,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 60
+          }
+        ],
+        "max_chance": 15,
+        "version": {
+          "name": "ultra-sun",
+          "url": "https://pokeapi.co/api/v2/version/29/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 15,
+            "condition_values": [],
+            "max_level": 60,
+            "method": {
+              "name": "only-one",
+              "url": "https://pokeapi.co/api/v2/encounter-method/20/"
+            },
+            "min_level": 60
+          }
+        ],
+        "max_chance": 15,
+        "version": {
+          "name": "ultra-moon",
+          "url": "https://pokeapi.co/api/v2/version/30/"
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,75 @@
+{
+  "id": 738,
+  "name": "vikavolt",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/379/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It zips around, on sharp lookout for an opening.\nIt concentrates electrical energy within its large\njaws and uses it to zap its enemies.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It produces electricity via an electrical organ in\nits abdomen. It overwhelms bird Pokémon with\nshocking beams of electrical energy.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It has an organ that generates electricity in its\nabdomen. It concentrates energy in its strong\njaws and fires off powerful jolts of electricity.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Vikavolt flusters opponents with acrobatic\nflying maneuvers. This creates an opening for\nit to deliver an electric beam attack.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "It builds up electricity in its abdomen, focuses it\nthrough its jaws, and then fires the electricity off\nin concentrated beams.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "If it carries a Charjabug to use as a spare battery,\na flying Vikavolt can rapidly fire high-powered\nbeams of electricity.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

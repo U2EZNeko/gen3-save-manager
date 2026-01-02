@@ -1,0 +1,119 @@
+{
+  "id": 545,
+  "name": "scolipede",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/277/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "With quick movements, it chases down\nits foes, attacking relentlessly with\nits horns until it prevails.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "Highly aggressive, it uses the claws\nnear its neck to dig into its opponents\nand poison them.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "It clasps its prey with the claws\non its neck until it stops moving.\nThen it finishes it off with deadly poison.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "It clasps its prey with the claws\non its neck until it stops moving.\nThen it finishes it off with deadly poison.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "It clasps its prey with the claws on its neck until it\nstops moving. Then it finishes it off with\ndeadly poison.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "With quick movements, it chases down its foes,\nattacking relentlessly with its horns until it prevails.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "It clasps its prey with the claws on its neck until it\nstops moving. Then it finishes it off with\ndeadly poison.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "With quick movements, it chases down its foes,\nattacking relentlessly with its horns until it prevails.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "Scolipede latches on to its prey with the claws on\nits neck before slamming them into the ground\nand jabbing them with its claws’ toxic spikes.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Scolipede engage in fierce territorial battles with\nCentiskorch. At the end of one of these battles,\nthe victor makes a meal of the loser.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

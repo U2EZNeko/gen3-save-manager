@@ -1,0 +1,85 @@
+{
+  "id": 743,
+  "name": "ribombee",
+  "height": 2,
+  "weight": 5,
+  "base_experience": 162,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "bug"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "fairy"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "honey-gather"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "shield-dust"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "sweet-veil"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 124,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/743/"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": 758,
+  "name": "salazzle",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/390/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "For some reason, only females have been found.\nIt creates a reverse harem of male Salandit that\nit lives with.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "Filled with pheromones, its poisonous gas can\nbe diluted to use in the production of\nluscious perfumes.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Salazzle lives deep in caves and forces the\nSalandit it has attracted with its pheromones\nto serve it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It punishes Salandit that couldn’t bring it food\nwith a fierce slap of its flame-spewing palm.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "Only female Salazzle exist. They emit a gas laden\nwith pheromones to captivate male Salandit.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "The winner of competitions between Salazzle\nis decided by which one has the most male\nSalandit with it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

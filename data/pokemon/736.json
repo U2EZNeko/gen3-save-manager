@@ -1,0 +1,65 @@
+{
+  "id": 736,
+  "name": "grubbin",
+  "height": 4,
+  "weight": 44,
+  "base_experience": 60,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "bug"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "swarm"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 47,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 62,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 46,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/736/"
+  }
+}

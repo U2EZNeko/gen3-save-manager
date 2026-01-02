@@ -1,0 +1,85 @@
+{
+  "id": 195,
+  "name": "quagsire",
+  "height": 14,
+  "weight": 750,
+  "base_experience": 151,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "ground"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "damp"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "water-absorb"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "unaware"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/195/"
+  }
+}

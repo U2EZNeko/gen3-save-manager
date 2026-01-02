@@ -1,0 +1,71 @@
+{
+  "id": 329,
+  "name": "vibrava",
+  "height": 11,
+  "weight": 153,
+  "base_experience": 119,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "ground"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "dragon"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "levitate"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/329/"
+  }
+}

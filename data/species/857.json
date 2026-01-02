@@ -1,0 +1,31 @@
+{
+  "id": 857,
+  "name": "hattrem",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/450/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "No matter who you are, if you bring strong\nemotions near this Pokémon, it will silence\nyou violently.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Using the braids on its head, it pummels foes to\nget them to quiet down. One blow from those\nbraids would knock out a professional boxer.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

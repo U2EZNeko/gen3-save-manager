@@ -1,0 +1,65 @@
+{
+  "id": 693,
+  "name": "clawitzer",
+  "height": 13,
+  "weight": 353,
+  "base_experience": 100,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "mega-launcher"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 71,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 73,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 88,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 120,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 89,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 59,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/693/"
+  }
+}

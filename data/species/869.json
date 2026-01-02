@@ -1,0 +1,31 @@
+{
+  "id": 869,
+  "name": "alcremie",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/452/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When it trusts a Trainer, it will treat them to\nberries it’s decorated with cream.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "When Alcremie is content, the cream it\nsecretes from its hands becomes sweeter\nand richer.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": 809,
+  "name": "melmetal",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/429/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Revered long ago for its capacity to create iron\nfrom nothing, for some reason it has come back\nto life after 3,000 years.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "lets-go-pikachu",
+        "url": "https://pokeapi.co/api/v2/version/31/"
+      }
+    },
+    {
+      "flavor_text": "Revered long ago for its capacity to create iron\nfrom nothing, for some reason it has come back\nto life after 3,000 years.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version/32/"
+      }
+    },
+    {
+      "flavor_text": "At the end of its life-span, Melmetal will rust and\nfall apart. The small shards left behind will\neventually be reborn as Meltan.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Centrifugal force is behind the punches of\nMelmetal’s heavy hex-nut arms. Melmetal is said\nto deliver the strongest punches of all Pokémon.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "id": 543,
+  "name": "venipede",
+  "height": 4,
+  "weight": 53,
+  "base_experience": 52,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "bug"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "poison"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "poison-point"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "swarm"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "speed-boost"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 30,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 59,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 30,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 39,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 57,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/543/"
+  }
+}

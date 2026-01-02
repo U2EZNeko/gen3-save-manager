@@ -1,0 +1,72 @@
+{
+  "id": 4,
+  "name": "charmander",
+  "height": 6,
+  "weight": 85,
+  "base_experience": 62,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fire"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "blaze"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "solar-power"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 39,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 52,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 43,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/4/"
+  }
+}

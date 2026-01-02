@@ -1,0 +1,71 @@
+{
+  "id": 638,
+  "name": "cobalion",
+  "height": 21,
+  "weight": 2500,
+  "base_experience": 261,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "steel"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "fighting"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "justified"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 91,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 129,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 72,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 108,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/638/"
+  }
+}

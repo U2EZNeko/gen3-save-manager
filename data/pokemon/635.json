@@ -1,0 +1,71 @@
+{
+  "id": 635,
+  "name": "hydreigon",
+  "height": 18,
+  "weight": 1600,
+  "base_experience": 270,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "dark"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "dragon"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "levitate"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 92,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 105,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 125,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 98,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/635/"
+  }
+}

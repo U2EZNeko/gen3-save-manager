@@ -1,0 +1,53 @@
+{
+  "id": 733,
+  "name": "toucannon",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/377/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When it battles, its beak heats up. The\ntemperature can easily exceed 212 degrees\nFahrenheit, causing severe burns when it hits.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "Within its beak, its internal gas ignites,\nexplosively launching seeds with enough power\nto pulverize boulders.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "They smack beaks with others of their kind to\ncommunicate. The strength and number of hits\ntell each other how they feel.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Known for forming harmonious couples, this\nPokémon is brought to wedding ceremonies as a\ngood luck charm.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

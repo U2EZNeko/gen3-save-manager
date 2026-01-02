@@ -1,0 +1,65 @@
+{
+  "id": 420,
+  "name": "cherubi",
+  "height": 4,
+  "weight": 33,
+  "base_experience": 55,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "grass"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "chlorophyll"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 62,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 53,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/420/"
+  }
+}

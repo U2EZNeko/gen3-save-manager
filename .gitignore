@@ -1,8 +1,6 @@
 # Dependencies
 node_modules/
 
-# Data files (can be large)
-data/
 
 # Logs
 *.log
@@ -21,3 +19,5 @@ Thumbs.db
 # Build files
 dist/
 build/
+
+PKHeX-master/

@@ -1,0 +1,53 @@
+{
+  "id": 797,
+  "name": "celesteela",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/418/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It appeared from the Ultra Wormhole. Witnesses\nobserved it flying across the sky at high speed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "One kind of Ultra Beast. Witnesses have seen it\nburn down a forest by expelling gas from its\ntwo arms.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "One of the dangerous UBs, high energy readings\ncan be detected coming from both of its\nhuge arms.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Although it’s alien to this world and a danger\nhere, it’s apparently a common organism in the\nworld where it normally lives.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

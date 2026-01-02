@@ -1,0 +1,97 @@
+{
+  "id": 690,
+  "name": "skrelp",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/354/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Camouflaged as rotten kelp, they spray\nliquid poison on prey that approaches\nunawares and then finish it off.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "It looks just like rotten kelp. It hides from foes\nwhile storing up power for its evolution.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "Camouflaged as rotten kelp, they spray\nliquid poison on prey that approaches\nunawares and then finish it off.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "It looks just like rotten kelp. It hides from foes\nwhile storing up power for its evolution.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "It vanishes into seaweed and remains perfectly\nstill to avoid attacks from large Pokémon.\nRotten seaweed is its main food source.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It’s not good at swimming, so it clings to the\nseaweed. In the Alola region, it’s often found\nnear Dhelmise.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "It drifts in the ocean, blending in with floating\nseaweed. When other Pokémon come to feast on\nthe seaweed, Skrelp feasts on them instead.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Skrelp looks like a piece of rotten seaweed, so it\ncan blend in with seaweed drifting on the ocean\nand avoid being detected by enemies.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

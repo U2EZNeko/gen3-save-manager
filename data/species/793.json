@@ -1,0 +1,53 @@
+{
+  "id": 793,
+  "name": "nihilego",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/414/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "One of several mysterious Ultra Beasts. People\non the street report observing those infested\nby it suddenly becoming violent.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "One of the Ultra Beasts. It’s unclear whether or\nnot this Pokémon is sentient, but sometimes it\ncan be observed behaving like a young girl.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "A life-form from another world, it was dubbed\na UB and is thought to produce a\nstrong neurotoxin.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It appeared in this world from an Ultra\nWormhole. Nihilego appears to be a parasite\nthat lives by feeding on people and Pokémon.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": 685,
+  "name": "slurpuff",
+  "height": 8,
+  "weight": 50,
+  "base_experience": 168,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fairy"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "sweet-veil"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "unburden"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 82,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 86,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 72,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/685/"
+  }
+}

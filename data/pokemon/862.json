@@ -1,0 +1,85 @@
+{
+  "id": 862,
+  "name": "obstagoon",
+  "height": 16,
+  "weight": 460,
+  "base_experience": 260,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "dark"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "reckless"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "guts"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "defiant"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 93,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 101,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 81,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/862/"
+  }
+}

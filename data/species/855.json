@@ -1,0 +1,31 @@
+{
+  "id": 855,
+  "name": "polteageist",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/449/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "This species lives in antique teapots.\nMost pots are forgeries, but on rare occasions,\nan authentic work is found.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Leaving leftover black tea unattended is asking\nfor this Pokémon to come along and pour itself\ninto it, turning the tea into a new Polteageist.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

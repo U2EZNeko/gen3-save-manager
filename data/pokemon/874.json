@@ -1,0 +1,65 @@
+{
+  "id": 874,
+  "name": "stonjourner",
+  "height": 25,
+  "weight": 5200,
+  "base_experience": 165,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "rock"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "power-spot"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 125,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 135,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 20,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 20,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/874/"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": 567,
+  "name": "archeops",
+  "height": 14,
+  "weight": 320,
+  "base_experience": 177,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "rock"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "defeatist"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 140,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 112,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 110,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/567/"
+  }
+}

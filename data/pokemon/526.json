@@ -1,0 +1,79 @@
+{
+  "id": 526,
+  "name": "gigalith",
+  "height": 17,
+  "weight": 2600,
+  "base_experience": 232,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "rock"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "sturdy"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "sand-stream"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "sand-force"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 135,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 130,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 25,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/526/"
+  }
+}

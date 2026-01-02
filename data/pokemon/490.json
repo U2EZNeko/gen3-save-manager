@@ -1,0 +1,65 @@
+{
+  "id": 490,
+  "name": "manaphy",
+  "height": 3,
+  "weight": 14,
+  "base_experience": 270,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "hydration"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/490/"
+  }
+}

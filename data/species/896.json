@@ -1,0 +1,31 @@
+{
+  "id": 896,
+  "name": "glastrier",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/474/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Glastrier emits intense cold from its hooves.\nIt’s also a belligerent Pokémon—anything it\nwants, it takes by force.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Glastrier has tremendous physical strength, and\nthe mask of ice covering its face is 100 times\nharder than diamond.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

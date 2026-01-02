@@ -1,0 +1,31 @@
+{
+  "id": 863,
+  "name": "perrserker",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/22/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "What appears to be an iron helmet is actually\nhardened hair. This Pokémon lives for the thrill\nof battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "After many battles, it evolved dangerous\nclaws that come together to form daggers\nwhen extended.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

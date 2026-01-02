@@ -1,0 +1,71 @@
+{
+  "id": 791,
+  "name": "solgaleo",
+  "height": 34,
+  "weight": 2300,
+  "base_experience": 306,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "psychic"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "steel"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "full-metal-body"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 137,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 137,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 107,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 113,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 89,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 97,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/791/"
+  }
+}

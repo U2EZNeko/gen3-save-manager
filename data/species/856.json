@@ -1,0 +1,31 @@
+{
+  "id": 856,
+  "name": "hatenna",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/450/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Via the protrusion on its head, it senses other\ncreatures’ emotions. If you don’t have a calm\ndisposition, it will never warm up to you.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "If this Pokémon senses a strong emotion, it\nwill run away as fast as it can. It prefers areas\nwithout people.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

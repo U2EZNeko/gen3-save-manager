@@ -1,0 +1,53 @@
+{
+  "id": 801,
+  "name": "magearna",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/422/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "This artificial Pokémon, constructed more than\n500 years ago, can understand human speech\nbut cannot itself speak.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "Its mechanized body is merely a vessel. Its true\nself is its Soul-Heart, an artificial soul.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It synchronizes its consciousness with others\nto understand their feelings. This faculty makes\nit useful for taking care of people.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Built roughly 500 years ago by a scientist,\nthe part called the Soul-Heart is the\nactual life-form.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

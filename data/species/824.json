@@ -1,0 +1,31 @@
+{
+  "id": 824,
+  "name": "blipbug",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/435/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "A constant collector of information, this Pokémon\nis very smart. Very strong is what it isn’t.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Often found in gardens, this Pokémon has hairs\non its body that it uses to assess its surroundings.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

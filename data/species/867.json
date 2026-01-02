@@ -1,0 +1,31 @@
+{
+  "id": 867,
+  "name": "runerigus",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/287/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "A powerful curse was woven into an ancient\npainting. After absorbing the spirit of a Yamask,\nthe painting began to move.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Never touch its shadowlike body, or you’ll be\nshown the horrific memories behind the picture\ncarved into it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

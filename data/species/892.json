@@ -1,0 +1,31 @@
+{
+  "id": 892,
+  "name": "urshifu",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/470/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "This form of Urshifu is a strong believer in the\none-hit KO. Its strategy is to leap in close to foes\nand land a devastating blow with a hardened fist.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Inhabiting the mountains of a distant region, this\nPokémon races across sheer cliffs, training its legs\nand refining its moves.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

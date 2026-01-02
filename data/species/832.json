@@ -1,0 +1,31 @@
+{
+  "id": 832,
+  "name": "dubwool",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/438/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Weave a carpet from its springy wool, and you end\nup with something closer to a trampoline. You’ll\nstart to bounce the moment you set foot on it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Its majestic horns are meant only to impress the\nopposite gender. They never see use in battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

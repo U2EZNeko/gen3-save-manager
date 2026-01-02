@@ -1,0 +1,79 @@
+{
+  "id": 54,
+  "name": "psyduck",
+  "height": 8,
+  "weight": 196,
+  "base_experience": 64,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "water"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "damp"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "cloud-nine"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "swift-swim"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 52,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 48,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/54/"
+  }
+}

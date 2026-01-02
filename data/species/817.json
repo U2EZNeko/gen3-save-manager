@@ -1,0 +1,31 @@
+{
+  "id": 817,
+  "name": "drizzile",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/432/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "A clever combatant, this Pokémon battles using\nwater balloons created with moisture secreted\nfrom its palms.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Highly intelligent but also very lazy,\nit keeps enemies out of its territory\nby laying traps everywhere.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

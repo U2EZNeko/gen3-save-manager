@@ -1,0 +1,75 @@
+{
+  "id": 766,
+  "name": "passimian",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/395/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "They form groups of roughly 20 individuals.\nTheir mutual bond is remarkable—they will never\nlet down a comrade.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "They battle with hard berries for weapons.\nTheir techniques are passed from the boss to\nthe group, generation upon generation.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "They use their saliva to stick leaves to their\nshoulders. You can tell what troop they belong\nto from the position of the leaves.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Berries are its weapons as well as the staple of\nits diet. The one that can throw a berry the\nfarthest is the boss of the troop.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "Displaying amazing teamwork, they follow the\norders of their boss as they all help out in the\nsearch for their favorite berries.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Passimian live in groups of about 20, with\neach member performing an assigned role.\nThrough cooperation, the group survives.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

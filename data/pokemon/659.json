@@ -1,0 +1,79 @@
+{
+  "id": 659,
+  "name": "bunnelby",
+  "height": 4,
+  "weight": 50,
+  "base_experience": 47,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "pickup"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "cheek-pouch"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "huge-power"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 38,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 36,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 38,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 32,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 36,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 57,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/659/"
+  }
+}

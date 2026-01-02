@@ -1,0 +1,79 @@
+{
+  "id": 735,
+  "name": "gumshoos",
+  "height": 7,
+  "weight": 142,
+  "base_experience": 146,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "stakeout"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "strong-jaw"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "adaptability"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 88,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 110,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/735/"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": 748,
+  "name": "toxapex",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/385/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Toxapex crawls along the ocean floor on its\n12 legs. It leaves a trail of Corsola bits\nscattered in its wake.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "Those attacked by Toxapex’s poison will suffer\nintense pain for three days and three nights.\nPost-recovery, there will be some aftereffects.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "To attack, this Pokémon sends toxic spikes\nflying at its enemies. Ones that come close get\nmown down by the claws on its feet.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "With its 12 legs, it creates a dome to shelter\nwithin. The flow of the tides doesn’t affect\nToxapex in there, so it’s very comfortable.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "To survive in the cold waters of Galar, this\nPokémon forms a dome with its legs, enclosing\nits body so it can capture its own body heat.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Within the poison sac in its body is a poison so\ntoxic that Pokémon as large as Wailord will still\nbe suffering three days after it first takes effect.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

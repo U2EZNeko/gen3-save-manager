@@ -1,0 +1,119 @@
+{
+  "id": 575,
+  "name": "gothorita",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/293/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "They use hypnosis to control people and\nPokémon. Tales of Gothorita leading\npeople astray are told in every corner.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "Starlight is the source of their power.\nAt night, they mark star positions by\nusing psychic power to float stones.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "According to many old tales, it creates\nfriends for itself by controlling\nsleeping children on starry nights.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "According to many old tales, it creates\nfriends for itself by controlling\nsleeping children on starry nights.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "Starlight is the source of their power. At night,\nthey mark star positions by using psychic power\nto float stones.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "According to many old tales, it creates friends for\nitself by controlling sleeping children on\nstarry nights.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "Starlight is the source of their power. At night,\nthey mark star positions by using psychic power\nto float stones.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "According to many old tales, it creates friends for\nitself by controlling sleeping children on\nstarry nights.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "It’s said that when stars shine in the night sky,\nthis Pokémon will spirit away sleeping children.\nSome call it the Witch of Punishment.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "On nights when the stars shine, this Pokémon’s\npsychic power is at its strongest. It’s unknown just\nwhat link Gothorita has to the greater universe.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

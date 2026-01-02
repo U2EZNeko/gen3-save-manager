@@ -1,0 +1,75 @@
+{
+  "id": 789,
+  "name": "cosmog",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/413/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Its body is gaseous and frail. It slowly grows as\nit collects dust from the atmosphere.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "In ages past, it was called the child of the stars.\nIt’s said to be a Pokémon from another world,\nbut no specific details are known.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Even though its helpless, gaseous body can be\nblown away by the slightest breeze, it doesn’t\nseem to care.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Whether or not it’s a Pokémon from this world\nis a mystery. When it’s in a jam, it warps away\nto a safe place to hide.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon came from another universe.\nIts gaseous body is so light that even a gentle\nbreeze can blow it away.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Cosmog is very curious but not very cautious,\noften placing itself in danger. If things start to\nlook dicey, it teleports away.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

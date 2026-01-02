@@ -1,0 +1,65 @@
+{
+  "id": 809,
+  "name": "melmetal",
+  "height": 25,
+  "weight": 8000,
+  "base_experience": 270,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "steel"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "iron-fist"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 135,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 143,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 143,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 34,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/809/"
+  }
+}

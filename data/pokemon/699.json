@@ -1,0 +1,78 @@
+{
+  "id": 699,
+  "name": "aurorus",
+  "height": 27,
+  "weight": 2250,
+  "base_experience": 104,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "rock"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "ice"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "refrigerate"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "snow-warning"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 123,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 77,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 72,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 99,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 92,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 58,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/699/"
+  }
+}

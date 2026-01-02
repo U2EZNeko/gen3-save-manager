@@ -1,0 +1,31 @@
+{
+  "id": 860,
+  "name": "morgrem",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/451/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When it gets down on all fours as if to beg for\nforgiveness, it’s trying to lure opponents in so\nthat it can stab them with its spear-like hair.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "With sly cunning, it tries to lure people into the\nwoods. Some believe it to have the power to\nmake crops grow.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

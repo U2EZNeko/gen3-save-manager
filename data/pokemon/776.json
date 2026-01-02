@@ -1,0 +1,71 @@
+{
+  "id": 776,
+  "name": "turtonator",
+  "height": 20,
+  "weight": 2120,
+  "base_experience": 170,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fire"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "dragon"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "shell-armor"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 60,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 78,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 135,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 91,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 36,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/776/"
+  }
+}

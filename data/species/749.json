@@ -1,0 +1,75 @@
+{
+  "id": 749,
+  "name": "mudbray",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/386/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "The mud stuck to Mudbray’s hooves enhances\nits grip and its powerful running gait.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It has a stubborn, individualistic disposition.\nEating dirt, making mud, and playing in the mire\nall form part of its daily routine.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It loves playing in the mud. If it isn’t showered\nwith mud on a daily basis, it gets stressed\nout and stops listening to its Trainer.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Possessing mighty power, Mudbray can be\nloaded with 50 times its own body weight\nand will be totally fine.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "Loads weighing up to 50 times as much as its\nown body weight pose no issue for this Pokémon.\nIt’s skilled at making use of mud.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It eats dirt to create mud and smears this mud all\nover its feet, giving them the grip needed to walk\non rough terrain without slipping.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

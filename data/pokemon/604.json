@@ -1,0 +1,65 @@
+{
+  "id": 604,
+  "name": "eelektross",
+  "height": 21,
+  "weight": 805,
+  "base_experience": 232,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "electric"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "levitate"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 115,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 105,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/604/"
+  }
+}

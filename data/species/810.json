@@ -1,0 +1,31 @@
+{
+  "id": 810,
+  "name": "grookey",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/430/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When it uses its special stick to strike up a beat,\nthe sound waves produced carry revitalizing\nenergy to the plants and flowers in the area.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It attacks with rapid beats of its stick.\nAs it strikes with amazing speed, it gets\nmore and more pumped.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

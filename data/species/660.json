@@ -1,0 +1,75 @@
+{
+  "id": 660,
+  "name": "diggersby",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/340/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "With their powerful ears, they can heft\nboulders of a ton or more with ease.\nThey can be a big help at construction sites.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "As powerful as an excavator, its ears\ncan reduce dense bedrock to rubble.\nWhen it’s finished digging, it lounges lazily.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "With their powerful ears, they can heft\nboulders of a ton or more with ease.\nThey can be a big help at construction sites.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "As powerful as an excavator, its ears\ncan reduce dense bedrock to rubble.\nWhen it’s finished digging, it lounges lazily.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "With power equal to an excavator, it can dig\nthrough dense bedrock. It’s a huge help during\ntunnel construction.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "The fur on its belly retains heat exceptionally\nwell. People used to make heavy winter clothing\nfrom fur shed by this Pokémon.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

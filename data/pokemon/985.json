@@ -1,0 +1,71 @@
+{
+  "id": 985,
+  "name": "scream-tail",
+  "height": 12,
+  "weight": 80,
+  "base_experience": 285,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fairy"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "psychic"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "protosynthesis"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 115,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 99,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 115,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 111,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/985/"
+  }
+}

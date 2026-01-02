@@ -1,0 +1,31 @@
+{
+  "id": 880,
+  "name": "dracozolt",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/461/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "In ancient times, it was unbeatable thanks to its\npowerful lower body, but it went extinct anyway\nafter it depleted all its plant-based food sources.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "The powerful muscles in its tail generate its\nelectricity. Compared to its lower body,\nits upper half is entirely too small.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

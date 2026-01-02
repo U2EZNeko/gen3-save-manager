@@ -1,0 +1,31 @@
+{
+  "id": 812,
+  "name": "rillaboom",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/430/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "By drumming, it taps into the power of its special\ntree stump. The roots of the stump follow its\ndirection in battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "The one with the best drumming techniques\nbecomes the boss of the troop. It has a gentle\ndisposition and values harmony among its group.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

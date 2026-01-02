@@ -1,0 +1,85 @@
+{
+  "id": 628,
+  "name": "braviary",
+  "height": 15,
+  "weight": 410,
+  "base_experience": 179,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "keen-eye"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "sheer-force"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "defiant"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 123,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 57,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/628/"
+  }
+}

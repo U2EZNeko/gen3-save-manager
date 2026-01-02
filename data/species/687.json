@@ -1,0 +1,97 @@
+{
+  "id": 687,
+  "name": "malamar",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/352/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It wields the most compelling hypnotic powers\nof any Pokémon, and it forces others to do\nwhatever it wants.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "It lures its prey close with hypnotic motions,\nthen wraps its tentacles around it before\nfinishing it off with digestive fluids.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "It wields the most compelling hypnotic powers\nof any Pokémon, and it forces others to do\nwhatever it wants.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "It lures its prey close with hypnotic motions,\nthen wraps its tentacles around it before\nfinishing it off with digestive fluids.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "When it comes to strong hypnosis, there’s an\nendless number of people who utilize Malamar\nfor their nefarious deeds.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It flashes the pattern on its torso to control its\nprey and draw them in. The edges of its fins are\nsupremely sharp.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "Gazing at its luminescent spots will quickly\ninduce a hypnotic state, putting the observer\nunder Malamar’s control.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It’s said that Malamar’s hypnotic powers played\na role in certain history-changing events.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

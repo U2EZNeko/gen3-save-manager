@@ -1,0 +1,31 @@
+{
+  "id": 803,
+  "name": "poipole",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/424/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "This Ultra Beast is well enough liked to be\nchosen as a first partner in its own world.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "An Ultra Beast that lives in a different world, it\ncackles wildly as it sprays its opponents with\npoison from the needles on its head.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

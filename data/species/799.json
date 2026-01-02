@@ -1,0 +1,53 @@
+{
+  "id": 799,
+  "name": "guzzlord",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/420/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It has gobbled mountains and swallowed whole\nbuildings, according to reports. It’s one of the\nUltra Beasts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "A dangerous Ultra Beast, it appears to be eating\nconstantly, but for some reason its droppings\nhave never been found.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Although it’s alien to this world and a danger\nhere, it’s apparently a common organism in the\nworld where it normally lives.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "An unknown life-form called a UB. It may be\nconstantly hungry—it is certainly always\ndevouring something.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

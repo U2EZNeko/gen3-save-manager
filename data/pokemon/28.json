@@ -1,0 +1,72 @@
+{
+  "id": 28,
+  "name": "sandslash",
+  "height": 10,
+  "weight": 295,
+  "base_experience": 158,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "ground"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "sand-veil"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "sand-rush"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 110,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 45,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/28/"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": 845,
+  "name": "cramorant",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/444/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It’s so strong that it can knock out some\nopponents in a single hit, but it also may\nforget what it’s battling midfight.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "This hungry Pokémon swallows Arrokuda whole.\nOccasionally, it makes a mistake and tries to\nswallow a Pokémon other than its preferred prey.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

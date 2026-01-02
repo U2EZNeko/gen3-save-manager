@@ -1,0 +1,78 @@
+{
+  "id": 663,
+  "name": "talonflame",
+  "height": 12,
+  "weight": 245,
+  "base_experience": 175,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fire"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "flame-body"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "gale-wings"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 78,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 81,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 71,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 74,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 69,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 126,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/663/"
+  }
+}

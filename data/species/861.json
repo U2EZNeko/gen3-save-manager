@@ -1,0 +1,31 @@
+{
+  "id": 861,
+  "name": "grimmsnarl",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/451/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "With the hair wrapped around its body helping to\nenhance its muscles, this Pokémon can overwhelm\neven Machamp.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Its hairs work like muscle fibers. When its hairs\nunfurl, they latch on to opponents, ensnaring\nthem as tentacles would.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

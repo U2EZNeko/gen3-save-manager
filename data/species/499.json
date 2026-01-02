@@ -1,0 +1,97 @@
+{
+  "id": 499,
+  "name": "pignite",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/257/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When its internal fire flares up, its\nmovements grow sharper and faster.\nWhen in trouble, it emits smoke.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "Whatever it eats becomes fuel for the\nflame in its stomach. When it is angered,\nthe intensity of the flame increases.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "The more it eats, the more fuel it has\nto make the fire in its stomach stronger.\nThis fills it with even more power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "The more it eats, the more fuel it has\nto make the fire in its stomach stronger.\nThis fills it with even more power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "The more it eats, the more fuel it has to make the\nfire in its stomach stronger. This fills it with even\nmore power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "When its internal fire flares up, its movements grow\nsharper and faster. When in trouble, it emits smoke.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "The more it eats, the more fuel it has to make the\nfire in its stomach stronger. This fills it with even\nmore power.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "When its internal fire flares up, its movements grow\nsharper and faster. When in trouble, it emits smoke.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    }
+  ]
+}

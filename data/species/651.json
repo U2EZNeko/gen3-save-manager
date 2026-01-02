@@ -1,0 +1,53 @@
+{
+  "id": 651,
+  "name": "quilladin",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/337/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It relies on its sturdy shell to deflect predators’\nattacks. It counterattacks with its sharp quills.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "They strengthen their lower bodies by\nrunning into one another. They are very\nkind and won’t start fights.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "It relies on its sturdy shell to deflect predators’\nattacks. It counterattacks with its sharp quills.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "They strengthen their lower bodies by\nrunning into one another. They are very\nkind and won’t start fights.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": 790,
+  "name": "cosmoem",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/413/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Motionless as if dead, its body is faintly warm to\nthe touch. In the distant past, it was called the\ncocoon of the stars.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "There’s something accumulating around the\nblack core within its hard shell. People think\nthis Pokémon may come from another world.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "The king who ruled Alola in times of antiquity\ncalled it the “cocoon of the stars” and built\nan altar to worship it.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "As it absorbs light, Cosmoem continues to grow.\nIts golden shell is surprisingly solid.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "The absorption of starlight fuels this Pokémon’s\ngrowth. The shell that encases it is harder than\nany known material.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It sucks in dust from the air at an astounding rate,\nfrantically building up energy within its core as\npreparation for evolution.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

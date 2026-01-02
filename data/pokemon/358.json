@@ -1,0 +1,65 @@
+{
+  "id": 358,
+  "name": "chimecho",
+  "height": 6,
+  "weight": 10,
+  "base_experience": 159,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "psychic"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "levitate"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/358/"
+  }
+}

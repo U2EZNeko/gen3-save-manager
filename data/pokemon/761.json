@@ -1,0 +1,79 @@
+{
+  "id": 761,
+  "name": "bounsweet",
+  "height": 3,
+  "weight": 32,
+  "base_experience": 42,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "grass"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "leaf-guard"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "oblivious"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "sweet-veil"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 42,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 30,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 38,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 30,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 38,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 32,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/761/"
+  }
+}

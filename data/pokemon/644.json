@@ -1,0 +1,71 @@
+{
+  "id": 644,
+  "name": "zekrom",
+  "height": 29,
+  "weight": 3450,
+  "base_experience": 306,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "dragon"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "electric"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "teravolt"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 150,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 120,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 120,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/644/"
+  }
+}

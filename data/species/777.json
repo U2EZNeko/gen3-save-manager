@@ -1,0 +1,75 @@
+{
+  "id": 777,
+  "name": "togedemaru",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/403/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "The spiny fur on its back is normally at rest.\nWhen this Pokémon becomes agitated, its fur\nstands on end and stabs into its attackers.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "The long hairs on its back act as lightning rods.\nThe bolts of lightning it attracts are stored as\nenergy in its electric sac.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "When it’s surprised or agitated, the 14 fur\nspikes on its back will stand up involuntarily.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Its capacity to produce electricity is somewhat\nlimited, so it gets charged up by letting lightning\nstrike it!",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "With the long hairs on its back, this Pokémon\ntakes in electricity from other electric Pokémon.\nIt stores what it absorbs in an electric sac.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "When it’s in trouble, it curls up into a ball, makes\nits fur spikes stand on end, and then discharges\nelectricity indiscriminately.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

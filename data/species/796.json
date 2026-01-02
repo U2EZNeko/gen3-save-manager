@@ -1,0 +1,53 @@
+{
+  "id": 796,
+  "name": "xurkitree",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/417/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "One of the mysterious life-forms known as Ultra\nBeasts. Astonishing electric shocks emanate\nfrom its entire body, according to witnesses.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "It appeared from the Ultra Wormhole. It raided a\npower plant, so people think it energizes itself\nwith electricity.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "Although it’s alien to this world and a danger\nhere, it’s apparently a common organism in the\nworld where it normally lives.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "They’ve been dubbed Ultra Beasts. Some of\nthem stand unmoving, like trees, with their\narms and legs stuck into the ground.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "id": 896,
+  "name": "glastrier",
+  "height": 22,
+  "weight": 8000,
+  "base_experience": 290,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "ice"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "chilling-neigh"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 100,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 145,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 130,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 110,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 30,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/896/"
+  }
+}

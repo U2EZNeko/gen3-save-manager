@@ -1,0 +1,71 @@
+{
+  "id": 989,
+  "name": "sandy-shocks",
+  "height": 23,
+  "weight": 600,
+  "base_experience": 285,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "electric"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "ground"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "protosynthesis"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 81,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 97,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 121,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 101,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/989/"
+  }
+}

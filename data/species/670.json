@@ -1,0 +1,75 @@
+{
+  "id": 670,
+  "name": "floette",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/344/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It flutters around fields of flowers and cares for\nflowers that are starting to wilt. It draws\nout the hidden power of flowers to battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "When the flowers of a well-tended flower bed bloom,\nit appears and celebrates with an elegant dance.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "It flutters around fields of flowers and cares for\nflowers that are starting to wilt. It draws\nout the hidden power of flowers to battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "When the flowers of a well-tended flower bed bloom,\nit appears and celebrates with an elegant dance.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "It raises flowers and uses them as weapons.\nThe more gorgeous the blossom, the more\npower it contains.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It gives its own power to flowers, pouring its\nheart into caring for them. Floette never forgives\nanyone who messes up a flower bed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "id": 454,
+  "name": "toxicroak",
+  "height": 13,
+  "weight": 444,
+  "base_experience": 172,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "poison"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "fighting"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "anticipation"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "dry-skin"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "poison-touch"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 83,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 106,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 86,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 85,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/454/"
+  }
+}

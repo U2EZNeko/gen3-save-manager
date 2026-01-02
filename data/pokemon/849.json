@@ -1,0 +1,85 @@
+{
+  "id": 849,
+  "name": "toxtricity-amped",
+  "height": 16,
+  "weight": 400,
+  "base_experience": 176,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "electric"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "poison"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "punk-rock"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "plus"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "technician"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 98,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 114,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 70,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/849/"
+  }
+}

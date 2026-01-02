@@ -1,0 +1,53 @@
+{
+  "id": 731,
+  "name": "pikipek",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/377/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It can peck at a rate of 16 times a second to\ndrill holes in trees. It uses the holes for food\nstorage and for nesting.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon feeds on berries, whose leftover\nseeds become the ammunition for the attacks it\nfires off from its mouth.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It pecks at trees with its hard beak. You can\nget some idea of its mood or condition from the\nrhythm of its pecking.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "It may look spindly, but its neck muscles are\nheavy-duty. It can peck at a tree 16 times\nper second!",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    }
+  ]
+}

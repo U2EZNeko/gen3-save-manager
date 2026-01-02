@@ -1,0 +1,78 @@
+{
+  "id": 391,
+  "name": "monferno",
+  "height": 9,
+  "weight": 220,
+  "base_experience": 142,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "fire"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "fighting"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "blaze"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "iron-fist"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 64,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 78,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 52,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 78,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 52,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 81,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/391/"
+  }
+}

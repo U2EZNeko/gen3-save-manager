@@ -1,0 +1,72 @@
+{
+  "id": 295,
+  "name": "exploud",
+  "height": 15,
+  "weight": 840,
+  "base_experience": 221,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "soundproof"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "scrappy"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 104,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 91,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 63,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 91,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 73,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 68,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/295/"
+  }
+}

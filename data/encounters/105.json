@@ -1,0 +1,991 @@
+[
+  {
+    "location_area": {
+      "name": "rock-tunnel-1f",
+      "url": "https://pokeapi.co/api/v2/location-area/292/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 12,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 12
+          },
+          {
+            "chance": 4,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 12,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 12
+          },
+          {
+            "chance": 1,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 12,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 12
+          },
+          {
+            "chance": 1,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 12,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 12
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "crystal",
+          "url": "https://pokeapi.co/api/v2/version/6/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "rock-tunnel-b1f",
+      "url": "https://pokeapi.co/api/v2/location-area/293/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 5,
+            "condition_values": [],
+            "max_level": 14,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 14
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "gold",
+          "url": "https://pokeapi.co/api/v2/version/4/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 5,
+            "condition_values": [],
+            "max_level": 14,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 14
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "silver",
+          "url": "https://pokeapi.co/api/v2/version/5/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 5,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 15,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 15
+          },
+          {
+            "chance": 5,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 15,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 15
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "crystal",
+          "url": "https://pokeapi.co/api/v2/version/6/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 14,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 14
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 14,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 14
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "heartgold",
+          "url": "https://pokeapi.co/api/v2/version/15/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 14,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 14
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 14,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 14
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "soulsilver",
+          "url": "https://pokeapi.co/api/v2/version/16/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-route-9-area",
+      "url": "https://pokeapi.co/api/v2/location-area/303/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 18,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 18
+          },
+          {
+            "chance": 4,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 18,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 18
+          },
+          {
+            "chance": 1,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 18,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 18
+          },
+          {
+            "chance": 1,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 18,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 18
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "crystal",
+          "url": "https://pokeapi.co/api/v2/version/6/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-route-10-area",
+      "url": "https://pokeapi.co/api/v2/location-area/304/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 5,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 15,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 15
+          },
+          {
+            "chance": 5,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 15,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 15
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "crystal",
+          "url": "https://pokeapi.co/api/v2/version/6/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "cerulean-cave-2f",
+      "url": "https://pokeapi.co/api/v2/location-area/324/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 10,
+            "condition_values": [],
+            "max_level": 52,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 52
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "red",
+          "url": "https://pokeapi.co/api/v2/version/1/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 10,
+            "condition_values": [],
+            "max_level": 52,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 52
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "blue",
+          "url": "https://pokeapi.co/api/v2/version/2/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "cerulean-cave-b1f",
+      "url": "https://pokeapi.co/api/v2/location-area/325/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 20,
+            "condition_values": [],
+            "max_level": 55,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 55
+          }
+        ],
+        "max_chance": 20,
+        "version": {
+          "name": "red",
+          "url": "https://pokeapi.co/api/v2/version/1/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 20,
+            "condition_values": [],
+            "max_level": 55,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 55
+          }
+        ],
+        "max_chance": 20,
+        "version": {
+          "name": "blue",
+          "url": "https://pokeapi.co/api/v2/version/2/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-victory-road-2-1f",
+      "url": "https://pokeapi.co/api/v2/location-area/331/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 43,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 43
+          }
+        ],
+        "max_chance": 1,
+        "version": {
+          "name": "red",
+          "url": "https://pokeapi.co/api/v2/version/1/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 43,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 43
+          }
+        ],
+        "max_chance": 1,
+        "version": {
+          "name": "blue",
+          "url": "https://pokeapi.co/api/v2/version/2/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 44,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 44
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 46,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 46
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "firered",
+          "url": "https://pokeapi.co/api/v2/version/10/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 44,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 44
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 46,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 46
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "leafgreen",
+          "url": "https://pokeapi.co/api/v2/version/11/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-victory-road-2-2f",
+      "url": "https://pokeapi.co/api/v2/location-area/332/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 40,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 40
+          }
+        ],
+        "max_chance": 4,
+        "version": {
+          "name": "red",
+          "url": "https://pokeapi.co/api/v2/version/1/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 40,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 40
+          }
+        ],
+        "max_chance": 4,
+        "version": {
+          "name": "blue",
+          "url": "https://pokeapi.co/api/v2/version/2/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 46,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 46
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 48,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 48
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "firered",
+          "url": "https://pokeapi.co/api/v2/version/10/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 46,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 46
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 48,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 48
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "leafgreen",
+          "url": "https://pokeapi.co/api/v2/version/11/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-victory-road-2-3f",
+      "url": "https://pokeapi.co/api/v2/location-area/333/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 44,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 44
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 46,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 46
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "firered",
+          "url": "https://pokeapi.co/api/v2/version/10/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 4,
+            "condition_values": [],
+            "max_level": 44,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 44
+          },
+          {
+            "chance": 1,
+            "condition_values": [],
+            "max_level": 46,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 46
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "leafgreen",
+          "url": "https://pokeapi.co/api/v2/version/11/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-safari-zone-area-1-east",
+      "url": "https://pokeapi.co/api/v2/location-area/346/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 5,
+            "condition_values": [],
+            "max_level": 24,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 24
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "yellow",
+          "url": "https://pokeapi.co/api/v2/version/3/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "kanto-safari-zone-area-3-west",
+      "url": "https://pokeapi.co/api/v2/location-area/348/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 5,
+            "condition_values": [],
+            "max_level": 24,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 24
+          }
+        ],
+        "max_chance": 5,
+        "version": {
+          "name": "yellow",
+          "url": "https://pokeapi.co/api/v2/version/3/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "sevault-canyon-area",
+      "url": "https://pokeapi.co/api/v2/location-area/527/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 10,
+            "condition_values": [],
+            "max_level": 52,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 52
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "firered",
+          "url": "https://pokeapi.co/api/v2/version/10/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 10,
+            "condition_values": [],
+            "max_level": 52,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 52
+          }
+        ],
+        "max_chance": 10,
+        "version": {
+          "name": "leafgreen",
+          "url": "https://pokeapi.co/api/v2/version/11/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "unova-route-15-area",
+      "url": "https://pokeapi.co/api/v2/location-area/650/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 20,
+            "condition_values": [],
+            "max_level": 47,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 47
+          },
+          {
+            "chance": 20,
+            "condition_values": [],
+            "max_level": 57,
+            "method": {
+              "name": "dark-grass",
+              "url": "https://pokeapi.co/api/v2/encounter-method/8/"
+            },
+            "min_level": 57
+          }
+        ],
+        "max_chance": 40,
+        "version": {
+          "name": "black",
+          "url": "https://pokeapi.co/api/v2/version/17/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 20,
+            "condition_values": [],
+            "max_level": 47,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 47
+          },
+          {
+            "chance": 20,
+            "condition_values": [],
+            "max_level": 57,
+            "method": {
+              "name": "dark-grass",
+              "url": "https://pokeapi.co/api/v2/encounter-method/8/"
+            },
+            "min_level": 57
+          }
+        ],
+        "max_chance": 40,
+        "version": {
+          "name": "white",
+          "url": "https://pokeapi.co/api/v2/version/18/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "johto-safari-zone-zone-desert",
+      "url": "https://pokeapi.co/api/v2/location-area/814/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 10,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 17,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 17
+          },
+          {
+            "chance": 10,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 17,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 17
+          }
+        ],
+        "max_chance": 20,
+        "version": {
+          "name": "heartgold",
+          "url": "https://pokeapi.co/api/v2/version/15/"
+        }
+      },
+      {
+        "encounter_details": [
+          {
+            "chance": 10,
+            "condition_values": [
+              {
+                "name": "time-morning",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/3/"
+              }
+            ],
+            "max_level": 17,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 17
+          },
+          {
+            "chance": 10,
+            "condition_values": [
+              {
+                "name": "time-day",
+                "url": "https://pokeapi.co/api/v2/encounter-condition-value/4/"
+              }
+            ],
+            "max_level": 17,
+            "method": {
+              "name": "walk",
+              "url": "https://pokeapi.co/api/v2/encounter-method/1/"
+            },
+            "min_level": 17
+          }
+        ],
+        "max_chance": 20,
+        "version": {
+          "name": "soulsilver",
+          "url": "https://pokeapi.co/api/v2/version/16/"
+        }
+      }
+    ]
+  },
+  {
+    "location_area": {
+      "name": "heahea-beach-area",
+      "url": "https://pokeapi.co/api/v2/location-area/1087/"
+    },
+    "version_details": [
+      {
+        "encounter_details": [
+          {
+            "chance": 100,
+            "condition_values": [],
+            "max_level": 25,
+            "method": {
+              "name": "gift",
+              "url": "https://pokeapi.co/api/v2/encounter-method/18/"
+            },
+            "min_level": 25
+          }
+        ],
+        "max_chance": 100,
+        "version": {
+          "name": "ultra-sun",
+          "url": "https://pokeapi.co/api/v2/version/29/"
+        }
+      }
+    ]
+  }
+]

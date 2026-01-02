@@ -1,0 +1,31 @@
+{
+  "id": 884,
+  "name": "duraludon",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/465/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Its body resembles polished metal, and it’s both\nlightweight and strong. The only drawback is that\nit rusts easily.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "The special metal that composes its body is very\nlight, so this Pokémon has considerable agility.\nIt lives in caves because it dislikes the rain.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

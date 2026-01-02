@@ -1,0 +1,31 @@
+{
+  "id": 874,
+  "name": "stonjourner",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/456/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It stands in grasslands, watching the sun’s descent\nfrom zenith to horizon. This Pokémon has a talent\nfor delivering dynamic kicks.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "Once a year, on a specific date and at a specific\ntime, they gather out of nowhere and form up in\na circle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

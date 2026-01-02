@@ -1,0 +1,31 @@
+{
+  "id": 819,
+  "name": "skwovet",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/433/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Found throughout the Galar region, this Pokémon\nbecomes uneasy if its cheeks are ever completely\nempty of berries.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "It eats berries nonstop—a habit that has made\nit more resilient than it looks. It’ll show up on\nfarms, searching for yet more berries.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

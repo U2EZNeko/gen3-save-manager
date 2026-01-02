@@ -1,0 +1,75 @@
+{
+  "id": 781,
+  "name": "dhelmise",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/407/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Swinging its massive anchor, it can KO Wailord\nin a single blow. What appears to be green\nseaweed is actually its body.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sun",
+        "url": "https://pokeapi.co/api/v2/version/27/"
+      }
+    },
+    {
+      "flavor_text": "The soul of seaweed adrift in the waves became\nreborn as this Pokémon. It maintains itself with\nnew infusions of seabed detritus and seaweed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "moon",
+        "url": "https://pokeapi.co/api/v2/version/28/"
+      }
+    },
+    {
+      "flavor_text": "It wraps its prey in green seaweed and sucks\naway their vitality. It only likes to go after big\nprey like Wailord.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-sun",
+        "url": "https://pokeapi.co/api/v2/version/29/"
+      }
+    },
+    {
+      "flavor_text": "Its chain-like green seaweed can stretch\noutward for hundreds of yards. For some\nreason, it gets along well with Skrelp.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version/30/"
+      }
+    },
+    {
+      "flavor_text": "After a piece of seaweed merged with debris\nfrom a sunken ship, it was reborn as this\nghost Pokémon.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "After lowering its anchor, it waits for its prey. It\ncatches large Wailord and drains their life-force.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

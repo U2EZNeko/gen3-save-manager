@@ -1,0 +1,108 @@
+{
+  "id": 645,
+  "name": "landorus",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/332/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Lands visited by Landorus grant such\nbountiful crops that it has been hailed\nas “The Guardian of the Fields.”",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black",
+        "url": "https://pokeapi.co/api/v2/version/17/"
+      }
+    },
+    {
+      "flavor_text": "The energy that comes pouring from its\ntail increases the nutrition in the soil,\nmaking crops grow to great size.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white",
+        "url": "https://pokeapi.co/api/v2/version/18/"
+      }
+    },
+    {
+      "flavor_text": "From the forces of lightning and wind,\nit creates energy to give nutrients to\nthe soil and make the land abundant.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "black-2",
+        "url": "https://pokeapi.co/api/v2/version/21/"
+      }
+    },
+    {
+      "flavor_text": "From the forces of lightning and wind,\nit creates energy to give nutrients to\nthe soil and make the land abundant.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "white-2",
+        "url": "https://pokeapi.co/api/v2/version/22/"
+      }
+    },
+    {
+      "flavor_text": "Lands visited by Landorus grant such bountiful\ncrops that it has been hailed as “The Guardian of\nthe Fields.”",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "x",
+        "url": "https://pokeapi.co/api/v2/version/23/"
+      }
+    },
+    {
+      "flavor_text": "From the forces of lightning and wind, it creates\nenergy to give nutrients to the soil and make the\nland abundant.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "y",
+        "url": "https://pokeapi.co/api/v2/version/24/"
+      }
+    },
+    {
+      "flavor_text": "Lands visited by Landorus grant such bountiful\ncrops that it has been hailed as “The Guardian of\nthe Fields.”",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "omega-ruby",
+        "url": "https://pokeapi.co/api/v2/version/25/"
+      }
+    },
+    {
+      "flavor_text": "From the forces of lightning and wind, it creates\nenergy to give nutrients to the soil and make the\nland abundant.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version/26/"
+      }
+    },
+    {
+      "flavor_text": "When the incarnations of wind and of lightning clash, Landorus\narrives to quell the conflict. After the tempests and thunderbolts\nabate, the land is sure to be blessed with bountiful harvests.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "legends-arceus",
+        "url": "https://pokeapi.co/api/v2/version/39/"
+      }
+    }
+  ]
+}

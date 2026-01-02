@@ -1,0 +1,53 @@
+{
+  "id": 808,
+  "name": "meltan",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/428/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "It melts particles of iron and other metals found\nin the subsoil, so it can absorb them into its\nbody of molten steel.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "lets-go-pikachu",
+        "url": "https://pokeapi.co/api/v2/version/31/"
+      }
+    },
+    {
+      "flavor_text": "It melts particles of iron and other metals found\nin the subsoil, so it can absorb them into its\nbody of molten steel.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version/32/"
+      }
+    },
+    {
+      "flavor_text": "It dissolves and eats metal. Circulating liquid\nmetal within its body is how it generates energy.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "They live as a group, but when the time comes,\none strong Meltan will absorb all the others\nand evolve.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

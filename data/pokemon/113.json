@@ -1,0 +1,79 @@
+{
+  "id": 113,
+  "name": "chansey",
+  "height": 11,
+  "weight": 346,
+  "base_experience": 395,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "normal"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "natural-cure"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "serene-grace"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "healer"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 250,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 5,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 5,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 35,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 105,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 50,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/113/"
+  }
+}

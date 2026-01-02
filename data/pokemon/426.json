@@ -1,0 +1,85 @@
+{
+  "id": 426,
+  "name": "drifblim",
+  "height": 12,
+  "weight": 150,
+  "base_experience": 174,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "ghost"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "aftermath"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "unburden"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "flare-boost"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 150,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 44,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 90,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 54,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 80,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/426/"
+  }
+}

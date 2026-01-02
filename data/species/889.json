@@ -1,0 +1,31 @@
+{
+  "id": 889,
+  "name": "zamazenta",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/468/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "In times past, it worked together with a king of\nthe people to save the Galar region. It absorbs\nmetal that it then uses in battle.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "This Pokémon slept for aeons while in the form of\na statue. It was asleep for so long, people forgot\nthat it ever existed.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

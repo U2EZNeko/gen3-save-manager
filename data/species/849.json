@@ -1,0 +1,31 @@
+{
+  "id": 849,
+  "name": "toxtricity",
+  "evolution_chain": {
+    "url": "https://pokeapi.co/api/v2/evolution-chain/446/"
+  },
+  "flavor_text_entries": [
+    {
+      "flavor_text": "When this Pokémon sounds as if it’s strumming a\nguitar, it’s actually clawing at the protrusions on\nits chest to generate electricity.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "sword",
+        "url": "https://pokeapi.co/api/v2/version/33/"
+      }
+    },
+    {
+      "flavor_text": "This short-tempered and aggressive Pokémon\nchugs stagnant water to absorb any toxins it\nmight contain.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version": {
+        "name": "shield",
+        "url": "https://pokeapi.co/api/v2/version/34/"
+      }
+    }
+  ]
+}

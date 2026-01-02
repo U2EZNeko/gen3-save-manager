@@ -1,0 +1,79 @@
+{
+  "id": 745,
+  "name": "lycanroc-midday",
+  "height": 8,
+  "weight": 250,
+  "base_experience": 170,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "rock"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "keen-eye"
+      },
+      "is_hidden": false,
+      "slot": 1
+    },
+    {
+      "ability": {
+        "name": "sand-rush"
+      },
+      "is_hidden": false,
+      "slot": 2
+    },
+    {
+      "ability": {
+        "name": "steadfast"
+      },
+      "is_hidden": true,
+      "slot": 3
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 75,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 115,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 55,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 65,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 112,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/745/"
+  }
+}

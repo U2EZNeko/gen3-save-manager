@@ -1,0 +1,71 @@
+{
+  "id": 717,
+  "name": "yveltal",
+  "height": 58,
+  "weight": 2030,
+  "base_experience": 306,
+  "types": [
+    {
+      "slot": 1,
+      "type": {
+        "name": "dark"
+      }
+    },
+    {
+      "slot": 2,
+      "type": {
+        "name": "flying"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "ability": {
+        "name": "dark-aura"
+      },
+      "is_hidden": false,
+      "slot": 1
+    }
+  ],
+  "stats": [
+    {
+      "base_stat": 126,
+      "stat": {
+        "name": "hp"
+      }
+    },
+    {
+      "base_stat": 131,
+      "stat": {
+        "name": "attack"
+      }
+    },
+    {
+      "base_stat": 95,
+      "stat": {
+        "name": "defense"
+      }
+    },
+    {
+      "base_stat": 131,
+      "stat": {
+        "name": "special-attack"
+      }
+    },
+    {
+      "base_stat": 98,
+      "stat": {
+        "name": "special-defense"
+      }
+    },
+    {
+      "base_stat": 99,
+      "stat": {
+        "name": "speed"
+      }
+    }
+  ],
+  "species": {
+    "url": "https://pokeapi.co/api/v2/pokemon-species/717/"
+  }
+}
