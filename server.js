@@ -10,6 +10,19 @@ const SAV3Parser = require('./parsers/sav3-parser');
 const multer = require('multer');
 const archiver = require('archiver');
 
+// Use global fetch if available (Node.js 18+), otherwise use node-fetch
+let fetch;
+if (typeof globalThis.fetch === 'function') {
+  fetch = globalThis.fetch;
+} else {
+  try {
+    fetch = require('node-fetch');
+  } catch (e) {
+    console.warn('fetch not available, some features may not work');
+    fetch = null;
+  }
+}
+
 // Gen 3 box constants
 const COUNT_BOX = 14;
 const COUNT_SLOTSPERBOX = 30;
@@ -1359,6 +1372,269 @@ const EVOLUTION_CHAIN = {
 function getEvolution(speciesId) {
   return EVOLUTION_CHAIN[speciesId] || null;
 }
+
+// Helper function to get pre-evolution (what evolves into this species)
+function getPreEvolution(speciesId) {
+  for (const [preId, evoId] of Object.entries(EVOLUTION_CHAIN)) {
+    if (evoId === speciesId) {
+      return parseInt(preId);
+    }
+  }
+  return null;
+}
+
+// API endpoint to get evolution information
+app.get('/api/pokemon/evolution-info/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    
+    if (!speciesId || isNaN(speciesId)) {
+      return res.status(400).json({ error: 'Invalid species ID' });
+    }
+    
+    const evolvesInto = getEvolution(speciesId);
+    const evolvesFrom = getPreEvolution(speciesId);
+    
+    res.json({
+      speciesId,
+      evolvesInto: evolvesInto || null,
+      evolvesFrom: evolvesFrom || null
+    });
+  } catch (error) {
+    console.error('Error getting evolution info:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get species name (from local data)
+app.get('/api/pokemon/species-name/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    
+    if (!speciesId || isNaN(speciesId)) {
+      return res.status(400).json({ error: 'Invalid species ID' });
+    }
+    
+    // Try local data file first
+    const speciesFilePath = path.join(__dirname, 'data', 'species', `${speciesId}.json`);
+    if (fs.existsSync(speciesFilePath)) {
+      try {
+        const speciesData = JSON.parse(fs.readFileSync(speciesFilePath, 'utf8'));
+        const name = speciesData.name.charAt(0).toUpperCase() + speciesData.name.slice(1);
+        return res.json({ speciesId, name });
+      } catch (error) {
+        console.error(`Error reading species file ${speciesId}:`, error);
+      }
+    }
+    
+    // Fallback to local SPECIES_NAMES
+    const localName = getSpeciesName(speciesId);
+    res.json({ speciesId, name: localName });
+  } catch (error) {
+    console.error('Error getting species name:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get Pokemon data (from local storage)
+app.get('/api/pokemon/data/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    
+    if (!speciesId || isNaN(speciesId)) {
+      return res.status(400).json({ error: 'Invalid species ID' });
+    }
+    
+    // Read from local file
+    const pokemonFilePath = path.join(__dirname, 'data', 'pokemon', `${speciesId}.json`);
+    if (fs.existsSync(pokemonFilePath)) {
+      try {
+        const pokemonData = JSON.parse(fs.readFileSync(pokemonFilePath, 'utf8'));
+        return res.json(pokemonData);
+      } catch (error) {
+        console.error(`Error reading Pokemon file ${speciesId}:`, error);
+        return res.status(500).json({ error: 'Failed to read Pokemon data' });
+      }
+    }
+    
+    res.status(404).json({ error: 'Pokemon data not found' });
+  } catch (error) {
+    console.error('Error getting Pokemon data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get Pokemon species data (from local storage)
+app.get('/api/pokemon/species/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    
+    if (!speciesId || isNaN(speciesId)) {
+      return res.status(400).json({ error: 'Invalid species ID' });
+    }
+    
+    // Read from local file
+    const speciesFilePath = path.join(__dirname, 'data', 'species', `${speciesId}.json`);
+    if (fs.existsSync(speciesFilePath)) {
+      try {
+        const speciesData = JSON.parse(fs.readFileSync(speciesFilePath, 'utf8'));
+        return res.json(speciesData);
+      } catch (error) {
+        console.error(`Error reading species file ${speciesId}:`, error);
+        return res.status(500).json({ error: 'Failed to read species data' });
+      }
+    }
+    
+    res.status(404).json({ error: 'Species data not found' });
+  } catch (error) {
+    console.error('Error getting species data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get evolution chain data (from local storage)
+app.get('/api/pokemon/evolution-chain/:chainId', (req, res) => {
+  try {
+    const chainId = parseInt(req.params.chainId);
+    
+    if (!chainId || isNaN(chainId)) {
+      return res.status(400).json({ error: 'Invalid chain ID' });
+    }
+    
+    // Read from local file
+    const evolutionFilePath = path.join(__dirname, 'data', 'evolution', `${chainId}.json`);
+    if (fs.existsSync(evolutionFilePath)) {
+      try {
+        const evolutionData = JSON.parse(fs.readFileSync(evolutionFilePath, 'utf8'));
+        return res.json(evolutionData);
+      } catch (error) {
+        console.error(`Error reading evolution file ${chainId}:`, error);
+        return res.status(500).json({ error: 'Failed to read evolution chain' });
+      }
+    }
+    
+    res.status(404).json({ error: 'Evolution chain not found' });
+  } catch (error) {
+    console.error('Error getting evolution chain:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get Pokemon encounters/locations (from local storage)
+app.get('/api/pokemon/encounters/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    
+    if (!speciesId || isNaN(speciesId)) {
+      return res.status(400).json({ error: 'Invalid species ID' });
+    }
+    
+    // Read from local file
+    const encountersFilePath = path.join(__dirname, 'data', 'encounters', `${speciesId}.json`);
+    if (fs.existsSync(encountersFilePath)) {
+      try {
+        const encountersData = JSON.parse(fs.readFileSync(encountersFilePath, 'utf8'));
+        return res.json(encountersData);
+      } catch (error) {
+        console.error(`Error reading encounters file ${speciesId}:`, error);
+        return res.status(500).json({ error: 'Failed to read encounters data' });
+      }
+    }
+    
+    // Return empty array if no encounters file (some Pokemon don't have encounters)
+    res.json([]);
+  } catch (error) {
+    console.error('Error getting encounters:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to proxy sprites (serves from PokeAPI but through server)
+app.get('/api/pokemon/sprite/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    const isShiny = req.query.shiny === 'true';
+    
+    if (!speciesId || isNaN(speciesId)) {
+      return res.status(400).json({ error: 'Invalid species ID' });
+    }
+    
+    // Redirect to PokeAPI sprite
+    const spriteUrl = isShiny
+      ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${speciesId}.png`
+      : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png`;
+    
+    res.redirect(spriteUrl);
+  } catch (error) {
+    console.error('Error getting sprite:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get move data (from local storage)
+app.get('/api/pokemon/move/:moveId', (req, res) => {
+  try {
+    const moveId = parseInt(req.params.moveId);
+    
+    if (!moveId || isNaN(moveId)) {
+      return res.status(400).json({ error: 'Invalid move ID' });
+    }
+    
+    // Read from local file
+    const moveFilePath = path.join(__dirname, 'data', 'moves', `${moveId}.json`);
+    if (fs.existsSync(moveFilePath)) {
+      try {
+        const moveData = JSON.parse(fs.readFileSync(moveFilePath, 'utf8'));
+        return res.json(moveData);
+      } catch (error) {
+        console.error(`Error reading move file ${moveId}:`, error);
+        return res.status(500).json({ error: 'Failed to read move data' });
+      }
+    }
+    
+    // Fallback
+    res.json({ id: moveId, name: `Move #${moveId}`, type: 'normal' });
+  } catch (error) {
+    console.error('Error getting move data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to proxy ball/item sprites
+app.get('/api/pokemon/item-sprite/:itemId', (req, res) => {
+  try {
+    const itemId = req.params.itemId;
+    
+    if (!itemId) {
+      return res.status(400).json({ error: 'Invalid item ID' });
+    }
+    
+    // Redirect to PokeAPI item sprite
+    const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${itemId}.png`;
+    res.redirect(spriteUrl);
+  } catch (error) {
+    console.error('Error getting item sprite:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to proxy type sprites
+app.get('/api/pokemon/type-sprite/:type', (req, res) => {
+  try {
+    const type = req.params.type;
+    
+    if (!type) {
+      return res.status(400).json({ error: 'Invalid type' });
+    }
+    
+    // Redirect to PokeAPI type sprite
+    const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/${type}.png`;
+    res.redirect(spriteUrl);
+  } catch (error) {
+    console.error('Error getting type sprite:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // API endpoint to evolve a single Pokemon
 app.post('/api/pokemon/evolve', express.json(), (req, res) => {

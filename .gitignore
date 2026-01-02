@@ -1,14 +1,23 @@
+# Dependencies
 node_modules/
+
+# Data files (can be large)
+data/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
 .DS_Store
-.env
+Thumbs.db
 
-# PKHeX source code
-/PKHeX-master
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Save files
-
-
-# Test Pokemon files
-
-/gen3botdisc
+# Build files
+dist/
+build/

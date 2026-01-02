@@ -44,6 +44,9 @@ const spriteCache = new Map();
 // Current database selection
 let currentDatabase = localStorage.getItem('selectedDatabase') || 'db1';
 
+// Available generations in current database
+let availableGenerations = [];
+
 // DOM elements
 const databaseSelect = document.getElementById('databaseSelect');
 const loadBtn = document.getElementById('loadBtn');
@@ -53,6 +56,8 @@ const batchEvolveModal = document.getElementById('batchEvolveModal');
 const closeBatchEvolveModal = document.getElementById('closeBatchEvolveModal');
 const pokedexModal = document.getElementById('pokedexModal');
 const closePokedexModal = document.getElementById('closePokedexModal');
+const closePokemonInfoModal = document.getElementById('closePokemonInfoModal');
+const pokemonInfoModal = document.getElementById('pokemonInfoModal');
 const dbReloadNotification = document.getElementById('dbReloadNotification');
 const reloadDbBtn = document.getElementById('reloadDbBtn');
 const dismissNotificationBtn = document.getElementById('dismissNotificationBtn');
@@ -180,6 +185,7 @@ if (databaseSelect) {
         pokemonData = [];
         filteredData = [];
         selectedPokemon.clear();
+        availableGenerations = []; // Clear available generations when database changes
         loadPokemon();
     });
     
@@ -201,6 +207,21 @@ if (pokedexBtn) {
 if (closePokedexModal && pokedexModal) {
     closePokedexModal.addEventListener('click', () => {
         pokedexModal.classList.add('hidden');
+    });
+}
+
+if (closePokemonInfoModal && pokemonInfoModal) {
+    closePokemonInfoModal.addEventListener('click', () => {
+        pokemonInfoModal.classList.add('hidden');
+    });
+}
+
+// Close modal when clicking outside
+if (pokemonInfoModal) {
+    pokemonInfoModal.addEventListener('click', (e) => {
+        if (e.target === pokemonInfoModal) {
+            pokemonInfoModal.classList.add('hidden');
+        }
     });
 }
 
@@ -1481,7 +1502,7 @@ async function updateHP(card, pokemon) {
     }
 }
 
-// Fetch abilities from PokeAPI
+// Fetch abilities from server (cached/proxied)
 async function getAbilities(speciesId) {
     // Check cache first
     if (abilityCache.has(speciesId)) {
@@ -1494,7 +1515,7 @@ async function getAbilities(speciesId) {
     }
     
     try {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesId}/`);
+        const response = await fetch(`/api/pokemon/data/${speciesId}`);
         if (!response.ok) {
             return null;
         }
@@ -1677,7 +1698,7 @@ async function getSpeciesName(speciesId) {
     }
 }
 
-// Fetch base stats from PokeAPI
+// Fetch base stats from server (cached/proxied)
 async function getBaseStats(speciesId) {
     // Check cache first
     if (baseStatsCache.has(speciesId)) {
@@ -1690,7 +1711,7 @@ async function getBaseStats(speciesId) {
     }
     
     try {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesId}/`);
+        const response = await fetch(`/api/pokemon/data/${speciesId}`);
         if (!response.ok) {
             return null;
         }
@@ -1839,15 +1860,8 @@ function getSpriteUrl(speciesId, isShiny = false) {
         return spriteCache.get(cacheKey);
     }
     
-    // Use PokeAPI sprite URL (supports all generations up to Gen 6)
-    // PokeAPI sprites: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{id}.png
-    // Shiny sprites: https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/{id}.png
-    let url;
-    if (isShiny) {
-        url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`;
-    } else {
-        url = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-    }
+    // Use server-side sprite endpoint (proxies PokeAPI)
+    const url = `/api/pokemon/sprite/${id}${isShiny ? '?shiny=true' : ''}`;
     
     // Cache the URL
     spriteCache.set(cacheKey, url);
@@ -1860,7 +1874,7 @@ async function getMoveName(moveId) {
     return moveData.name;
 }
 
-// Fetch move data (name and type) from PokeAPI
+// Fetch move data (name and type) from server (cached/proxied)
 async function getMoveData(moveId) {
     // Check cache first
     if (moveCache.has(moveId) && moveTypeCache.has(moveId)) {
@@ -1879,7 +1893,7 @@ async function getMoveData(moveId) {
     }
     
     try {
-        const response = await fetch(`https://pokeapi.co/api/v2/move/${moveId}/`);
+        const response = await fetch(`/api/pokemon/move/${moveId}`);
         if (!response.ok) {
             const fallback = `Move #${moveId}`;
             moveCache.set(moveId, fallback);
@@ -1889,7 +1903,7 @@ async function getMoveData(moveId) {
         
         const data = await response.json();
         const moveName = data.name.charAt(0).toUpperCase() + data.name.slice(1).replace(/-/g, ' ');
-        const moveType = data.type?.name || 'normal';
+        const moveType = data.type || 'normal';
         
         moveCache.set(moveId, moveName);
         moveTypeCache.set(moveId, moveType);
@@ -1959,9 +1973,8 @@ function getTypeColor(type) {
 
 // Get type icon URL
 function getTypeIconUrl(type) {
-    // Using PokeAPI type sprites - correct path doesn't include generation-iii
-    // Try the standard path first, fallback to alternative if needed
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/${type}.png`;
+    // Use server-side type sprite endpoint (proxies PokeAPI)
+    return `/api/pokemon/type-sprite/${type}`;
 }
 
 // Get moves HTML (async version)
@@ -2604,8 +2617,8 @@ function getBallImageUrl(ballName) {
         return null;
     }
     
-    // Use PokeAPI for ball sprites
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ballId}.png`;
+    // Use server-side item sprite endpoint (proxies PokeAPI)
+    return `/api/pokemon/item-sprite/${ballId}`;
 }
 
 // Load ball thumbnail with caching
@@ -6470,7 +6483,10 @@ async function loadPokedexData() {
 
 // Display Pokedex
 async function displayPokedex(data) {
-    const { pokedex, completionStats, availableGenerations } = data;
+    const { pokedex, completionStats, availableGenerations: gens } = data;
+    
+    // Store available generations globally
+    availableGenerations = gens || [];
     
     console.log('[Pokedex] Data received:', {
         pokedexSize: Object.keys(pokedex).length,
@@ -6480,11 +6496,12 @@ async function displayPokedex(data) {
         sampleEntries: Object.entries(pokedex).slice(0, 5)
     });
     
-    // Update generation filter dropdown to only show available generations
+    // Update generation filter dropdown to show all generations
     let genFilterSelect = document.getElementById('pokedexGenFilter');
-    if (genFilterSelect && availableGenerations) {
+    if (genFilterSelect) {
         genFilterSelect.innerHTML = '<option value="all">All Generations</option>';
-        for (const genNum of availableGenerations) {
+        // Show all 9 generations
+        for (let genNum = 1; genNum <= 9; genNum++) {
             const genName = completionStats[genNum]?.name || `Generation ${genNum}`;
             genFilterSelect.innerHTML += `<option value="${genNum}">${genName}</option>`;
         }
@@ -6557,10 +6574,8 @@ async function displayPokedex(data) {
         return;
     }
     
-    // Show all species up to the max found, or up to 1025 if we have completion stats
-    const maxToShow = availableGenerations && availableGenerations.length > 0 
-        ? Math.max(maxSpeciesId, 1025) 
-        : maxSpeciesId;
+    // Show all species up to Gen 9 (1025) - filters will handle what to display
+    const maxToShow = 1025;
     
     // Collect all species IDs that need names fetched
     const speciesToFetch = [];
@@ -6581,10 +6596,7 @@ async function displayPokedex(data) {
             continue;
         }
         
-        // Only show generations that are available
-        if (availableGenerations && !availableGenerations.includes(gen)) {
-            continue;
-        }
+        // Show all generations - filters handle what to display
         
         // Convert speciesId to string for lookup (JSON keys are strings)
         const entry = pokedex[String(speciesId)] || pokedex[speciesId] || { owned: false, shiny: false };
@@ -6632,10 +6644,7 @@ async function displayPokedex(data) {
             continue;
         }
         
-        // Only show generations that are available
-        if (availableGenerations && !availableGenerations.includes(gen)) {
-            continue;
-        }
+        // Show all generations - filters handle what to display
         
         // Convert speciesId to string for lookup (JSON keys are strings)
         const entry = pokedex[String(speciesId)] || pokedex[speciesId] || { owned: false, shiny: false };
@@ -6667,6 +6676,17 @@ async function displayPokedex(data) {
     
     grid.innerHTML = gridHTML;
     
+    // Add click handlers to pokedex entries
+    const entries = grid.querySelectorAll('.pokedex-entry');
+    entries.forEach(entry => {
+        entry.addEventListener('click', () => {
+            const speciesId = parseInt(entry.dataset.species);
+            if (speciesId) {
+                showPokemonInfo(speciesId);
+            }
+        });
+    });
+    
     // Add filter event listeners (only once)
     const showOwnedCheckbox = document.getElementById('pokedexShowOwned');
     const showMissingCheckbox = document.getElementById('pokedexShowMissing');
@@ -6685,4 +6705,760 @@ async function displayPokedex(data) {
         genFilterSelect.dataset.listenerAdded = 'true';
     }
 }
+
+// Show Pokemon information modal
+async function showPokemonInfo(speciesId) {
+    const modal = document.getElementById('pokemonInfoModal');
+    const content = document.getElementById('pokemonInfoContent');
+    const title = document.getElementById('pokemonInfoTitle');
+    
+    if (!modal || !content) return;
+    
+    // Show modal with loading state
+    modal.classList.remove('hidden');
+    content.innerHTML = '<div class="loading">Loading Pokemon information...</div>';
+    
+    try {
+        // Get Pokemon name
+        const speciesName = await getSpeciesName(speciesId);
+        title.textContent = `#${speciesId} - ${speciesName}`;
+        
+        // Fetch Pokemon data
+        const pokemonData = await fetchPokemonData(speciesId);
+        
+        // Display the information
+        content.innerHTML = formatPokemonInfo(pokemonData, speciesId, speciesName);
+    } catch (error) {
+        console.error('Error loading Pokemon info:', error);
+        content.innerHTML = `<div class="error">Error loading Pokemon information: ${error.message}</div>`;
+    }
+}
+
+// Fetch Pokemon data from API (using server-side endpoints)
+async function fetchPokemonData(speciesId) {
+    try {
+        // Fetch Pokemon data from server (cached/proxied)
+        const pokemonResponse = await fetch(`/api/pokemon/data/${speciesId}`);
+        if (!pokemonResponse.ok) {
+            throw new Error('Failed to fetch Pokemon data');
+        }
+        const pokemon = await pokemonResponse.json();
+        
+        // Fetch species data from server (cached/proxied)
+        const speciesResponse = await fetch(`/api/pokemon/species/${speciesId}`);
+        let species = null;
+        if (speciesResponse.ok) {
+            species = await speciesResponse.json();
+        }
+        
+        // Get location areas (where to find) from server
+        const locationAreas = await fetchLocationAreas(speciesId);
+        
+        // Get evolution info with conditions
+        let evolutionInfo = null;
+        let evolutionDetails = null;
+        try {
+            // Get from server
+            const evoResponse = await fetch(`/api/pokemon/evolution-info/${speciesId}`);
+            if (evoResponse.ok) {
+                evolutionInfo = await evoResponse.json();
+            }
+            
+            // Get evolution chain from server if species data available
+            if (species && species.evolution_chain && species.evolution_chain.url) {
+                const chainId = parseInt(species.evolution_chain.url.split('/').slice(-2, -1)[0]);
+                if (chainId) {
+                    const evolutionResponse = await fetch(`/api/pokemon/evolution-chain/${chainId}`);
+                    if (evolutionResponse.ok) {
+                        const evolutionChain = await evolutionResponse.json();
+                        evolutionDetails = getEvolutionDetails(evolutionChain.chain, speciesId);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching evolution info:', error);
+        }
+        
+        // Get Pokedex entries (already filtered to English by server)
+        const pokedexEntries = species ? (species.flavor_text_entries || []) : [];
+        
+        return {
+            pokemon,
+            species,
+            locationAreas,
+            evolutionInfo,
+            evolutionDetails,
+            pokedexEntries
+        };
+    } catch (error) {
+        console.error('Error fetching Pokemon data:', error);
+        // Fallback to basic info
+        let evolutionInfo = null;
+        try {
+            const evoResponse = await fetch(`/api/pokemon/evolution-info/${speciesId}`);
+            if (evoResponse.ok) {
+                evolutionInfo = await evoResponse.json();
+            }
+        } catch (error) {
+            console.error('Error fetching evolution info:', error);
+        }
+        
+        return {
+            error: error.message,
+            locationAreas: [],
+            evolutionInfo,
+            evolutionDetails: null,
+            pokedexEntries: []
+        };
+    }
+}
+
+// Map game versions to generations
+function getGenerationFromVersion(versionName) {
+    const version = versionName.toLowerCase();
+    
+    // Generation 1
+    if (version.includes('red') || version.includes('blue') || version.includes('yellow')) {
+        return 1;
+    }
+    // Generation 2
+    if (version.includes('gold') || version.includes('silver') || version.includes('crystal')) {
+        return 2;
+    }
+    // Generation 3
+    if (version.includes('ruby') || version.includes('sapphire') || version.includes('emerald') ||
+        version.includes('firered') || version.includes('leafgreen') || version.includes('fire-red') || version.includes('leaf-green')) {
+        return 3;
+    }
+    // Generation 4
+    if (version.includes('diamond') || version.includes('pearl') || version.includes('platinum') ||
+        version.includes('heartgold') || version.includes('soulsilver') || version.includes('heart-gold') || version.includes('soul-silver')) {
+        return 4;
+    }
+    // Generation 5
+    if (version.includes('black') || version.includes('white')) {
+        return 5;
+    }
+    // Generation 6
+    if (version.includes('x') || version.includes('y') || 
+        version.includes('omega-ruby') || version.includes('alpha-sapphire') ||
+        version.includes('omegaruby') || version.includes('alphasapphire')) {
+        return 6;
+    }
+    // Generation 7
+    if (version.includes('sun') || version.includes('moon') || version.includes('ultra')) {
+        return 7;
+    }
+    // Generation 8
+    if (version.includes('sword') || version.includes('shield') ||
+        version.includes('brilliant-diamond') || version.includes('shining-pearl') ||
+        version.includes('brilliantdiamond') || version.includes('shiningpearl') ||
+        version.includes('legends-arceus') || version.includes('legendsarceus')) {
+        return 8;
+    }
+    // Generation 9
+    if (version.includes('scarlet') || version.includes('violet')) {
+        return 9;
+    }
+    
+    return null;
+}
+
+// Fetch location areas where Pokemon can be found (using server-side endpoint)
+async function fetchLocationAreas(speciesId) {
+    try {
+        const response = await fetch(`/api/pokemon/encounters/${speciesId}`);
+        if (!response.ok) {
+            return {};
+        }
+        const encounters = await response.json();
+        
+        // Group by location - store ALL data, don't filter here
+        const locations = {};
+        encounters.forEach(encounter => {
+            const locationName = encounter.location_area.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            if (!locations[locationName]) {
+                locations[locationName] = [];
+            }
+            encounter.version_details.forEach(versionDetail => {
+                const versionName = versionDetail.version.name;
+                const gen = getGenerationFromVersion(versionName);
+                
+                versionDetail.encounter_details.forEach(detail => {
+                    locations[locationName].push({
+                        method: detail.method.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                        chance: detail.chance,
+                        minLevel: detail.min_level,
+                        maxLevel: detail.max_level,
+                        version: versionName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                        generation: gen
+                    });
+                });
+            });
+        });
+        
+        return locations;
+    } catch (error) {
+        console.error('Error fetching location areas:', error);
+        return {};
+    }
+}
+
+// Get generation for a species ID
+function getGenerationForSpecies(speciesId) {
+    if (speciesId >= 1 && speciesId <= 151) return 1;
+    if (speciesId >= 152 && speciesId <= 251) return 2;
+    if (speciesId >= 252 && speciesId <= 386) return 3;
+    if (speciesId >= 387 && speciesId <= 493) return 4;
+    if (speciesId >= 494 && speciesId <= 649) return 5;
+    if (speciesId >= 650 && speciesId <= 721) return 6;
+    if (speciesId >= 722 && speciesId <= 809) return 7;
+    if (speciesId >= 810 && speciesId <= 905) return 8;
+    if (speciesId >= 906 && speciesId <= 1025) return 9;
+    return null;
+}
+
+// Check if a species ID is in available generations
+function isSpeciesInAvailableGenerations(speciesId) {
+    if (!availableGenerations || availableGenerations.length === 0) {
+        return true; // If no filter, show all
+    }
+    const gen = getGenerationForSpecies(speciesId);
+    return gen && availableGenerations.includes(gen);
+}
+
+
+// Get evolution details from PokeAPI evolution chain
+function getEvolutionDetails(chain, targetSpeciesId) {
+    const details = { evolvesFrom: null, evolvesInto: [] };
+    
+    function traverseChain(node) {
+        const speciesId = parseInt(node.species.url.split('/').slice(-2, -1)[0]);
+        
+        if (speciesId === targetSpeciesId) {
+            // This is the current Pokemon, check its evolutions
+            node.evolves_to.forEach(evolution => {
+                const evoId = parseInt(evolution.species.url.split('/').slice(-2, -1)[0]);
+                const evoName = evolution.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                const evoDetails = evolution.evolution_details.map(detail => ({
+                    trigger: detail.trigger.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    minLevel: detail.min_level,
+                    item: detail.item ? detail.item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    timeOfDay: detail.time_of_day || null,
+                    location: detail.location ? detail.location.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    heldItem: detail.held_item ? detail.held_item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    knownMove: detail.known_move ? detail.known_move.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    minHappiness: detail.min_happiness,
+                    minBeauty: detail.min_beauty,
+                    minAffection: detail.min_affection,
+                    needsOverworldRain: detail.needs_overworld_rain,
+                    partySpecies: detail.party_species ? detail.party_species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    partyType: detail.party_type ? detail.party_type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    relativePhysicalStats: detail.relative_physical_stats,
+                    turnUpsideDown: detail.turn_upside_down
+                }));
+                
+                details.evolvesInto.push({ id: evoId, name: evoName, details: evoDetails });
+            });
+        } else {
+            // Check if this Pokemon evolves from the target
+            if (node.evolves_to.some(evo => {
+                const evoId = parseInt(evo.species.url.split('/').slice(-2, -1)[0]);
+                return evoId === targetSpeciesId;
+            })) {
+                const preEvoId = parseInt(node.species.url.split('/').slice(-2, -1)[0]);
+                const preEvoName = node.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                const preEvoDetails = node.evolves_to.find(evo => {
+                    const evoId = parseInt(evo.species.url.split('/').slice(-2, -1)[0]);
+                    return evoId === targetSpeciesId;
+                })?.evolution_details.map(detail => ({
+                    trigger: detail.trigger.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    minLevel: detail.min_level,
+                    item: detail.item ? detail.item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    timeOfDay: detail.time_of_day || null,
+                    location: detail.location ? detail.location.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    heldItem: detail.held_item ? detail.held_item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    knownMove: detail.known_move ? detail.known_move.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    minHappiness: detail.min_happiness,
+                    minBeauty: detail.min_beauty,
+                    minAffection: detail.min_affection,
+                    needsOverworldRain: detail.needs_overworld_rain,
+                    partySpecies: detail.party_species ? detail.party_species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    partyType: detail.party_type ? detail.party_type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                    relativePhysicalStats: detail.relative_physical_stats,
+                    turnUpsideDown: detail.turn_upside_down
+                })) || [];
+                
+                details.evolvesFrom = { id: preEvoId, name: preEvoName, details: preEvoDetails };
+            }
+        }
+        
+        // Continue traversing
+        node.evolves_to.forEach(child => traverseChain(child));
+    }
+    
+    traverseChain(chain);
+    return details;
+}
+
+// Format Pokemon information for display
+function formatPokemonInfo(data, speciesId, speciesName) {
+    const { pokemon, locationAreas, evolutionInfo, evolutionDetails, pokedexEntries, error } = data;
+    
+    let html = '<div class="pokemon-info-container">';
+    
+    // Basic info section
+    html += '<div class="pokemon-info-section">';
+    html += '<h3>Basic Information</h3>';
+    
+    if (pokemon) {
+        const spriteUrl = getSpriteUrl(speciesId, false);
+        html += `<div class="pokemon-info-sprite-container">`;
+        html += `<div class="pokemon-info-sprite"><img id="pokemonInfoSprite" src="${spriteUrl}" alt="${speciesName}" data-species-id="${speciesId}"></div>`;
+        html += `<div class="sprite-toggle-container">`;
+        html += `<button type="button" id="pokemonInfoShinyToggle" class="sprite-toggle-button shiny-toggle-btn">`;
+        html += `<span class="shiny-icon">✨</span>`;
+        html += `<span class="shiny-text">Shiny</span>`;
+        html += `</button>`;
+        html += `</div>`;
+        html += `</div>`;
+        html += `<p><strong>Name:</strong> ${speciesName}</p>`;
+        html += `<p><strong>ID:</strong> #${speciesId}</p>`;
+        html += `<p><strong>Height:</strong> ${(pokemon.height / 10).toFixed(1)} m</p>`;
+        html += `<p><strong>Weight:</strong> ${(pokemon.weight / 10).toFixed(1)} kg</p>`;
+        html += `<p><strong>Base Experience:</strong> ${pokemon.base_experience || 'N/A'}</p>`;
+        
+        // Types
+        if (pokemon.types && pokemon.types.length > 0) {
+            html += '<p><strong>Types:</strong> ';
+            html += pokemon.types.map(t => t.type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ');
+            html += '</p>';
+        }
+        
+        // Abilities
+        if (pokemon.abilities && pokemon.abilities.length > 0) {
+            html += '<p><strong>Abilities:</strong> ';
+            html += pokemon.abilities.map(a => {
+                const name = a.ability.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                return a.is_hidden ? `${name} (Hidden)` : name;
+            }).join(', ');
+            html += '</p>';
+        }
+    } else {
+        html += `<p><strong>Name:</strong> ${speciesName}</p>`;
+        html += `<p><strong>ID:</strong> #${speciesId}</p>`;
+    }
+    
+    html += '</div>';
+    
+    // Evolution section
+    html += '<div class="pokemon-info-section evolution-section">';
+    html += '<h3>Evolution</h3>';
+    
+    if (evolutionDetails || evolutionInfo) {
+        // Use evolutionDetails from PokeAPI if available, otherwise fall back to evolutionInfo
+        if (evolutionDetails && evolutionDetails.evolvesFrom) {
+            let preEvoName = speciesCache.get(evolutionDetails.evolvesFrom.id) || evolutionDetails.evolvesFrom.name;
+            html += `<p><strong>Evolves from:</strong> <span class="pokemon-link" data-species="${evolutionDetails.evolvesFrom.id}">#${evolutionDetails.evolvesFrom.id} ${preEvoName}</span></p>`;
+            if (evolutionDetails.evolvesFrom.details && evolutionDetails.evolvesFrom.details.length > 0) {
+                html += '<ul class="evolution-conditions">';
+                evolutionDetails.evolvesFrom.details.forEach(detail => {
+                    html += formatEvolutionCondition(detail);
+                });
+                html += '</ul>';
+            }
+        } else if (evolutionInfo && evolutionInfo.evolvesFrom) {
+            let preEvoName = speciesCache.get(evolutionInfo.evolvesFrom);
+            if (!preEvoName) {
+                preEvoName = `#${evolutionInfo.evolvesFrom}`;
+                getSpeciesName(evolutionInfo.evolvesFrom).then(name => {
+                    const content = document.getElementById('pokemonInfoContent');
+                    if (content) {
+                        const link = content.querySelector(`.pokemon-link[data-species="${evolutionInfo.evolvesFrom}"]`);
+                        if (link) {
+                            link.textContent = `#${evolutionInfo.evolvesFrom} ${name}`;
+                        }
+                    }
+                }).catch(() => {});
+            }
+            html += `<p><strong>Evolves from:</strong> <span class="pokemon-link" data-species="${evolutionInfo.evolvesFrom}">#${evolutionInfo.evolvesFrom} ${preEvoName}</span></p>`;
+        }
+        
+        if (evolutionDetails && evolutionDetails.evolvesInto && evolutionDetails.evolvesInto.length > 0) {
+            evolutionDetails.evolvesInto.forEach(evo => {
+                let evoName = speciesCache.get(evo.id) || evo.name;
+                html += `<p><strong>Evolves into:</strong> <span class="pokemon-link" data-species="${evo.id}">#${evo.id} ${evoName}</span></p>`;
+                if (evo.details && evo.details.length > 0) {
+                    html += '<ul class="evolution-conditions">';
+                    evo.details.forEach(detail => {
+                        html += formatEvolutionCondition(detail);
+                    });
+                    html += '</ul>';
+                }
+            });
+        } else if (evolutionInfo && evolutionInfo.evolvesInto) {
+            let evoName = speciesCache.get(evolutionInfo.evolvesInto);
+            if (!evoName) {
+                evoName = `#${evolutionInfo.evolvesInto}`;
+                getSpeciesName(evolutionInfo.evolvesInto).then(name => {
+                    const content = document.getElementById('pokemonInfoContent');
+                    if (content) {
+                        const link = content.querySelector(`.pokemon-link[data-species="${evolutionInfo.evolvesInto}"]`);
+                        if (link) {
+                            link.textContent = `#${evolutionInfo.evolvesInto} ${name}`;
+                        }
+                    }
+                }).catch(() => {});
+            }
+            html += `<p><strong>Evolves into:</strong> <span class="pokemon-link" data-species="${evolutionInfo.evolvesInto}">#${evolutionInfo.evolvesInto} ${evoName}</span></p>`;
+        }
+        
+        if ((!evolutionDetails || (!evolutionDetails.evolvesFrom && (!evolutionDetails.evolvesInto || evolutionDetails.evolvesInto.length === 0))) &&
+            (!evolutionInfo || (!evolutionInfo.evolvesFrom && !evolutionInfo.evolvesInto))) {
+            html += '<p>This Pokemon does not evolve.</p>';
+        }
+    } else {
+        html += '<p>Evolution data not available.</p>';
+    }
+    
+    html += '</div>';
+    
+    // Pokedex text section
+    if (pokedexEntries && pokedexEntries.length > 0) {
+        html += '<div class="pokemon-info-section pokedex-text-section">';
+        html += '<h3>Pokedex Entry</h3>';
+        
+        // Filter to English entries only
+        const englishEntries = pokedexEntries.filter(entry => 
+            entry.language && entry.language.name === 'en'
+        );
+        
+        // Get unique games from English entries
+        const games = new Set();
+        englishEntries.forEach(entry => {
+            if (entry.version && entry.version.name) {
+                games.add(entry.version.name);
+            }
+        });
+        const sortedGames = Array.from(games).sort();
+        
+        if (sortedGames.length > 0) {
+            html += '<div class="pokedex-game-filter">';
+            html += '<label for="pokedexGameSelect"><strong>Game:</strong></label>';
+            html += '<select id="pokedexGameSelect" class="pokedex-game-selector">';
+            sortedGames.forEach((game, index) => {
+                const gameName = game.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                html += `<option value="${game}" ${index === 0 ? 'selected' : ''}>${gameName}</option>`;
+            });
+            html += '</select>';
+            html += '</div>';
+            
+            html += '<div class="pokedex-text-container" data-entries="' + encodeURIComponent(JSON.stringify(englishEntries)) + '">';
+            // Show first game's entry by default
+            const firstGame = sortedGames[0];
+            const firstEntry = englishEntries.find(e => e.version && e.version.name === firstGame);
+            if (firstEntry) {
+                html += `<p class="pokedex-text">${firstEntry.flavor_text.replace(/\f/g, ' ').replace(/\n/g, ' ')}</p>`;
+            }
+            html += '</div>';
+        } else {
+            html += '<p>No Pokedex entries available.</p>';
+        }
+        
+        html += '</div>';
+    }
+    
+    // Location section
+    html += '<div class="pokemon-info-section location-section">';
+    html += '<h3>Where to Find</h3>';
+    
+    if (locationAreas && Object.keys(locationAreas).length > 0) {
+        // Get unique generations from location data
+        const allGens = new Set();
+        Object.values(locationAreas).forEach(encounters => {
+            encounters.forEach(encounter => {
+                if (encounter.generation) {
+                    allGens.add(encounter.generation);
+                }
+            });
+        });
+        const sortedGens = Array.from(allGens).sort((a, b) => a - b);
+        
+        // Add generation selector
+        // Determine initial selection: if availableGenerations has exactly one gen, select it; otherwise "all"
+        const initialGenSelection = (availableGenerations && availableGenerations.length === 1) 
+            ? availableGenerations[0].toString() 
+            : 'all';
+        
+        html += '<div class="location-filter">';
+        html += '<label for="locationGenFilter"><strong>Filter by Generation:</strong></label>';
+        html += '<select id="locationGenFilter" class="location-gen-selector">';
+        html += `<option value="all" ${initialGenSelection === 'all' ? 'selected' : ''}>All Generations</option>`;
+        sortedGens.forEach(gen => {
+            html += `<option value="${gen}" ${initialGenSelection === gen.toString() ? 'selected' : ''}>Generation ${gen}</option>`;
+        });
+        html += '</select>';
+        html += '</div>';
+        
+        // Store all location data in data attribute for filtering
+        html += '<div class="location-list" data-all-locations="' + encodeURIComponent(JSON.stringify(locationAreas)) + '">';
+        // Initial display - show all or filtered by availableGenerations (if single gen)
+        const initialFilter = (availableGenerations && availableGenerations.length === 1) 
+            ? availableGenerations 
+            : null;
+        const filteredLocations = filterLocationsByGeneration(locationAreas, initialFilter);
+        
+        if (Object.keys(filteredLocations).length > 0) {
+            Object.entries(filteredLocations).forEach(([location, encounters]) => {
+                html += `<div class="location-item" data-location="${encodeURIComponent(location)}">`;
+                html += `<strong>${location}</strong>`;
+                html += '<ul>';
+                encounters.forEach(encounter => {
+                    html += `<li>${encounter.method} (${encounter.version})`;
+                    if (encounter.minLevel && encounter.maxLevel) {
+                        html += ` - Level ${encounter.minLevel}-${encounter.maxLevel}`;
+                    }
+                    if (encounter.chance) {
+                        html += ` - ${encounter.chance}% chance`;
+                    }
+                    html += '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            });
+        } else {
+            html += '<p>No location data available for the selected generation.</p>';
+        }
+        html += '</div>';
+    } else {
+        html += '<p>Location data not available for this Pokemon.</p>';
+    }
+    
+    html += '</div>';
+    html += '</div>';
+    
+    // Add event delegation for pokemon links and generation filter after content is set
+    setTimeout(() => {
+        const content = document.getElementById('pokemonInfoContent');
+        if (content) {
+            // Pokemon link clicks
+            content.addEventListener('click', (e) => {
+                const link = e.target.closest('.pokemon-link');
+                if (link) {
+                    const speciesId = parseInt(link.dataset.species);
+                    if (speciesId) {
+                        showPokemonInfo(speciesId);
+                    }
+                }
+            });
+            
+            // Generation filter for locations
+            const genFilter = content.querySelector('#locationGenFilter');
+            if (genFilter) {
+                genFilter.addEventListener('change', (e) => {
+                    const selectedGen = e.target.value === 'all' ? null : parseInt(e.target.value);
+                    const locationList = content.querySelector('.location-list');
+                    if (locationList && locationList.dataset.allLocations) {
+                        const allLocations = JSON.parse(decodeURIComponent(locationList.dataset.allLocations));
+                        const filtered = filterLocationsByGeneration(allLocations, selectedGen ? [selectedGen] : null);
+                        updateLocationDisplay(locationList, filtered);
+                    }
+                });
+            }
+            
+            // Shiny sprite toggle (button)
+            const shinyToggle = content.querySelector('#pokemonInfoShinyToggle');
+            const spriteImg = content.querySelector('#pokemonInfoSprite');
+            let isShiny = false;
+            if (shinyToggle && spriteImg) {
+                shinyToggle.addEventListener('click', () => {
+                    isShiny = !isShiny;
+                    const speciesId = parseInt(spriteImg.dataset.speciesId);
+                    if (speciesId) {
+                        const newSpriteUrl = getSpriteUrl(speciesId, isShiny);
+                        if (newSpriteUrl) {
+                            spriteImg.src = newSpriteUrl;
+                        }
+                        // Update button appearance
+                        const icon = shinyToggle.querySelector('.shiny-icon');
+                        const text = shinyToggle.querySelector('.shiny-text');
+                        if (isShiny) {
+                            shinyToggle.classList.add('active');
+                            if (icon) icon.textContent = '⭐';
+                            if (text) text.textContent = 'Normal';
+                        } else {
+                            shinyToggle.classList.remove('active');
+                            if (icon) icon.textContent = '✨';
+                            if (text) text.textContent = 'Shiny';
+                        }
+                    }
+                });
+            }
+            
+            // Pokedex game selector
+            const pokedexGameSelect = content.querySelector('#pokedexGameSelect');
+            const pokedexTextContainer = content.querySelector('.pokedex-text-container');
+            if (pokedexGameSelect && pokedexTextContainer) {
+                pokedexGameSelect.addEventListener('change', (e) => {
+                    const selectedGame = e.target.value;
+                    const entries = JSON.parse(decodeURIComponent(pokedexTextContainer.dataset.entries));
+                    // Ensure we only get English entries
+                    const entry = entries.find(e => 
+                        e.version && e.version.name === selectedGame && 
+                        e.language && e.language.name === 'en'
+                    );
+                    if (entry) {
+                        const textElement = pokedexTextContainer.querySelector('.pokedex-text');
+                        if (textElement) {
+                            textElement.textContent = entry.flavor_text.replace(/\f/g, ' ').replace(/\n/g, ' ');
+                        } else {
+                            pokedexTextContainer.innerHTML = `<p class="pokedex-text">${entry.flavor_text.replace(/\f/g, ' ').replace(/\n/g, ' ')}</p>`;
+                        }
+                    }
+                });
+            }
+        }
+    }, 0);
+    
+    return html;
+}
+
+// Format evolution condition details
+function formatEvolutionCondition(detail) {
+    let html = '<li>';
+    const conditions = [];
+    
+    if (detail.trigger) {
+        if (detail.trigger.toLowerCase() === 'level-up') {
+            if (detail.minLevel) {
+                conditions.push(`Level ${detail.minLevel}`);
+            } else {
+                conditions.push('Level up');
+            }
+        } else {
+            conditions.push(detail.trigger);
+            if (detail.minLevel) {
+                conditions.push(`at Level ${detail.minLevel}`);
+            }
+        }
+    }
+    
+    if (detail.item) {
+        conditions.push(`using ${detail.item}`);
+    }
+    
+    if (detail.heldItem) {
+        conditions.push(`holding ${detail.heldItem}`);
+    }
+    
+    if (detail.location) {
+        conditions.push(`at ${detail.location}`);
+    }
+    
+    if (detail.timeOfDay) {
+        conditions.push(`during ${detail.timeOfDay}`);
+    }
+    
+    if (detail.knownMove) {
+        conditions.push(`knowing ${detail.knownMove}`);
+    }
+    
+    if (detail.minHappiness) {
+        conditions.push(`with ${detail.minHappiness} happiness`);
+    }
+    
+    if (detail.minBeauty) {
+        conditions.push(`with ${detail.minBeauty} beauty`);
+    }
+    
+    if (detail.minAffection) {
+        conditions.push(`with ${detail.minAffection} affection`);
+    }
+    
+    if (detail.needsOverworldRain) {
+        conditions.push('in rain');
+    }
+    
+    if (detail.partySpecies) {
+        conditions.push(`with ${detail.partySpecies} in party`);
+    }
+    
+    if (detail.partyType) {
+        conditions.push(`with ${detail.partyType} type in party`);
+    }
+    
+    if (detail.turnUpsideDown) {
+        conditions.push('(turn upside down)');
+    }
+    
+    html += conditions.length > 0 ? conditions.join(' ') : 'Unknown condition';
+    html += '</li>';
+    return html;
+}
+
+// Filter locations by generation
+function filterLocationsByGeneration(locationAreas, generations) {
+    if (!locationAreas || Object.keys(locationAreas).length === 0) {
+        return {};
+    }
+    
+    // If no filter specified, return all
+    if (!generations || generations.length === 0) {
+        return locationAreas;
+    }
+    
+    const filtered = {};
+    Object.entries(locationAreas).forEach(([location, encounters]) => {
+        const filteredEncounters = encounters.filter(encounter => {
+            return encounter.generation && generations.includes(encounter.generation);
+        });
+        if (filteredEncounters.length > 0) {
+            filtered[location] = filteredEncounters;
+        }
+    });
+    
+    return filtered;
+}
+
+// Update location display based on filtered data
+function updateLocationDisplay(container, filteredLocations) {
+    if (!container) return;
+    
+    // Clear existing location items
+    const existingItems = container.querySelectorAll('.location-item');
+    existingItems.forEach(item => item.remove());
+    
+    // Add filtered locations
+    if (Object.keys(filteredLocations).length > 0) {
+        Object.entries(filteredLocations).forEach(([location, encounters]) => {
+            const locationItem = document.createElement('div');
+            locationItem.className = 'location-item';
+            locationItem.setAttribute('data-location', encodeURIComponent(location));
+            
+            let html = `<strong>${location}</strong>`;
+            html += '<ul>';
+            encounters.forEach(encounter => {
+                html += `<li>${encounter.method} (${encounter.version})`;
+                if (encounter.minLevel && encounter.maxLevel) {
+                    html += ` - Level ${encounter.minLevel}-${encounter.maxLevel}`;
+                }
+                if (encounter.chance) {
+                    html += ` - ${encounter.chance}% chance`;
+                }
+                html += '</li>';
+            });
+            html += '</ul>';
+            
+            locationItem.innerHTML = html;
+            container.appendChild(locationItem);
+        });
+    } else {
+        const noData = document.createElement('p');
+        noData.textContent = 'No location data available for the selected generation.';
+        container.appendChild(noData);
+    }
+}
+
 
