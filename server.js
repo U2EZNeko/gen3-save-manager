@@ -1186,8 +1186,9 @@ const EVOLUTION_CHAIN = {
   225: 226, // Houndour -> Houndoom
   228: 229, // Phanpy -> Donphan
   231: 232, // Tyrogue -> Hitmonlee/Hitmonchan/Hitmontop
-  233: 234, // Larvitar -> Pupitar
-  234: 235, // Pupitar -> Tyranitar
+  246: 247, // Larvitar -> Pupitar
+  247: 248, // Pupitar -> Tyranitar
+  // 234: Stantler (no evolution)
   236: 237, // Elekid -> Electabuzz
   238: 239, // Magby -> Magmar
   239: 240, // Miltank (no evolution)
@@ -1204,7 +1205,7 @@ const EVOLUTION_CHAIN = {
   263: 264, // Zigzagoon -> Linoone
   265: 266, // Wurmple -> Silcoon/Cascoon
   266: 267, // Silcoon -> Beautifly
-  267: 268, // Cascoon -> Dustox
+  268: 269, // Cascoon -> Dustox
   269: 270, // Lotad -> Lombre
   270: 271, // Lombre -> Ludicolo
   273: 274, // Seedot -> Nuzleaf
@@ -1240,28 +1241,27 @@ const EVOLUTION_CHAIN = {
   316: 317, // Carvanha -> Sharpedo
   317: 318, // Wailmer -> Wailord
   318: 319, // Numel -> Camerupt
-  319: 320, // Torkoal (no evolution)
-  320: 321, // Spoink -> Grumpig
-  321: 322, // Spinda (no evolution)
-  322: 323, // Trapinch -> Vibrava
-  323: 324, // Vibrava -> Flygon
-  324: 325, // Cacnea -> Cacturne
-  325: 326, // Swablu -> Altaria
-  326: 327, // Zangoose (no evolution)
-  327: 328, // Seviper (no evolution)
-  328: 329, // Lunatone (no evolution)
-  329: 330, // Solrock (no evolution)
-  331: 332, // Barboach -> Whiscash
-  332: 333, // Corphish -> Crawdaunt
-  333: 334, // Baltoy -> Claydol
-  334: 335, // Lileep -> Cradily
-  335: 336, // Anorith -> Armaldo
-  336: 337, // Feebas -> Milotic
-  337: 338, // Castform (no evolution)
-  338: 339, // Kecleon (no evolution)
-  339: 340, // Shuppet -> Banette
-  340: 341, // Duskull -> Dusclops
-  341: 342, // Dusclops -> Dusknoir (Gen 4)
+  // 319: Camerupt (no evolution)
+  320: 321, // Torkoal (no evolution)
+  321: 322, // Spoink -> Grumpig
+  322: 323, // Spinda (no evolution)
+  328: 329, // Trapinch -> Vibrava
+  329: 330, // Vibrava -> Flygon
+  331: 332, // Cacnea -> Cacturne
+  333: 334, // Swablu -> Altaria
+  339: 340, // Barboach -> Whiscash
+  341: 342, // Corphish -> Crawdaunt
+  343: 344, // Baltoy -> Claydol
+  345: 346, // Lileep -> Cradily
+  347: 348, // Anorith -> Armaldo
+  349: 350, // Feebas -> Milotic
+  // 337: Lunatone (no evolution)
+  // 338: Solrock (no evolution)
+  353: 354, // Shuppet -> Banette
+  355: 356, // Duskull -> Dusclops
+  356: 477, // Dusclops -> Dusknoir (Gen 4)
+  // 351: Castform (no evolution)
+  // 352: Kecleon (no evolution)
   342: 343, // Tropius (no evolution)
   343: 344, // Chimecho (no evolution)
   344: 345, // Absol (no evolution)
@@ -3609,9 +3609,57 @@ app.post('/api/scan-move-files', express.json(), (req, res) => {
   }
 });
 
+// Encounter rates endpoint
+app.get('/api/pokemon/encounter-rates/:speciesId', (req, res) => {
+  try {
+    const speciesId = parseInt(req.params.speciesId);
+    if (isNaN(speciesId) || speciesId < 1 || speciesId > 386) {
+      return res.status(400).json({ error: 'Invalid species ID. Must be 1-386 for Gen 3.' });
+    }
+    
+    const encounterDataPath = path.join(__dirname, 'data', 'encounter-rates', 'encounters-parsed.json');
+    if (!fs.existsSync(encounterDataPath)) {
+      return res.status(404).json({ error: 'Encounter data not found. Please run the download script.' });
+    }
+    
+    const encounterData = JSON.parse(fs.readFileSync(encounterDataPath, 'utf8'));
+    const pokemonData = encounterData.pokemon[speciesId.toString()];
+    
+    if (!pokemonData) {
+      return res.status(404).json({ error: 'Encounter data not found for this Pokemon.' });
+    }
+    
+    res.json(pokemonData);
+  } catch (error) {
+    console.error('Error fetching encounter rates:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// All encounter rates endpoint (for bulk loading)
+app.get('/api/pokemon/encounter-rates', (req, res) => {
+  try {
+    const encounterDataPath = path.join(__dirname, 'data', 'encounter-rates', 'encounters-parsed.json');
+    if (!fs.existsSync(encounterDataPath)) {
+      return res.status(404).json({ error: 'Encounter data not found. Please run the download script.' });
+    }
+    
+    const encounterData = JSON.parse(fs.readFileSync(encounterDataPath, 'utf8'));
+    res.json(encounterData);
+  } catch (error) {
+    console.error('Error fetching all encounter rates:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Serve map files at their expected paths
+app.use('/FRLGIronmonMap', express.static(path.join(__dirname, 'public', 'maps', 'frlg')));
+app.use('/EmeraldIronmonMap', express.static(path.join(__dirname, 'public', 'maps', 'emerald')));
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Looking for .pk3 files in: ${DEFAULT_PK3_FOLDER}`);
   console.log(`Place your .pk3 files in the 'pk3-files' folder`);
+  console.log(`Maps available at: http://localhost:${PORT}/FRLGIronmonMap and http://localhost:${PORT}/EmeraldIronmonMap`);
 });
 

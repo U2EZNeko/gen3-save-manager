@@ -26,6 +26,7 @@
                 <div class="database-controls">
                     <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
                     <button id="pokedexBtn" class="btn btn-secondary">Pokedex</button>
+                    <button id="mapBtn" class="btn btn-secondary">Map</button>
                     <label for="databaseSelect">Database:</label>
                     <select id="databaseSelect" class="select">
                         <option value="db1">Database 1</option>
@@ -737,6 +738,40 @@
             </div>
             <div class="pokemon-info-content" id="pokemonInfoContent">
                 <div class="loading">Loading Pokemon information...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Modal -->
+    <div id="mapModal" class="modal hidden">
+        <div class="modal-content map-modal">
+            <div class="modal-header">
+                <h2>Game Maps</h2>
+                <span class="modal-close" id="closeMapModal">&times;</span>
+            </div>
+            <div class="map-content">
+                <div class="map-selector">
+                    <button id="mapFRLGBtn" class="btn btn-primary map-option-btn active">FireRed/LeafGreen</button>
+                    <button id="mapEmeraldBtn" class="btn btn-secondary map-option-btn">Emerald</button>
+                </div>
+                <div class="map-layout">
+                    <div class="map-container" id="mapContainer">
+                        <div id="mapRoot"></div>
+                    </div>
+                    <div class="map-encounters-panel">
+                        <div class="encounters-panel-header">
+                            <h3>Encounter Rates</h3>
+                            <p class="encounters-instruction">Click on the map to see encounters for that location</p>
+                        </div>
+                        <div id="encountersDisplay" class="encounters-display hidden">
+                            <div class="encounters-display-header">
+                                <h4 id="selectedLocationName">Location</h4>
+                                <button id="closeEncountersBtn" class="btn btn-secondary btn-small">Close</button>
+                            </div>
+                            <div id="encountersContent" class="encounters-content"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

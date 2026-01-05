@@ -1,0 +1,1965 @@
+NAT,FRLG,RSE,NAME,RUBY (R),SAPPHIRE (S) ,EMERALD (E),FIRERED (FR),LEAFGREEN (LG)
+1,1,203,Bulbasaur,,,,Special (Starter),Special (Starter)
+2,2,204,Ivysaur,,,,Evolve Bulbasaur (Level 16),Evolve Bulbasaur (Level 16)
+3,3,205,Venusaur,,,,Evolve Ivysaur (Level 32),Evolve Ivysaur (Level 32)
+4,4,206,Charmander,,,,Special (Starter),Special (Starter)
+5,5,207,Charmeleon,,,,Evolve Charmander (Level 16),Evolve Charmander (Level 16)
+6,6,208,Charizard,,,,Evolve Charmeleon (Level 36),Evolve Charmeleon (Level 36)
+7,7,209,Squirtle,,,,Special (Starter),Special (Starter)
+8,8,210,Wartortle,,,,Evolve Squirtle (Level 16),Evolve Squirtle (Level 16)
+9,9,211,Blastoise,,,,Evolve Wartortle (Level 36),Evolve Wartortle (Level 36)
+10,10,212,Caterpie,,,,"Wild (Viridian Forest, Level 3 - 5) - 40%
+Wild (Route 24, Level 7) - 20%
+Wild (Route 25, Level 8) - 20%
+Wild (Pattern Bush, Level 6) - 10%
+Wild (Route 2, Level 4 - 5) - 5%","Wild (Viridian Forest, Level 3 - 5) - 40%
+Wild (Route 24, Level 7) - 20%
+Wild (Route 25, Level 8) - 20%
+Wild (Pattern Bush, Level 6) - 10%
+Wild (Route 2, Level 4 - 5) - 5%"
+11,11,213,Metapod,,,,"Evolve Caterpie (Level 7)
+Wild (Viridian Forest, Level 5) - 5%
+Wild (Pattern Bush, Level 9) - 5%
+Wild (Route 24, Level 8) - 1%
+Wild (Route 25, Level 9) - 1%","Evolve Caterpie (Level 7)
+Wild (Pattern Bush, Level 9) - 20%
+Wild (Viridian Forest, Level 4 - 6) - 10%
+Wild (Route 24, Level 8) - 4%
+Wild (Route 25, Level 9) - 4%"
+12,12,214,Butterfree,,,,Evolve Metapod (Level 10),Evolve Metapod (Level 10)
+13,13,215,Weedle,,,,"Wild (Viridian Forest, Level 3 - 5) - 40%
+Wild (Route 24, Level 7) - 20%
+Wild (Route 25, Level 8) - 20%
+Wild (Pattern Bush, Level 6) - 10%
+Wild (Route 2, Level 4 - 5) - 5%","Wild (Viridian Forest, Level 3 - 5) - 40%
+Wild (Route 24, Level 7) - 20%
+Wild (Route 25, Level 8) - 20%
+Wild (Pattern Bush, Level 6) - 10%
+Wild (Route 2, Level 4 - 5) - 5%"
+14,14,216,Kakuna,,,,"Evolve Weedle (Level 7)
+Wild (Pattern Bush, Level 9) - 20%
+Wild (Viridian Forest, Level 4 - 6) - 10%
+Wild (Route 24, Level 8) - 4%
+Wild (Route 25, Level 9) - 4%","Evolve Weedle (Level 7)
+Wild (Viridian Forest, 5) - 5%
+Wild (Pattern Bush, Level 9) - 5%
+Wild (Route 24, Level 8) - 1%
+Wild (Route 25, Level 9) - 4%"
+15,15,217,Beedrill,,,,Evolve Kakuna (Level 10),
+16,16,218,Pidgey,,,,"Wild (Route 1, Level 2 - 5) - 50%
+Wild (Route 2, Level 2 - 5) - 45%
+Wild (Route 5, Level 13, 15 - 16) - 40%
+Wild (Route 6, Level 13, 15 - 16) - 40%
+Wild (Route 7, Level 19, 22) - 30%
+Wild (Route 8, Level 18, 20) - 30%
+Wild (Route 3, Level 6 - 7) - 30%
+Wild (Bond Bridge, Level 29, 32) - 30%
+Wild (Route 12, Level 23 - 27) - 30%
+Wild (Route 13, Level 25 - 27) - 20%
+Wild (Route 15, Level 25, 27) - 20%
+Wild (Five Isle Meadow, Level 44) - 20%
+Wild (Route 24, Level 11, 13) - 15%
+Wild (Route 25, Level 11, 13) - 15%
+Wild (Route 14, Level 27) - 10%
+Wild (Berry Forest, Level 32) - 10%","Wild (Route 1, Level 2 - 5) - 50%
+Wild (Route 2, Level 2 - 5) - 45%
+Wild (Route 5, Level 13, 15 - 16) - 40%
+Wild (Route 6, Level 13, 15 - 16) - 40%
+Wild (Route 7, Level 19, 22) - 30%
+Wild (Route 8, Level 18, 20) - 30%
+Wild (Route 3, Level 6 - 7) - 30%
+Wild (Bond Bridge, Level 29, 32) - 30%
+Wild (Route 12, Level 23 - 27) - 30%
+Wild (Route 13, Level 25 - 27) - 20%
+Wild (Route 15, Level 25, 27) - 20%
+Wild (Five Isle Meadow, Level 44) - 20%
+Wild (Route 24, Level 11, 13) - 15%
+Wild (Route 25, Level 11, 13) - 15%
+Wild (Route 14, Level 27) - 10%
+Wild (Berry Forest, Level 32) - 10%"
+17,17,219,Pidgeotto,,,,"Evolve Pidgey (Level 18)
+Wild (Berry Forest, Level 37) - 20%
+Wild (Bond Bridge, Level 34, 37, 40) - 15%
+Wild (Five Isle Meadow, Level 48, 50) - 15%
+Wild (Route 13, Level 29) - 5%
+Wild (Route 14, Level 29) - 5%
+Wild (Route 15, Level 29) - 5%","Evolve Pidgey (Level 18)
+Wild (Berry Forest, Level 37) - 20%
+Wild (Bond Bridge, Level 34, 37, 40) - 15%
+Wild (Five Isle Meadow, Level 48, 50) - 15%
+Wild (Route 13, Level 29) - 5%
+Wild (Route 14, Level 29) - 5%
+Wild (Route 15, Level 29) - 5%"
+18,18,220,Pidgeot,,,,Evolve Pidgeotto (Level 36),Evolve Pidgeotto (Level 36)
+19,19,221,Rattata,,,,"Wild (Route 1, Level 2 - 4) - 50%
+Wild (Route 2, Level 2 - 5) - 45%
+Wild (Route 22, Level 2 - 5) - 45%
+Wild (Route 9, Level 14, 16 - 17) - 40%
+Wild (Route 4, Level 8, 10, 12) - 35%
+Wild (Route 16, Level 18, 20, 22) - 30%
+Wild (Pokemon Mansion 1F - 3F, Level 26, 28) - 15%
+WIld (Pokemon Mansion B1F, Level 26) - 5%
+Wild (Route 17, Level 22) - 5%
+Wild (Route 18, Level 22) - 5%","Wild (Route 1, Level 2 - 4) - 50%
+Wild (Route 2, Level 2 - 5) - 45%
+Wild (Route 22, Level 2 - 5) - 45%
+Wild (Route 9, Level 14, 16 - 17) - 40%
+Wild (Route 4, Level 8, 10, 12) - 35%
+Wild (Route 16, Level 18, 20, 22) - 30%
+Wild (Pokemon Mansion 1F - 3F, Level 26, 28) - 15%
+WIld (Pokemon Mansion B1F, Level 26) - 5%
+Wild (Route 17, Level 22) - 5%
+Wild (Route 18, Level 22) - 5%"
+20,20,222,Raticate,,,,"Evolve Rattata (Level 20)
+Wild (Pokemon Mansion 1F - 3F, Level 32, 36) - 30%
+Wild (Pokemon Mansion B1F, Level 34, 38) - 30%
+Wild (Route 17, Level 25, 27, 29) - 25%
+Wild (Route 18, Level 25, 27, 29) - 25%
+Wild (Route 16, Level 23, 25) - 5%","Evolve Rattata (Level 20)
+Wild (Pokemon Mansion 1F - 3F, Level 32, 36) - 30%
+Wild (Pokemon Mansion B1F, Level 34, 38) - 30%
+Wild (Route 17, Level 25, 27, 29) - 25%
+Wild (Route 18, Level 25, 27, 29) - 25%
+Wild (Route 16, Level 23, 25) - 5%"
+21,21,223,Spearow,,,,"Wild (Route 4, Level 8, 10, 12) - 35%
+Wild (Route 9, Level 13, 16 - 17) - 35%
+Wild (Route 10, Level 13, 16 - 17) - 35%
+Wild (Route 11, Level 13, 15, 17) - 35%
+Wild (Route 3, Level 6 - 8) - 30%
+Wild (Route 16, Level 20, 22) - 30%
+Wild (Route 17, Level 20, 22) - 30%
+Wild (Route 18, Level 20, 22) - 30%
+Wild (Treasure Beach, Level 31 - 32) - 30%
+Wild (Kindle Road, Level 30, 32) - 25%
+Wild (Cape Brink, Level 31) - 20%
+Wild (Water Path, Level 44) - 20%
+Wild (Ruin Valley, Level 44) - 20%
+Wild (Canyon Entrance, Level 44) - 20%
+Wild (Route 23, Level 32, 34) - 15%
+Wild (Mt. Ember Base, Level 30, 32) - 15%
+Wild (Route 22, Level 3, 5) - 10%","Wild (Route 4, Level 8, 10, 12) - 35%
+Wild (Route 9, Level 13, 16 - 17) - 35%
+Wild (Route 10, Level 13, 16 - 17) - 35%
+Wild (Route 11, Level 13, 15, 17) - 35%
+Wild (Route 3, Level 6 - 8) - 30%
+Wild (Route 16, Level 20, 22) - 30%
+Wild (Route 17, Level 20, 22) - 30%
+Wild (Route 18, Level 20, 22) - 30%
+Wild (Treasure Beach, Level 31 - 32) - 30%
+Wild (Kindle Road, Level 30, 32) - 25%
+Wild (Cape Brink, Level 31) - 20%
+Wild (Water Path, Level 44) - 20%
+Wild (Ruin Valley, Level 44) - 20%
+Wild (Canyon Entrance, Level 44) - 20%
+Wild (Route 23, Level 32, 34) - 15%
+Wild (Mt. Ember Base, Level 32) - 10%
+Wild (Route 22, Level 3, 5) - 10%"
+22,22,224,Fearow,,,,"Evolve Spearow (Level 20)
+Wild (Route 23, Level 40, 42, 44) - 25%
+Wild (Mt. Ember Base, Level 38, 40) - 25%
+Wild (Treasure Beach, Level 36, 38, 40) - 20%
+Wild (Water Path, Level 48, 50) - 15%
+Wild (Cape Brink, Level 36) - 10%
+Wild (Kindle Road, Level 36) - 10%
+Wild (Ruin Valley, Level 49) - 10%
+Wild (Canyon Entrance, Level 48, 50) - 10%
+Wild (Sevault Canyon, Level 40) - 10%
+Wild (Route 17, Level 25, 27) - 5%
+Wild (Route 18, Level 25, 27) - 5%","Evolve Spearow (Level 20)
+Wild (Route 23, Level 40, 42, 44) - 25%
+Wild (Mt. Ember Base, Level 38, 40) - 25%
+Wild (Treasure Beach, Level 36, 38, 40) - 20%
+Wild (Water Path, Level 48, 50) - 15%
+Wild (Sevault Canyon, Level 50) - 15%
+Wild (Cape Brink, Level 36) - 10%
+Wild (Kindle Road, Level 36) - 10%
+Wild (Ruin Valley, Level 49) - 10%
+Wild (Canyon Entrance, Level 48, 50) - 10%
+Wild (Route 17, Level 25, 27) - 5%
+Wild (Route 18, Level 25, 27) - 5%"
+23,23,225,Ekans,,,,"Wild (Route 11, Level 12, 14 - 15) - 40%
+Wild (Route 4, Level 6, 8, 10, 12) - 25%
+Wild (Route 9, Level 11, 13, 15, 17) - 25%
+Wild (Route 10, Level 11, 13, 15, 17) - 25%
+Wild (Route 8, Level 17, 19) - 20%
+Wild (Route 23, Level 32, 34) - 20%",
+24,24,226,Arbok,,,,"Evolve Ekans (Level 22)
+Wild (Route 23, Level 44) - 5%
+Wild (Victory Road 1F & 3F, Level 44) - 5%
+Wild (Victory Road 2F, Level 46) - 5%",
+25,25,156,Pikachu,"Wild (Safari Zone Area 1 & 2, Level 25 - 27) - 5%","Wild (Safari Zone Area 1 & 2, Level 25 - 27) - 5%","Wild (Safari Zone Area 1 & 2, Level 25 - 27) - 5%","Wild (Kanto Power Plant, Level 22, 24, 26) - 25%
+Wild (Viridian Forest, Level 3, 5) - 5%","Wild (Kanto Power Plant, Level 22, 24, 26) - 25%
+Wild (Viridian Forest, Level 3, 5) - 5%"
+26,26,157,Raichu,Evolve Pikachu (Thunder Stone),Evolve Pikachu (Thunder Stone),Evolve Pikachu (Thunder Stone),Evolve Pikachu (Thunder Stone),Evolve Pikachu (Thunder Stone)
+27,27,112,Sandshrew,"Wild (Route 111, Level 19 - 21) - 35%
+Wild (Route 113, Level 14 - 16) - 25%","Wild (Route 111, Level 19 - 21) - 35%
+Wild (Route 113, Level 14 - 16) - 25%","Wild (Mirage Tower, Level 20 - 24) - 50%
+Wild (Route 111, Level 19 - 21) - 35%",,"Wild (Route 11, Level 12, 14 - 15) - 40%
+Wild (Route 4, Level 6, 8, 10, 12) - 25%
+Wild (Route 9, Level 11, 13, 15, 17) - 25%
+Wild (Route 10, Level 11, 13, 15, 17) - 25%
+Wild (Route 8, Level 17, 19) - 20%
+Wild (Route 23, Level 32, 34) - 20%"
+28,28,113,Sandslash,Evolve Sandshrew (Level 22),Evolve Sandshrew (Level 22),Evolve Sandshrew (Level 22),,"Evolve Sandshrew (Level 22)
+Wild (Route 23, Level 44) - 5%
+Wild (Victory Road 1F & 3F, Level 44) - 5%
+Wild (Victory Road 2F, Level 46) - 5%"
+29,29,227,Nidoran F,,,,"Wild (Route 3, Level 6) - 5%
+Safari Zone (Area 1, Level 24) - 5%
+Safari Zone (Area 3, Level 30) - 5%
+Trade (Underground Path 5 - 6, For Nidoran M)","Safari Zone (Center, Level 22) - 20%
+Safari Zone (Area 1, Level 24) - 20%
+Safari Zone (Area 2, Level 30) - 20%
+Safari Zone (Area 3, Level 22) - 20%
+Wild (Route 3, Level 6 - 7) - 15%"
+30,30,228,Nidorina,,,,"Evolve Nidoran F (Level 16)
+Safari Zone (Center, Level 31) - 5%
+Safari Zone (Area 2, Level 30) - 5%
+Trade (Route 11, For Nidorino)","Evolve Nidoran F (Level 16)
+Safari Zone (Center, Level 31) - 10%
+Safari Zone (Area 1, Level 33) - 10%
+Safari Zone (Area 2, Level 30) - 10%
+Safari Zone (Area 3, Level 30) - 10%"
+31,31,229,Nidoqueen,,,,Evolve Nidorina (Moon Stone),Evolve Nidorina (Moon Stone)
+32,32,230,Nidoran M,,,,"Safari Zone (Center, Level 22) - 20%
+Safari Zone (Area 1, Level 24) - 20%
+Safari Zone (Area 2, Level 30) - 20%
+Safari Zone (Area 3, Level 22) - 20%
+Wild (Route 3, Level 6 - 7) - 15%","Wild (Route 3, Level 6) - 5%
+Safari Zone (Area 1, Level 24) - 5%
+Safari Zone (Area 3, Level 30) - 5%
+Trade (Underground Path 5 - 6, For Nidoran F)"
+33,33,231,Nidorino,,,,"Evolve Nidoran M (Level 16)
+Safari Zone (Center, Level 31) - 10%
+Safari Zone (Area 1, Level 33) - 10%
+Safari Zone (Area 2, Level 30) - 10%
+Safari Zone (Area 3, Level 30) - 10%","Evolve Nidoran M (Level 16)
+Safari Zone (Center, Level 31) - 5%
+Safari Zone (Area 2, Level 30) - 5%
+Trade (Route 11, For Nidorina)"
+34,34,232,Nidoking,,,,Evolve Nidorino (Moon Stone),Evolve Nidorino (Moon Stone)
+35,35,233,Clefairy,,,,"Special (Celadon Game Corner, Purchase for 500C, Level 8)
+Wild (Mt. Moon B2F, Level 10, 12) - 6%
+Wild (Mt. Moon 1F, Level 8, 10) - 1%","Special (Celadon Game Corner, Purchase for 750C, Level 12)
+Wild (Mt. Moon B2F, Level 10, 12) - 6%
+Wild (Mt. Moon 1F, Level 8, 10) - 1%"
+36,36,234,Clefable,,,,Evolve Clefable (Moon Stone),Evolve Clefable (Moon Stone)
+37,37,153,Vulpix,"Wild (Mt. Pyre Exterior, Level 25, 27, 29) - 20%","Wild (Mt. Pyre Exterior, Level 25, 27, 29) - 20%","Wild (Mt. Pyre Exterior, Level 25, 27, 29) - 30%",,"Wild (Route 8, Level 15 - 18) - 20%
+Wild (Pokemon Mansion B1F - 3F, Level 30, 32) - 15%
+Wild (Route 7, Level 18, 20) - 10%"
+38,38,154,Ninetales,Evolve Vulpix (Fire Stone),Evolve Vulpix (Fire Stone),Evolve Vulpix (Fire Stone),,Evolve Vulpix (Fire Stone)
+39,39,138,Jigglypuff,"Wild (Route 115, Level 24 - 25) - 10%","Wild (Route 115, Level 24 - 25) - 10%","Wild (Route 115, Level 24 - 25) - 10%","Wild (Route 3, Level 3, 5, 7) - 10%","Wild (Route 3, Level 3, 5, 7) - 10%"
+40,40,139,Wigglytuff,Evolve Jigglypuff (Moon Stone),Evolve Jigglypuff (Moon Stone),Evolve Jigglypuff (Moon Stone),Evolve Jigglypuff (Moon Stone),Evolve Jigglypuff (Moon Stone)
+41,41,63,Zubat,"Surf (Meteor Falls 1F 1R, Level 5 - 35) - 90%
+Wild (Cave of Origin Entrance, Level 28 - 35) - 90%
+Wild (Seafloor Cavern, Level 28 - 35) - 90%
+Wild (Meteor Falls 1F 1R, Level 14 - 20) - 80%
+Wild (Shoal Cave Main, Level 26, 28, 30, 32) - 45%
+Wild (Shoal Cave Ice, Level 26, 28, 30) - 40%
+Wild (Cave of Origin 1F - B3F, Level 30 - 34) - 60%
+Surf (Seafloor Cavern, Level 5 - 35) - 35%
+Wild (Granite Cave 1F, Level 7 - 8) - 30%
+Wild (Granite Cave Steven's Room, Level 7 - 8) - 30%
+Wild (Granite Cave B1F, Level 9 - 10) - 30%
+Wild (Granite Cave B2F, Level 10 - 11) - 30%
+Surf (Shoal Cave Main, Level 5 - 35) - 30%
+Wild (Victory Road 1F, Level 36) - 10%","Surf (Meteor Falls 1F 1R, Level 5 - 35) - 90%
+Wild (Cave of Origin Entrance, Level 28 - 35) - 90%
+Wild (Seafloor Cavern, Level 28 - 35) - 90%
+Wild (Meteor Falls 1F 1R, Level 14 - 20) - 80%
+Wild (Shoal Cave Main, Level 26, 28, 30, 32) - 45%
+Wild (Shoal Cave Ice, Level 26, 28, 30) - 40%
+Wild (Cave of Origin 1F - B3F, Level 30 - 34) - 60%
+Surf (Seafloor Cavern, Level 5 - 35) - 35%
+Wild (Granite Cave 1F, Level 7 - 8) - 30%
+Wild (Granite Cave Steven's Room, Level 7 - 8) - 30%
+Wild (Granite Cave B1F, Level 9 - 10) - 30%
+Wild (Granite Cave B2F, Level 10 - 11) - 30%
+Surf (Shoal Cave Main, Level 5 - 35) - 30%
+Wild (Victory Road 1F, Level 36) - 10%","Surf (Meteor Falls 1F 1R, Level 5 - 35) - 90%
+Wild (Cave of Origin Entrance, Level 28 - 35) - 90%
+Wild (Seafloor Cavern, Level 28 - 35) - 90%
+Wild (Meteor Falls 1F 1R, Level 14 - 20) - 80%
+Wild (Shoal Cave Main, Level 26, 28, 30, 32) - 45%
+Wild (Shoal Cave Ice, Level 26, 28, 30) - 40%
+Wild (Cave of Origin 1F - B3F, Level 30 - 34) - 60%
+Surf (Seafloor Cavern, Level 5 - 35) - 35%
+Wild (Granite Cave 1F, Level 7 - 8) - 30%
+Wild (Granite Cave Steven's Room, Level 7 - 8) - 30%
+Wild (Granite Cave B1F, Level 9 - 10) - 30%
+Wild (Granite Cave B2F, Level 10 - 11) - 30%
+Surf (Shoal Cave Main, Level 5 - 35) - 30%
+Wild (Victory Road 1F, Level 36) - 10%","Wild (Altering Cave, Level 6, 8, 10, 12, 14, 16) - 100%
+Wild (Mt. Moon 1F, Level 6 - 10) - 69%
+Wild (Mt. Moon B2F, Level 8 - 11) - 49%
+Wild (Seafom Islands 1F, Level 22, 24, 26) - 34%
+Wild (Seafom Islands B1F, Level 22, 24, 26) - 34%
+Wild (Rock Tunnel 1F, Level 15 - 16) - 30%
+Wild (Rock Tunnel B1F, Level 15 - 16) - 30%
+Wild (Seafom Islands B2F, Level 22, 24) - 20%
+Wild (Lost Cave, Level 37) - 20%
+Wild (Victory Road 1F & 3F, Level 32) - 10%
+Wild (Victory Road 2F, Level 34) - 10%
+Wild (Icefall Cave Entrance, Level 40) - 10%
+Wild (Icefall Cave Inner, Level 40) - 10%","Wild (Altering Cave, Level 6, 8, 10, 12, 14, 16) - 100%
+Wild (Mt. Moon 1F, Level 6 - 10) - 69%
+Wild (Mt. Moon B2F, Level 8 - 11) - 49%
+Wild (Seafom Islands 1F, Level 22, 24, 26) - 34%
+Wild (Seafom Islands B1F, Level 22, 24, 26) - 34%
+Wild (Rock Tunnel 1F, Level 15 - 16) - 30%
+Wild (Rock Tunnel B1F, Level 15 - 16) - 30%
+Wild (Seafom Islands B2F, Level 22, 24) - 20%
+Wild (Lost Cave, Level 37) - 20%
+Wild (Victory Road 1F & 3F, Level 32) - 10%
+Wild (Victory Road 2F, Level 34) - 10%
+Wild (Icefall Cave Entrance, Level 40) - 10%
+Wild (Icefall Cave Inner, Level 40) - 10%"
+42,42,64,Golbat,"Evolve Zubat (Level 22)
+Surf (Victory Road B2F, Level 25 - 40) - 100%
+Surf (Meteor Falls B1F 2R, Level 30 - 35) - 90%
+Surf (Meteor Falls 1F 2R & B1F 1R, Level 33, 35, 38, 40) - 65%
+Wild (Meteor Falls B1F 2R, Level 33, 35, 38, 40) - 50%
+Wild (Victory Road B1F, Level 38, 40, 42) - 35%
+Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Sky Pillar 1F, Level 48, 50) - 30%
+Wild (Sky Pillar 3F, Level 51, 53) - 30%
+Wild (Sky Pillar 5F, Level 54, 56) - 30%
+Wild (Victory Road 1F, Level 38, 40) - 25%
+Wild (Cave of Origin, Level 33 - 36) - 10%
+Wild (Seafloor Cavern, Level 33 - 36) - 10%
+Surf (Seafloor Cavern, Level 30 - 35) - 5%
+Wild (Shoal Cave Main, Level 32) - 5%
+Wild (Shoal Cave Ice, Level 30, 32) - 5%","Evolve Zubat (Level 22)
+Surf (Victory Road B2F, Level 25 - 40) - 100%
+Surf (Meteor Falls B1F 2R, Level 30 - 35) - 90%
+Surf (Meteor Falls 1F 2R & B1F 1R, Level 33, 35, 38, 40) - 65%
+Wild (Meteor Falls B1F 2R, Level 33, 35, 38, 40) - 50%
+Wild (Victory Road B1F, Level 38, 40, 42) - 35%
+Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Sky Pillar 1F, Level 48, 50) - 30%
+Wild (Sky Pillar 3F, Level 51, 53) - 30%
+Wild (Sky Pillar 5F, Level 54, 56) - 30%
+Wild (Victory Road 1F, Level 38, 40) - 25%
+Wild (Cave of Origin, Level 33 - 36) - 10%
+Wild (Seafloor Cavern, Level 33 - 36) - 10%
+Surf (Seafloor Cavern, Level 30 - 35) - 5%
+Wild (Shoal Cave Main, Level 32) - 5%
+Wild (Shoal Cave Ice, Level 30, 32) - 5%","Evolve Zubat (Level 22)
+Surf (Victory Road B2F, Level 25 - 40) - 100%
+Surf (Meteor Falls B1F 2R, Level 30 - 35) - 90%
+Surf (Meteor Falls 1F 2R & B1F 1R, Level 33, 35, 38, 40) - 65%
+Wild (Meteor Falls Steven's Cave, Level 33, 35, 38, 40) - 65%
+Wild (Meteor Falls B1F 2R, Level 33, 35, 38, 40) - 50%
+Wild (Victory Road B1F, Level 38, 40, 42) - 35%
+Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Sky Pillar, Level 34 - 35) - 30%
+Wild (Victory Road 1F, Level 38, 40) - 25%
+Wild (Cave of Origin, Level 33 - 36) - 10%
+Wild (Seafloor Cavern, Level 33 - 36) - 10%
+Surf (Seafloor Cavern, Level 30 - 35) - 5%
+Wild (Shoal Cave Main, Level 32) - 5%
+Wild (Shoal Cave Ice, Level 30, 32) - 5%","Evolve Zubat (Level 22)
+Wild (Cerulean Cave 2F, Level 49, 58) - 25%
+Wild (Icefall Cave Entrance, Level 45, 48) - 25%
+Wild (Icefall Cave Inner, Level 45, 48) - 25%
+Wild (Lost Cave, Level 41, 42) - 20%
+Wild (Cerulean Cave 1F, Level 46, 55) - 14%
+Wild (Cerulean Cave B1F, Level 52, 61) - 11%
+Wild (Seafom Islands 1F, Level 26, 28, 30) - 11%
+Wild (Seafom Islands B4F, Level 26, 28, 30) - 15%
+Wild (Seafom Islands B1F, Level 26, 28, 30) - 11%
+Wild (Seafom Islands B2F, Level 26, 28, 30) - 10%
+Wild (Seafom Islands B3F, Level 26, 30) - 10%
+Wild (Lost Cave Item Room, Level 41) - 10%
+Wild (Victory Road 1F & 3F, Level 44) - 5%
+Wild (Victory Road 2F, Level 46) - 5%","Evolve Zubat (Level 22)
+Wild (Cerulean Cave 2F, Level 49, 58) - 25%
+Wild (Icefall Cave Entrance, Level 45, 48) - 25%
+Wild (Icefall Cave Inner, Level 45, 48) - 25%
+Wild (Lost Cave, Level 41, 42) - 20%
+Wild (Cerulean Cave 1F, Level 46, 55) - 14%
+Wild (Cerulean Cave B1F, Level 52, 61) - 11%
+Wild (Seafom Islands 1F, Level 26, 28, 30) - 11%
+Wild (Seafom Islands B4F, Level 26, 28, 30) - 15%
+Wild (Seafom Islands B1F, Level 26, 28, 30) - 11%
+Wild (Seafom Islands B2F, Level 26, 28, 30) - 10%
+Wild (Seafom Islands B3F, Level 26, 30) - 10%
+Wild (Lost Cave Item Room, Level 41) - 10%
+Wild (Victory Road 1F & 3F, Level 44) - 5%
+Wild (Victory Road 2F, Level 46) - 5%"
+43,43,88,Oddish,"Wild (Safari Zone Area 1 & 2, Level 25, 27) - 40%
+Wild (Safari Zone Area 3, Level 27, 29) - 30%
+Wild (Safari Zone Area 4, Level 27 - 29) - 30%
+Wild (Route 119, Level 24 - 27)  - 30%
+Wild (Route 120, Level 25 - 27)  - 25%
+Wild (Route 121, Level 26, 28) - 15%
+Wild (Route 123, Level 26, 28) - 15%
+Wild (Route 110, Level 13) - 10%
+Wild (Route 117, Level 13) - 10%","Wild (Safari Zone Area 1 & 2, Level 25, 27) - 40%
+Wild (Safari Zone Area 3, Level 27, 29) - 30%
+Wild (Safari Zone Area 4, Level 27 - 29) - 30%
+Wild (Route 119, Level 24 - 27)  - 30%
+Wild (Route 120, Level 25 - 27)  - 25%
+Wild (Route 121, Level 26, 28) - 15%
+Wild (Route 123, Level 26, 28) - 15%
+Wild (Route 110, Level 13) - 10%
+Wild (Route 117, Level 13) - 10%","Wild (Route 117, Level 13 - 14) - 40%
+Wild (Safari Zone Area 1 & 2, Level 25, 27) - 40%
+Wild (Safari Zone Area 3, Level 27, 29) - 30%
+Wild (Safari Zone Area 4, Level 27 - 29) - 30%
+Wild (Route 119, Level 24 - 27)  - 30%
+Wild (Route 121, Level 26, 28) - 15%
+Wild (Route 123, Level 26, 28) - 15%
+Wild (Route 110, Level 13) - 10%","Wild (Route 12, Level 22 - 26) - 35%
+Wild (Route 13, Level 22, 24, 26) - 35%
+Wild (Route 14, Level 22, 24, 26) - 35%
+Wild (Route 15, Level 22, 24, 26) - 35%
+Wild (Cape Brink, Level 30, 32) - 30%
+Wild (Route 24, Level 12 - 14) - 25%
+Wild (Route 25, Level 12 - 14) - 25%
+Wild (Route 5, Level 13, 15 - 16) - 25%
+Wild (Route 6, Level 13, 15 - 16) - 25%
+Wild (Route 7, Level 19, 22) - 20%
+Wild (Bond Bridge, Level 31) - 20%
+Wild (Water Path, Level 44) - 10%
+Wild (Berry Forest, Level 30) - 10%",
+44,44,89,Gloom,"Evolve Oddish (Level 21)
+Wild (Safari Zone Area 3, Level 29, 31) - 15%
+Wild (Safari Zone Area 4, Level 29, 31) - 15%
+Wild (Route 121, Level 28) - 5%
+Wild (Route 123, Level 28) - 5%
+Wild (Safari Zone Area 1, Level 25) - 5%","Evolve Oddish (Level 21)
+Wild (Safari Zone Area 3, Level 29, 31) - 15%
+Wild (Safari Zone Area 4, Level 29, 31) - 15%
+Wild (Route 121, Level 28) - 5%
+Wild (Route 123, Level 28) - 5%
+Wild (Safari Zone Area 1, Level 25) - 5%","Evolve Oddish (Level 21)
+Wild (Safari Zone Area 3, Level 29, 31) - 15%
+Wild (Safari Zone Area 4, Level 29, 31) - 15%
+Wild (Route 121, Level 28) - 5%
+Wild (Route 123, Level 28) - 5%
+Wild (Safari Zone Area 1, Level 25) - 5%","Evolve Oddish (Level 21)
+Wild (Berry Forest, Level 35) - 20%
+Wild (Cape Brink, Level 36, 38) - 15%
+Wild (Bond Bridge, Level 36) - 10%
+Wild (Route 12, Level 28 - 30) - 5%
+Wild (Route 13, Level 28, 30) - 5%
+Wild (Route 14, Level 30) - 5%
+Wild (Route 15, Level 28, 30) - 5%
+Wild (Water Path, Level 48) - 5%",
+45,45,90,Vileplume,Evolve Gloom (Leaf Stone),Evolve Gloom (Leaf Stone),Evolve Gloom (Leaf Stone),Evolve Gloom (Leaf Stone),
+46,46,235,Paras,,,,"Wild (Mt. Moon B1F, Level 5 - 10) - 100%
+Wild (Mt. Moon B2F, Level 10, 12) - 15%
+Safari Zone (Area 1, Level 22) - 15%
+Safari Zone (Area 2, Level 23) - 15%
+Wild (Mt Moon 1F, Level 8) - 5%","Wild (Mt. Moon B1F, Level 5 - 10) - 100%
+Wild (Mt. Moon B2F, Level 10, 12) - 15%
+Safari Zone (Area 1, Level 22) - 15%
+Safari Zone (Area 2, Level 23) - 15%
+Wild (Mt Moon 1F, Level 8) - 5%"
+47,47,236,Parasect,,,,"Evolve Paras (Level 24)
+Wild (Cerulean Cave 1F, Level 49, 58) - 25%
+Wild (Cerulean Cave 2F, Level 52, 61) - 14%
+Wild (Cerulean Cave B1F, Level 55, 64) - 14%
+Safari Zone (Center, Level 30) - 5%
+Safari Zone (Area 1, Level 25) - 5%","Evolve Paras (Level 24)
+Wild (Cerulean Cave 1F, Level 49, 58) - 25%
+Wild (Cerulean Cave 2F, Level 52, 61) - 14%
+Wild (Cerulean Cave B1F, Level 55, 64) - 14%
+Safari Zone (Center, Level 30) - 5%
+Safari Zone (Area 1, Level 25) - 5%"
+48,48,237,Venonat,,,,"Wild (Route 12, Level 24 - 26) - 30%
+Wild (Route 13, Level 24, 26) - 30%
+Wild (Route 14, Level 24, 26) - 30%
+Wild (Route 15, Level 24, 26) - 30%
+Safari Zone (Center, Level 22) - 15%
+Safari Zone (Area 3, Level 23) - 15%
+Wild (Berry Forest, Level 34) - 10%
+Wild (Bond Bridge, Level 34) - 5%","Wild (Route 12, Level 24 - 26) - 30%
+Wild (Route 13, Level 24, 26) - 30%
+Wild (Route 14, Level 24, 26) - 30%
+Wild (Route 15, Level 24, 26) - 30%
+Safari Zone (Center, Level 22) - 15%
+Safari Zone (Area 3, Level 23) - 15%
+Wild (Berry Forest, Level 34) - 10%
+Wild (Bond Bridge, Level 34) - 5%"
+49,49,238,Venomoth,,,,"Evolve Venomoth (Level 31)
+Safari Zone (Area 2, Level 32) - 5%
+Safari Zone (Area 3, Level 32) - 5%
+Wild (Berry Forest, Level 37, 40) - 5%","Evolve Venomoth (Level 31)
+Safari Zone (Area 2, Level 32) - 5%
+Safari Zone (Area 3, Level 32) - 5%
+Wild (Berry Forest, Level 37, 40) - 5%"
+50,50,239,Diglett,,,,"Wild (Diglett's Cave, Level 15 - 22) - 95%","Wild (Diglett's Cave, Level 15 - 22) - 95%"
+51,51,240,Dugtrio,,,,"Evolve Diglett (Level 26)
+Wild (Diglett's Cave, Level 29 - 31) - 5%","Evolve Diglett (Level 26)
+Wild (Diglett's Cave, Level 29 - 31) - 5%"
+52,52,241,Meowth,,,"Trade (Battle Frontier, For Skitty)","Wild (Route 7, Level 17 - 20) - 40%
+Wild (Route 5, Level 10, 12, 14, 16) - 35%
+Wild (Route 6, Level 10, 12, 14, 16) - 35%
+Wild (Route 8, Level 18, 20) - 30%
+Wild (Treasure Beach, Level 31) - 10%
+Wild (Kindle Road, Level 31) - 10%
+Wild (Cape Brink, Level 31) - 10%
+Wild (Bond Bridge, Level 31) - 10%
+Wild (Five Isle Meadow, Level 41) - 10%
+Wild (Water Path, Level 41) - 10%
+Wild (Ruin Valley, Level 43) - 10%
+Wild (Canyon Entrance, Level 41) - 10%
+Wild (Sevault Canyon, Level 43) - 10%","Wild (Route 7, Level 17 - 20) - 40%
+Wild (Route 5, Level 10, 12, 14, 16) - 35%
+Wild (Route 6, Level 10, 12, 14, 16) - 35%
+Wild (Route 8, Level 18, 20) - 30%
+Wild (Treasure Beach, Level 31) - 10%
+Wild (Kindle Road, Level 31) - 10%
+Wild (Cape Brink, Level 31) - 10%
+Wild (Bond Bridge, Level 31) - 10%
+Wild (Five Isle Meadow, Level 41) - 10%
+Wild (Water Path, Level 41) - 10%
+Wild (Ruin Valley, Level 43) - 10%
+Wild (Canyon Entrance, Level 41) - 10%
+Wild (Sevault Canyon, Level 43) - 10%"
+53,53,242,Persian,,,,"Evolve Meowth (Level 28)
+Wild (Treasure Beach, Level 37, 40) - 5%
+Wild (Kindle Road, Level 37, 40) - 5%
+Wild (Cape Brink, Level 37, 40) - 5%
+Wild (Bond Bridge, Level 37, 40) - 5%
+Wild (Five Isle Meadow, Level 47, 50) - 5%
+Wild (Water Path, Level 47,  50) - 5%
+Wild (Canyon Entrance, Level 47,  50) - 5%
+Wild (Ruin Valley, Level 49, 52) - 5%
+Wild (Sevault Canyon, Level 49, 52) - 5%","Evolve Meowth (Level 28)
+Wild (Treasure Beach, Level 37, 40) - 5%
+Wild (Kindle Road, Level 37, 40) - 5%
+Wild (Cape Brink, Level 37, 40) - 5%
+Wild (Bond Bridge, Level 37, 40) - 5%
+Wild (Five Isle Meadow, Level 47, 50) - 5%
+Wild (Water Path, Level 47,  50) - 5%
+Wild (Canyon Entrance, Level 47,  50) - 5%
+Wild (Ruin Valley, Level 49, 52) - 5%
+Wild (Sevault Canyon, Level 49, 52) - 5%"
+54,54,158,Psyduck,"Surf (Safari Zone Area 2, Level 20 - 35) - 100%
+Safari (Safari Zone Area 3, Level 20 - 35) - 95%","Surf (Safari Zone Area 2, Level 20 - 35) - 100%
+Safari (Safari Zone Area 3, Level 20 - 35) - 95%","Surf (Safari Zone Area 2, Level 20 - 35) - 100%
+Safari (Safari Zone Area 3, Level 20 - 35) - 95%","Surf (Viridian City, Level 20 - 40) - 100%
+Surf (Route 6, Level 20 - 40) - 100%
+Surf (Route 25, Level 20 - 40) - 100%
+Surf (Fuchsia City, Level 20 - 40) - 100%
+Surf (Safari Zone, Level 20 - 40) - 100%
+Surf (Route 22, Level 20 - 40) - 100%
+Surf (Route 23, Level 20 - 40) - 100%
+Surf (Celadon City, Level 5 - 40) - 99%
+Surf (Cape Brink, Level 5 - 40) - 95%
+Surf (Berry Forest, Level 5 - 40) - 95%
+Surf (Cerulean Cave 1F, Level 30 - 50) - 65%
+Surf (Cerulean Cave B1F, Level 40 - 60) - 60%
+Wild (Seafom Islands 1F, Level 26 - 27, 29, 31, 33) - 55%
+Wild (Seafom Islands B1F, Level 29, 31) - 40%
+Wild (Seafom Islands B2F, Level 30, 32) - 40%
+Surf (Icefall Cave Entrance, Level 5 - 35) - 30%
+Wild (Seafom Islands B3F, Level 30, 32) - 20%
+Wild (Treasure Beach, Level 31) - 5%
+Wild (Kindle Road, Level 34) - 5%
+Wild (Cape Brink, Level 31) - 5%
+Wild (Berry Forest, Level 31) - 5%
+Wild (Bond Bridge, Level 31) - 5%
+Wild (Icefall Cave Entrance, Level 41) - 5%
+Wild (Five Isle Meadow, Level 41) - 5%
+Wild (Water Path, Level 41) - 5%
+Wild (Ruin Valley, Level 41) - 5%
+Wild (Canyon Entrance, Level 41) - 5%
+Fish - See FRLG Fishing Patterns",
+55,55,159,Golduck,"Evolve Psyduck (Level 33)
+Wild (Safari Zone Area 3, Level 25 - 40) - 5%","Evolve Psyduck (Level 33)
+Wild (Safari Zone Area 3, Level 25 - 40) - 5%","Evolve Psyduck (Level 33)
+Wild (Safari Zone Area 3, Level 25 - 40) - 5%","Evolve Psyduck (Level 33)
+Surf (Cerulean Cave 1F, Level 40 - 55) - 35%
+Surf (Cerulean Cave B1F, Level 50 - 65) - 35%
+Wild (Seafom Islands B3F, Level 30, 32) - 15%
+Wild (Seafom Islands B4F, Level 32, 34) - 15%
+Wild (Seafom Islands B2F, Level 32, 34) - 10%
+Wild (Seafom Islands B1F, Level 33, 35) - 5%
+Surf (Cape Brink, Level 35 - 40) - 5%
+Surf (Berry Forest, Level 35 - 40) - 5%
+Wild (Cape Brink, Level 37, 40) - 5%",
+56,56,243,Mankey,,,,"Wild (Route 22, Level 2 - 5) - 45%
+Wild (Route 23, Level 32, 34) - 30%
+Wild (Rock Tunnel 1F, Level 16 - 17) - 15%
+Wild (Rock Tunnel B1F, Level 16 - 17) - 15%
+Wild (Route 3, Level 7) - 10%
+Wild (Route 4, Level 10, 12) - 5%","Wild (Route 22, Level 2 - 5) - 45%
+Wild (Route 23, Level 32, 34) - 30%
+Wild (Rock Tunnel 1F, Level 16 - 17) - 15%
+Wild (Rock Tunnel B1F, Level 16 - 17) - 15%
+Wild (Route 3, Level 7) - 10%
+Wild (Route 4, Level 10, 12) - 5%"
+57,57,244,Primeape,,,,"Evolve Mankey (Level 28)
+Wild (Cerulean Cave 1F, Level 52, 61) - 11%
+Wild (Victory Road 2F, Level 42) - 10%
+Wild (Route 23, Level 42) - 5%","Evolve Mankey (Level 28)
+Wild (Cerulean Cave 1F, Level 52, 61) - 11%
+Wild (Victory Road 2F, Level 42) - 10%
+Wild (Route 23, Level 42) - 5%"
+58,58,245,Growlithe,,,,"Wild (Route 8, Level 15 - 18) - 20%
+Wild (Pokemon Mansion B1F - 3F, Level 30, 32) - 15%
+Wild (Route 7, Level 18, 20) - 10%",
+59,59,246,Arcanine,,,,Evolve Growlithe (Fire Stone),
+60,60,247,Poliwag,,,,Fish - See FRLG Fishing Patterns,Fish - See FRLG Fishing Patterns
+61,61,248,Poliwhirl,,,,"Evolve Poliwag (Level 25)
+Fish - See FRLG Fishing Patterns","Evolve Poliwag (Level 25)
+Fish - See FRLG Fishing Patterns"
+62,62,249,Poliwrath,,,,Evolve Poliwhirl (Water Stone),Evolve Poliwhirl (Water Stone)
+63,63,39,Abra,"Wild (Granite Cave 1F, Level 8) - 10%
+Wild (Granite Cave Steven's Room, Level 8) - 10%
+Wild (Granite Cave B1F, Level 9) - 10%
+Wild (Granite Cave B2F, Level 10) - 10%","Wild (Granite Cave 1F, Level 8) - 10%
+Wild (Granite Cave Steven's Room, Level 8) - 10%
+Wild (Granite Cave B1F, Level 9) - 10%
+Wild (Granite Cave B2F, Level 10) - 10%","Wild (Route 116, Level 7) - 10%
+Wild (Granite Cave 1F, Level 8) - 10%
+Wild (Granite Cave Steven's Room, Level 8) - 10%
+Wild (Granite Cave B1F, Level 9) - 10%
+Wild (Granite Cave B2F, Level 10) - 10%","Special (Celadon Game Corner, Purchase for 180C, Level 9)
+Wild (Route 24, Level 8, 10, 12) - 15%
+Wild (Route 25, Level 8, 10, 12) - 15%","Special (Celadon Game Corner, Purchase for 120C, Level 7)
+Wild (Route 24, Level 8, 10, 12) - 15%
+Wild (Route 25, Level 8, 10, 12) - 15%"
+64,64,40,Kadabra,Evolve Abra (Level 16),Evolve Abra (Level 16),Evolve Abra (Level 16),"Evolve Abra (Level 16)
+Wild (Cerulean Cave B1F, Level 58, 67) - 25%
+Wild (Cerulean Cave 2F, Level 55, 64) - 11%","Evolve Abra (Level 16)
+Wild (Cerulean Cave B1F, Level 58, 67) - 25%
+Wild (Cerulean Cave 2F, Level 55, 64) - 11%"
+65,65,41,Alakazam,Evolve Kadabra (Trade),Evolve Kadabra (Trade),Evolve Kadabra (Trade),Evolve Kadabra (Trade),Evolve Kadabra (Trade)
+66,66,73,Machop,"Wild (Route 112, Level 14 - 16) - 25%
+Wild (Jagged Pass, Level 18 - 20) - 25%
+Wild (Fiery Path, Level 15 - 16) - 15%","Wild (Route 112, Level 14 - 16) - 25%
+Wild (Jagged Pass, Level 20 - 22) - 25%
+Wild (Fiery Path, Level 15 - 16) - 15%","Wild (Jagged Pass, Level 20 - 22) - 25%
+Wild (Fiery Path, Level 15 - 16) - 15%","Wild (Mt. Ember Summit Path Room 1 & 3, Level 31, 33, 35, 37, 39) - 50%
+Wild (Mt. Ember Summit Path Room 2, Level 32, 34, 36) - 40%
+Wild (Mt. Ember Ruby Path 1F, Level 34, 36, 38) - 40%
+Wild (Victory Road 1F & 3F, Level 32) - 20%
+Wild (Victory Road 2F, Level 34) - 20%
+Wild (Rock Tunnel 1F, Level 16 - 17) - 15%
+Wild (Rock Tunnel B1F, Level 17) - 10%
+Wild (Mt. Ember Base, Level 35) - 10%","Wild (Mt. Ember Summit Path Room 1 & 3, Level 31, 33, 35, 37, 39) - 50%
+Wild (Mt. Ember Summit Path Room 2, Level 32, 34, 36) - 40%
+Wild (Mt. Ember Ruby Path 1F, Level 34, 36, 38) - 40%
+Wild (Victory Road 1F & 3F, Level 32) - 20%
+Wild (Victory Road 2F, Level 34) - 20%
+Wild (Rock Tunnel 1F, Level 16 - 17) - 15%
+Wild (Rock Tunnel B1F, Level 17) - 10%
+Wild (Mt. Ember Base, Level 35) - 10%"
+67,67,74,Machoke,Evolve Machop (Level 28),Evolve Machop (Level 28),Evolve Machop (Level 28),"Evolve Machop (Level 28)
+Wild (Cerulean Cave 2F, Level 49) - 20%
+Wild (Mt. Ember Summit Path Room 2, Level 38, 40) - 20%
+Wild (Mt. Ember Ruby Path 1F, Level 40, 42) - 10%
+Wild (Cerulean Cave 1F, Level 46) - 10%
+Wild (Cerulean Cave B1F, Level 52) - 10%
+Wild (Victory Road 1F & 3F, Level 44, 46) - 5%
+Wild (Victory Road 2F, Level 46, 48) - 5%","Evolve Machop (Level 28)
+Wild (Cerulean Cave 2F, Level 49) - 20%
+Wild (Mt. Ember Summit Path Room 2, Level 38, 40) - 20%
+Wild (Mt. Ember Ruby Path 1F, Level 40, 42) - 10%
+Wild (Cerulean Cave 1F, Level 46) - 10%
+Wild (Cerulean Cave B1F, Level 52) - 10%
+Wild (Victory Road 1F & 3F, Level 44, 46) - 5%
+Wild (Victory Road 2F, Level 46, 48) - 5%"
+68,68,75,Machamp,Evolve Machoke (Trade),Evolve Machoke (Trade),Evolve Machoke (Trade),Evolve Machoke (Trade),Evolve Machoke (Trade)
+69,69,250,Bellsprout,,,,,"Wild (Route 12, Level 22 - 26) - 35%
+Wild (Route 13, Level 22, 24, 26) - 35%
+Wild (Route 14, Level 22, 24, 26) - 35%
+Wild (Route 15, Level 22, 24, 26) - 35%
+Wild (Cape Brink, Level 30, 32) - 30%
+Wild (Route 24, Level 12 - 14) - 25%
+Wild (Route 25, Level 12 - 14) - 25%
+Wild (Route 5, Level 13, 15 - 16) - 25%
+Wild (Route 6, Level 13, 15 - 16) - 25%
+Wild (Bond Bridge, Level 31) - 20%
+Wild (Route 7, Level 19, 22) - 20%
+Wild (Berry Forest, Level 30) - 10%
+Wild (Water Path, Level 44) - 10%"
+70,70,251,Weepinbell,,,,,"Evolve Bellsprout (Level 21)
+Wild (Berry Forest, Level 35) - 20%
+Wild (Bond Bridge, Level 36) - 10%
+Wild (Cape Brink, Level 36, 38) - 15%
+Wild (Route 12, Level 28 - 30) - 5%
+Wild (Route 13, Level 28, 30) - 5%
+Wild (Route 14, Level 30) - 5%
+Wild (Route 15, Level 28, 30) - 5%
+Wild (Water Path, Level 48) - 5%"
+71,71,252,Victreebel,,,,,Evolve Weepinbell (Leaf Stone)
+72,72,66,Tentacool,"Surf (Abandoned Ship, Level 5 - 35) - 99%
+Surf (Route 103, Level 5 - 35) - 60%
+Surf (Route 115, Level 5 - 35) - 60%
+Surf (Route 105 - 110, Level 5 - 35) - 60%
+Surf (Dewford Town, Level 5 - 35) - 60%
+Surf (Slateport City, Level 5 - 35) - 60%
+Surf (Route 118, Level 5 - 35) - 60%
+Surf (Route 119, Level 5 - 35) - 60%
+Surf (Route 121 - 134, Level 5 - 35) - 60%
+Surf (Pacifidlog City, Level 5 - 35) - 60%
+Surf (Lilycove City, Level 5 - 35) - 60%
+Surf (Mossdeep City, Level 5 - 35) - 60%
+Surf (Shoal Cave Main, Level 5 - 35) - 60%
+Surf (Ever Grande City, Level 5 - 35) - 60%
+Surf (Seafloor Cavenr, Level 5 - 35) - 60%
+Fish - See RSE Fishing Patterns","Surf (Abandoned Ship, Level 5 - 35) - 99%
+Surf (Route 103, Level 5 - 35) - 60%
+Surf (Route 115, Level 5 - 35) - 60%
+Surf (Route 105 - 110, Level 5 - 35) - 60%
+Surf (Dewford Town, Level 5 - 35) - 60%
+Surf (Slateport City, Level 5 - 35) - 60%
+Surf (Route 118, Level 5 - 35) - 60%
+Surf (Route 119, Level 5 - 35) - 60%
+Surf (Route 121 - 134, Level 5 - 35) - 60%
+Surf (Pacifidlog City, Level 5 - 35) - 60%
+Surf (Lilycove City, Level 5 - 35) - 60%
+Surf (Mossdeep City, Level 5 - 35) - 60%
+Surf (Shoal Cave Main, Level 5 - 35) - 60%
+Surf (Ever Grande City, Level 5 - 35) - 60%
+Surf (Seafloor Cavenr, Level 5 - 35) - 60%
+Fish - See RSE Fishing Patterns","Surf (Abandoned Ship, Level 5 - 35) - 99%
+Surf (Route 103, Level 5 - 35) - 60%
+Surf (Route 115, Level 5 - 35) - 60%
+Surf (Route 105 - 110, Level 5 - 35) - 60%
+Surf (Dewford Town, Level 5 - 35) - 60%
+Surf (Slateport City, Level 5 - 35) - 60%
+Surf (Route 118, Level 5 - 35) - 60%
+Surf (Route 119, Level 5 - 35) - 60%
+Surf (Route 121 - 134, Level 5 - 35) - 60%
+Surf (Pacifidlog City, Level 5 - 35) - 60%
+Surf (Lilycove City, Level 5 - 35) - 60%
+Surf (Mossdeep City, Level 5 - 35) - 60%
+Surf (Shoal Cave Main, Level 5 - 35) - 60%
+Surf (Ever Grande City, Level 5 - 35) - 60%
+Surf (Seafloor Cavenr, Level 5 - 35) - 60%
+Fish - See RSE Fishing Patterns","Surf (Route 4, Level 5 - 40) - 100%
+Surf (Cerulean City, Level 5 - 40) - 100%
+Surf (Route 10 - 13, Level 5 - 40) - 100%
+Surf (Vermillion City, Level 5 - 40) - 100%
+Surf (Route 19 - 21, Level 5 - 40) - 100%
+Surf (Cinnabar Island, Level 5 - 40) - 100%
+Surf (Treasure Beach, Level 5 - 40) - 95%
+Surf (Kindle Road, Level 5 - 40) - 95%
+Surf (Bond Bridge, Level 5 - 40) - 95%
+Surf (Icefall Cave Back, Level 5 - 40) - 95%
+Surf (Water Path, Level 5 - 40) - 95%
+Surf (Green Path, Level 5 - 40) - 95%
+Surf (Outcast Island, Level 5 - 40) - 95%
+Surf (Trainer Tower, Level 5 - 40) - 95%
+Surf (Tanoby Ruins, Level 5 - 40) - 95%
+Surf (Water Labrynth, Level 5 - 40) - 65%
+Surf (Resort Gorgeous, Level 5 - 40) - 65%
+Surf (Five Isle Meadow, Level 5 - 40) - 65%
+Surf (Memorial Pillar, Level 5 - 40) - 65%","Surf (Route 4, Level 5 - 40) - 100%
+Surf (Cerulean City, Level 5 - 40) - 100%
+Surf (Route 10 - 13, Level 5 - 40) - 100%
+Surf (Vermillion City, Level 5 - 40) - 100%
+Surf (Route 19 - 21, Level 5 - 40) - 100%
+Surf (Cinnabar Island, Level 5 - 40) - 100%
+Surf (Treasure Beach, Level 5 - 40) - 95%
+Surf (Kindle Road, Level 5 - 40) - 95%
+Surf (Bond Bridge, Level 5 - 40) - 95%
+Surf (Icefall Cave Back, Level 5 - 40) - 95%
+Surf (Water Path, Level 5 - 40) - 95%
+Surf (Green Path, Level 5 - 40) - 95%
+Surf (Outcast Island, Level 5 - 40) - 95%
+Surf (Trainer Tower, Level 5 - 35) - 90%
+Surf (Tanoby Ruins, Level 5 - 35) - 90%
+Surf (Water Labrynth, Level 5 - 40) - 65%
+Surf (Resort Gorgeous, Level 5 - 40) - 65%
+Surf (Five Isle Meadow, Level 5 - 40) - 65%
+Surf (Memorial Pillar, Level 5 - 40) - 65%"
+73,73,67,Tentacruel,"Surf (Abandoned Ship, Level 30 - 35) - 1%","Surf (Abandoned Ship, Level 30 - 35) - 1%","Surf (Abandoned Ship, Level 30 - 35) - 1%","Evolve Tentacool (Level 30)
+Surf (Treasure Beach, Level 35 - 50) - 5%
+Surf (Kindle Road, Level 35 - 50) - 5%
+Surf (Bond Bridge, Level 35 - 50) - 5%
+Surf (Water Labrynth, Level 35 - 40) - 5%
+Surf (Water Path, Level 35 - 40) - 5%
+Surf (Green Path, Level 35 - 40) - 5%
+Surf (Outcast Island, Level 35 - 40) - 5%
+Surf (Resort Gorgeous, Level 35 - 40) - 5%
+Surf (Five Isle Meadow, Level 35 - 40) - 5%
+Surf (Memorial Pillar, Level 35 - 40) - 5%
+Surf (Trainer Tower, Level 35 - 40) - 5%
+Surf (Tanoby Ruins, Level 35 - 40) - 5%
+Surf (Icefall Cave Back, Level 30 - 45) - 4%","Evolve Tentacool (Level 30)
+Surf (Treasure Beach, Level 35 - 50) - 5%
+Surf (Kindle Road, Level 35 - 50) - 5%
+Surf (Bond Bridge, Level 35 - 50) - 5%
+Surf (Water Labrynth, Level 35 - 40) - 5%
+Surf (Water Path, Level 35 - 40) - 5%
+Surf (Green Path, Level 35 - 40) - 5%
+Surf (Outcast Island, Level 35 - 40) - 5%
+Surf (Resort Gorgeous, Level 35 - 40) - 5%
+Surf (Five Isle Meadow, Level 35 - 40) - 5%
+Surf (Memorial Pillar, Level 35 - 40) - 5%
+Surf (Trainer Tower, Level 35 - 40) - 5%
+Surf (Tanoby Ruins, Level 35 - 40) - 5%
+Surf (Icefall Cave Back, Level 30 - 45) - 4%"
+74,74,57,Geodude,"Rock Smash (Route 111, Level 5 - 20) - 100%
+Rock Smash (Route 114, Level 5 - 20) - 100%
+Rock Smash (Safari Zone Area 4, Level 5 - 30) - 100%
+Rock Smash (Granite Cave B2F, Level 5 - 20) - 70%
+Rock Smash (Victory Road B1F, Level 30 - 40) - 30%
+Wild (Granite Cave 1F, Level 6 - 9) - 10%","Rock Smash (Route 111, Level 5 - 20) - 100%
+Rock Smash (Route 114, Level 5 - 20) - 100%
+Rock Smash (Safari Zone Area 4, Level 5 - 30) - 100%
+Rock Smash (Granite Cave B2F, Level 5 - 20) - 70%
+Rock Smash (Victory Road B1F, Level 30 - 40) - 30%
+Wild (Granite Cave 1F, Level 6 - 9) - 10%","Rock Smash (Route 111, Level 5 - 20) - 100%
+Rock Smash (Route 114, Level 5 - 20) - 100%
+Rock Smash (Safari Zone Area 4, Level 5 - 30) - 100%
+Wild (Jagged Pass Magma Hideout, Level 27 - 30) - 55%
+Rock Smash (Granite Cave B2F, Level 5 - 20) - 70%
+Rock Smash (Victory Road B1F, Level 30 - 40) - 30%
+Wild (Granite Cave 1F, Level 6 - 9) - 10%","Rock Smash (Kindle Road, Level 5 - 30) - 95%
+Rock Smash (Mt. Ember Base & Summit Path Room 2, Level 5 - 30) - 95%
+Rock Smash (Rock Tunnel B1F, Level 5 - 30) - 90%
+Wild (Mt. Ember Ruby Path B1F & B5F, Level 34, 36, 38, 40, 42) - 70%
+Rock Smash (Cerulean Cave 1F, Level 30 - 50) - 65%
+Rock Smash (Cerulean Cave 2F, Level 35 - 55) - 65%
+Rock Smash (Cerulean Cave B1F, Level 40 - 60) - 65%
+Rock Smash (Mt. Ember Path 1F - B2F & B4F - B5F, Level 25 - 40) - 65%
+Rock Smash (Sevault Canyon, Level 25 - 40) - 65%
+Wild (Mt. Ember Summit Path Room 1 & 3, Level 29, 31, 33, 35, 37) - 50%
+Wild (Mt. Ember Ruby Path 1F, Level 32, 34, 36, 38, 40) - 50%
+Wild (Mt. Ember Summit Path Room 2, Level 30, 32, 34) - 40%
+Wild (Mt. Ember Ruby Path B2F & B4F, Level 40, 42, 44) - 40%
+Wild (Rock Tunnel 1F, Level 15 - 17) - 35%
+Wild (Rock Tunnel B1F, Level 15 - 17) - 35%
+Wild (Mt. Moon B2F, Level 9 - 10) - 30%
+Wild (Mt. Moon 1F, Level 7 - 9) - 25%
+Wild (Victory Road 1F & 3F, Level 32) - 20%
+Wild (Victory Road 2F, Level 34) - 20%
+Wild (Sevault Canyon, Level 46) - 20%
+Wild (Kindle Road, Level 31) - 10%
+Wild (Mt. Ember Base, Level 33) - 10%","Rock Smash (Kindle Road, Level 5 - 30) - 95%
+Rock Smash (Mt. Ember Base & Summit Path Room 2, Level 5 - 30) - 95%
+Rock Smash (Rock Tunnel B1F, Level 5 - 30) - 90%
+Wild (Mt. Ember Ruby Path B1F & B5F, Level 34, 36, 38, 40, 42) - 70%
+Rock Smash (Cerulean Cave 1F, Level 30 - 50) - 65%
+Rock Smash (Cerulean Cave 2F, Level 35 - 55) - 65%
+Rock Smash (Cerulean Cave B1F, Level 40 - 60) - 65%
+Rock Smash (Mt. Ember Path 1F - B2F & B4F - B5F, Level 25 - 40) - 65%
+Rock Smash (Sevault Canyon, Level 25 - 40) - 65%
+Wild (Mt. Ember Summit Path Room 1 & 3, Level 29, 31, 33, 35, 37) - 50%
+Wild (Mt. Ember Ruby Path 1F, Level 32, 34, 36, 38, 40) - 50%
+Wild (Mt. Ember Summit Path Room 2, Level 30, 32, 34) - 40%
+Wild (Mt. Ember Ruby Path B2F & B4F, Level 40, 42, 44) - 40%
+Wild (Rock Tunnel 1F, Level 15 - 17) - 35%
+Wild (Rock Tunnel B1F, Level 15 - 17) - 35%
+Wild (Mt. Moon B2F, Level 9 - 10) - 30%
+Wild (Mt. Moon 1F, Level 7 - 9) - 25%
+Wild (Victory Road 1F & 3F, Level 32) - 20%
+Wild (Victory Road 2F, Level 34) - 20%
+Wild (Sevault Canyon, Level 46) - 20%
+Wild (Kindle Road, Level 31) - 10%
+Wild (Mt. Ember Base, Level 33) - 10%"
+75,75,58,Graveler,"Evolve Geodude (Level 25)
+Rock Smash (Victory Road B1F, Level 30 - 40) - 70%","Evolve Geodude (Level 25)
+Rock Smash (Victory Road B1F, Level 30 - 40) - 70%","Evolve Geodude (Level 25)
+Rock Smash (Victory Road B1F, Level 30 - 40) - 70%
+Wild (Jagged Pass Magma Hideout, Level 30 - 33) - 15%","Evolve Geodude (Level 25)
+Rock Smash (Cerulean Cave 1F, Level 40 - 55) - 35%
+Rock Smash (Cerulean Cave 2F, Level 45 - 60) - 35%
+Rock Smash (Mt. Ember Path 1F - B2F & B4F - B5F, Level 30 - 50) - 35%
+Rock Smash (Sevault Canyon, Level 30 - 50) - 35%
+Rock Smash (Cerulean Cave B1F, Level 50 - 65) - 65%
+Rock Smash (Rock Tunnel B1F, Level 25 - 40) - 10%
+Rock Smash (Kindle Road, Level 25 - 40) - 5%
+Rock Smash (Mt. Ember Base & Summit Path Room 2, Level 25 - 40) - 5%","Evolve Geodude (Level 25)
+Rock Smash (Cerulean Cave 1F, Level 40 - 55) - 35%
+Rock Smash (Cerulean Cave 2F, Level 45 - 60) - 35%
+Rock Smash (Mt. Ember Path 1F - B2F & B4F - B5F, Level 30 - 50) - 35%
+Rock Smash (Sevault Canyon, Level 30 - 50) - 35%
+Rock Smash (Cerulean Cave B1F, Level 50 - 65) - 65%
+Rock Smash (Rock Tunnel B1F, Level 25 - 40) - 10%
+Rock Smash (Kindle Road, Level 25 - 40) - 5%
+Rock Smash (Mt. Ember Base & Summit Path Room 2, Level 25 - 40) - 5%"
+76,76,59,Golem,Evolve Graveler (Trade),Evolve Graveler (Trade),Evolve Graveler (Trade),Evolve Graveler (Trade),Evolve Graveler (Trade)
+77,77,253,Ponyta,,,,"Wild (Mt. Ember Base, Level 30, 33, 36) - 35%
+Wild (Kindle Road, Level 31, 34) - 30%","Wild (Mt. Ember Base, Level 30, 33, 36) - 35%
+Wild (Kindle Road, Level 31, 34) - 30%"
+78,78,254,Rapidash,,,,"Evolve Ponyta (Level 40)
+Wild (Kindle Road, Level 37, 40) - 5%
+Wild (Mt. Ember Base, Level 39, 42) - 5%","Evolve Ponyta (Level 40)
+Wild (Kindle Road, Level 37, 40) - 5%
+Wild (Mt. Ember Base, Level 39, 42) - 5%"
+79,79,255,Slowpoke,,,,,"Surf (Viridian City, Level 20 - 40) - 100%
+Surf (Route 6, Level 20 - 40) - 100%
+Surf (Route 25, Level 20 - 40) - 100%
+Surf (Fuchsia City, Level 20 - 40) - 100%
+Surf (Safari Zone, Level 20 - 40) - 100%
+Surf (Route 22, Level 20 - 40) - 100%
+Surf (Route 23, Level 20 - 40) - 100%
+Surf (Celadon City, Level 5 - 40) - 99%
+Surf (Cape Brink, Level 5 - 40) - 95%
+Surf (Berry Forest, Level 5 - 40) - 95%
+Surf (Cerulean Cave 1F, Level 30 - 50) - 65%
+Surf (Cerulean Cave B1F, Level 40 - 60) - 60%
+Wild (Seafom Islands 1F, Level 26 - 27, 29, 31, 33) - 55%
+Wild (Seafom Islands B1F, Level 29, 31) - 40%
+Wild (Seafom Islands B2F, Level 30, 32) - 40%
+Surf (Icefall Cave Entrance, Level 5 - 35) - 30%
+Wild (Seafom Islands B3F, Level 30, 32) - 20%
+Wild (Treasure Beach, Level 31) - 5%
+Wild (Kindle Road, Level 34) - 5%
+Wild (Cape Brink, Level 31) - 5%
+Wild (Berry Forest, Level 31) - 5%
+Wild (Bond Bridge, Level 31) - 5%
+Wild (Icefall Cave Entrance, Level 41) - 5%
+Wild (Five Isle Meadow, Level 41) - 5%
+Wild (Water Path, Level 41) - 5%
+Wild (Ruin Valley, Level 41) - 5%
+Wild (Canyon Entrance, Level 41) - 5%
+Fish - See FRLG Fishing Patterns"
+80,80,256,Slowbro,,,,,"Evolve Slowpoke (Level 37)
+Surf (Cerulean Cave 1F, Level 40 - 55) - 35%
+Surf (Cerulean Cave B1F, Level 50 - 65) - 35%
+Wild (Seafom Islands B3F, Level 30, 32) - 15%
+Wild (Seafom Islands B4F, Level 32, 34) - 15%
+Wild (Seafom Islands B2F, Level 32, 34) - 10%
+Wild (Seafom Islands B1F, Level 33, 35) - 5%
+Surf (Cape Brink, Level 35 - 40) - 5%
+Surf (Berry Forest, Level 35 - 40) - 5%
+Wild (Cape Brink, Level 37, 40) - 5%
+Fish - See FRLG Fishing Patterns"
+81,81,82,Magnemite,"Wild (New Mauville Entrance, Level 22 - 26) - 50%
+Wild (New Mauville Basement, Level 22 - 26) - 49%","Wild (New Mauville Entrance, Level 22 - 26) - 50%
+Wild (New Mauville Basement, Level 22 - 26) - 49%","Wild (New Mauville Entrance, Level 22 - 26) - 50%
+Wild (New Mauville Basement, Level 22 - 26) - 49%","Wild (Kanto Power Plant, Level 22, 25) - 30%","Wild (Kanto Power Plant, Level 22, 25) - 30%"
+82,82,83,Magneton,"Evolve Magnemite (Level 30)
+Wild (New Mauville Basement, Level 26) - 1%","Evolve Magnemite (Level 30)
+Wild (New Mauville Basement, Level 26) - 1%","Evolve Magnemite (Level 30)
+Wild (New Mauville Basement, Level 26) - 1%","Evolve Magnemite (Level 30)
+Wild (Cerulean Cave 1F, Level 49) - 20%
+Wild (Cerulean Cave B1F, Level 55) - 10%
+Wild (Kanto Power Plant, Level 31, 34) - 10%","Evolve Magnemite (Level 30)
+Wild (Cerulean Cave 1F, Level 49) - 20%
+Wild (Cerulean Cave B1F, Level 55) - 10%
+Wild (Kanto Power Plant, Level 31, 34) - 15%"
+83,83,257,Farfetch'd,,,,"Trade (Vermillion City, For Spearow)","Trade (Vermillion City, For Spearow)"
+84,84,92,Doduo,"Wild (Safari Zone Area 3, Level 27, 29) - 15%
+Wild (Safari Zone Area 1 & 2, Level 25) - 10%","Wild (Safari Zone Area 3, Level 27, 29) - 15%
+Wild (Safari Zone Area 1 & 2, Level 25) - 10%","Wild (Safari Zone Area 3, Level 27, 29) - 15%
+Wild (Safari Zone Area 1 & 2, Level 25) - 10%","Wild (Route 16, Level 18, 20, 22) - 35%
+Wild (Route 17, Level 24, 26, 28) - 35%
+Wild (Route 18, Level 24, 26, 28) - 35%
+Safari Zone (Area 1, Level 26) - 20%
+Safari Zone (Area 3, Level 26) - 20%","Wild (Route 16, Level 18, 20, 22) - 35%
+Wild (Route 17, Level 24, 26, 28) - 35%
+Wild (Route 18, Level 24, 26, 28) - 35%
+Safari Zone (Area 1, Level 26) - 20%
+Safari Zone (Area 3, Level 26) - 20%"
+85,85,93,Dodrio,"Evolve Dodrio (Level 31)
+Wild (Safari Zone Area 3, Level 29, 31) - 15%","Evolve Dodrio (Level 31)
+Wild (Safari Zone Area 3, Level 29, 31) - 15%","Evolve Dodrio (Level 31)
+Wild (Safari Zone Area 3, Level 29, 31) - 15%",Evolve Dodrio (Level 31),Evolve Dodrio (Level 31)
+86,86,258,Seel,,,,"Surf (Icefall Cave Entrance, Level 5 - 35) - 60%
+Wild (Seafom Islands B4F, Level 30, 32, 34) - 50%
+Wild (Seafom Islands B3F, Level 30, 32) - 40%
+Wild (Icefall Cave Entrance, Level 43, 45, 47) - 40%
+Wild (Seafom Islands B2F, Level 30, 32) - 20%
+Wild (Seafom Islands B1F, Level 28) - 10%
+Wild (Icefall Cave Inner, Level 45) - 10%
+Trade (Cinnabar Lab, For Ponyta)","Surf (Icefall Cave Entrance, Level 5 - 35) - 60%
+Wild (Seafom Islands B4F, Level 30, 32, 34) - 50%
+Wild (Seafom Islands B3F, Level 30, 32) - 40%
+Wild (Icefall Cave Entrance, Level 43, 45, 47) - 40%
+Wild (Seafom Islands B2F, Level 30, 32) - 20%
+Wild (Seafom Islands B1F, Level 28) - 10%
+Wild (Icefall Cave Inner, Level 45) - 10%
+Trade (Cinnabar Lab, For Ponyta)"
+87,87,259,Dewgong,,,,"Evolve Seel (Level 34)
+Wild (Icefall Cave Entrance, Level 49, 51, 53) - 20%
+Wild (Seafom Islands B4F, Level 34, 36) - 10%
+Wild (Seafom Islands B3F, Level 32, 34) - 5%
+Surf (Icefall Cave Entrance, Level 35 - 40) - 5%","Evolve Seel (Level 34)
+Wild (Icefall Cave Entrance, Level 49, 51, 53) - 20%
+Wild (Seafom Islands B4F, Level 34, 36) - 10%
+Wild (Seafom Islands B3F, Level 32, 34) - 5%
+Surf (Icefall Cave Entrance, Level 35 - 40) - 5%"
+88,88,106,Grimer,"Wild (Fiery Path, Level 14) - 2%","Wild (Fiery Path, Level 15 - 16) - 25%","Wild (Fiery Path, Level 14) - 2%","Wild (Pokemon Mansion B1F - 3F, Level 28) - 5%
+Fish - See FRLG Fishing Patterns","Wild (Pokemon Mansion B1F - 3F, Level 28, 30) - 30%
+Fish - See FRLG Fishing Patterns"
+89,89,107,Muk,Evolve Grimer (Level 38),Evolve Grimer (Level 38),Evolve Grimer (Level 38),Evolve Grimer (Level 38),"Evolve Grimer (Level 38)
+Wild (Pokemon Mansion 1F - 3F, Level 32) - 5%
+Wild (Pokemon Mansion B1F, Level 34) - 5%"
+90,90,260,Shellder,,,,Fish - See FRLG Fishing Patterns,
+91,91,261,Cloyster,,,,Evolve Shellder (Water Stone),
+92,92,262,Gastly,,,,"Wild (Pokemon Tower 3F, Level 13 - 19) - 90%
+Wild (Pokemon Tower 4F - 5F, Level 13 - 19) - 86%
+Wild (Pokemon Tower 6F, Level 14 - 19) - 85%
+Wild (Pokemon Tower 7F, Level 15 - 19) - 75%
+Wild (Lost Cave, Level 38, 40) - 25%
+Wild (Lost Cave Item Room, Level 40) - 20%","Wild (Pokemon Tower 3F, Level 13 - 19) - 90%
+Wild (Pokemon Tower 4F - 5F, Level 13 - 19) - 86%
+Wild (Pokemon Tower 6F, Level 14 - 19) - 85%
+Wild (Pokemon Tower 7F, Level 15 - 19) - 75%
+Wild (Lost Cave, Level 38, 40) - 25%
+Wild (Lost Cave Item Room, Level 40) - 20%"
+93,93,263,Haunter,,,,"Evolve Gastly (Level 25)
+Wild (Lost Cave, Level 44, 46, 48, 50, 52) - 30%
+Wild (Pokemon Tower 7F, Level 23, 25) - 15%
+Wild (Pokemon Tower 6F, Level 21, 23) - 6%
+Wild (Pokemon Tower 4 - 5F, Level 20) - 5%
+Wild (Pokemon Tower 3F, Level 20) - 1%","Evolve Gastly (Level 25)
+Wild (Lost Cave, Level 44, 46, 48, 50, 52) - 30%
+Wild (Pokemon Tower 7F, Level 23, 25) - 15%
+Wild (Pokemon Tower 6F, Level 21, 23) - 6%
+Wild (Pokemon Tower 4 - 5F, Level 20) - 5%
+Wild (Pokemon Tower 3F, Level 20) - 1%"
+94,94,264,Gengar,,,,Evolve Haunter (Trade),Evolve Haunter (Trade)
+95,95,265,Onix,,,,"Wild (Victory Road 1F & 3F, Level 40, 43, 46) - 30%
+Wild (Victory Road 2F, Level 45, 48) - 20%
+Wild (Rock Tunnel B1F, Level 13, 15, 17) - 10%
+Wild (Rock Tunnel 1F, Level 13, 15) - 5%
+Wild (Sevault Canyon, Level 54) - 5%","Wild (Victory Road 1F & 3F, Level 40, 43, 46) - 30%
+Wild (Victory Road 2F, Level 45, 48) - 20%
+Wild (Rock Tunnel B1F, Level 13, 15, 17) - 10%
+Wild (Rock Tunnel 1F, Level 13, 15) - 5%
+Wild (Sevault Canyon, Level 54) - 5%"
+96,96,266,Drowzee,,,,"Wild (Route 11, Level 11, 13, 15) - 25%
+Wild (Berry Forest, Level 34) - 10%","Wild (Route 11, Level 11, 13, 15) - 25%
+Wild (Berry Forest, Level 34) - 10%"
+97,97,267,Hypno,,,,"Evolve Drowzee (Level 26)
+Special (Berry Forest, Level 30)
+Wild (Berry Forest, Level 37, 40) - 5%","Evolve Drowzee (Level 26)
+Special (Berry Forest, Level 30)
+Wild (Berry Forest, Level 37, 40) - 5%"
+98,98,268,Krabby,,,,Fish - See FRLG Fishing Patterns,Fish - See FRLG Fishing Patterns
+99,99,269,Kingler,,,,"Evolve Krabby (Level 28)
+Fish - See FRLG Fishing Patterns","Evolve Krabby (Level 28)
+Fish - See FRLG Fishing Patterns"
+100,100,84,Voltorb,"Special (New Mauville, Fake Item, Level 25, Three)
+Wild (New Mauville Entrance, Level 22 - 26) - 50%
+Wild (New Mauville Basement, Level 22 - 26) - 49%","Special (New Mauville, Fake Item, Level 25, Three)
+Wild (New Mauville Entrance, Level 22 - 26) - 50%
+Wild (New Mauville Basement, Level 22 - 26) - 49%","Special (New Mauville, Fake Item, Level 25, Three)
+Wild (New Mauville Entrance, Level 22 - 26) - 50%
+Wild (New Mauville Basement, Level 22 - 26) - 49%","Wild (Route 10, Level 14, 16 - 17) - 40%
+Wild (Kanto Power Plant, Level 22, 25) - 30%","Wild (Route 10, Level 14, 16 - 17) - 40%
+Wild (Kanto Power Plant, Level 22, 25) - 30%"
+101,101,85,Electrode,"Evolve Voltorb (Level 30)
+Special (Team Magma Hideout, Fake Item, Level 30, Two)
+Wild (New Mauville Basement, Level 26) - 1%","Evolve Voltorb (Level 30)
+Special (Team Aqua Hideout, Fake Item, Level 30, Two)
+Wild (New Mauville Basement, Level 26) - 1%","Evolve Voltorb (Level 30)
+Special (Team Aqua Hideout, Fake Item, Level 30, Two)
+Wild (New Mauville Basement, Level 26) - 1%","Evolve Voltorb (Level 30)
+Special (Kanto Power Plant, Fake Item, Level 34, Two)
+Wild (Cerulean Cave 1F, Level 58) - 5%
+Wild (Cerulean Cave 2F, Level 61) - 4%
+Wild (Cerulean Cave B1F, Level 64) - 4%
+Trade (Cinnabar Island, For Raichu)","Evolve Voltorb (Level 30)
+Special (Kanto Power Plant, Fake Item, Level 34, Two)
+Wild (Cerulean Cave 1F, Level 58) - 5%
+Wild (Cerulean Cave 2F, Level 61) - 4%
+Wild (Cerulean Cave B1F, Level 64) - 4%
+Trade (Cinnabar Island, For Raichu)"
+102,102,270,Exeggcute,,,,"Safari Zone (Center, Level 24 - 25) - 20%
+Safari Zone (Area 1, Level 23, 25) - 20%
+Safari Zone (Area 2, Level 25, 27) - 20%
+Safari Zone (Area 3, Level 25, 27) - 20%
+Wild (Berry Forest, Level 35) - 5%","Safari Zone (Center, Level 24 - 25) - 20%
+Safari Zone (Area 1, Level 23, 25) - 20%
+Safari Zone (Area 2, Level 25, 27) - 20%
+Safari Zone (Area 3, Level 25, 27) - 20%
+Wild (Berry Forest, Level 35) - 5%"
+103,103,271,Exeggutor,,,,Evolve Exeggcute (Leaf Stone),Evolve Exeggcute (Leaf Stone)
+104,104,272,Cubone,,,,"Wild (Sevault Canyon, Level 46) - 10%
+Wild (Pokemon Tower 7F, Level 17 - 19) - 10%
+Wild (Pokemon Tower 3F - 5F, Level 15, 17) - 9%
+Wild (Pokemon Tower 6F, Level 17 - 19) - 9%","Wild (Sevault Canyon, Level 46) - 10%
+Wild (Pokemon Tower 7F, Level 17 - 19) - 10%
+Wild (Pokemon Tower 3F - 5F, Level 15, 17) - 9%
+Wild (Pokemon Tower 6F, Level 17 - 19) - 9%"
+105,105,273,Marowak,,,,"Evolve Cubone (Level 28)
+Wild (Sevault Canyon, Level 52) - 10%
+Wild (Victory Road 1F & 3F, Level 44, 46) - 5%
+Wild (Victory Road 2F, Level 46, 48) - 5%","Evolve Cubone (Level 28)
+Wild (Sevault Canyon, Level 52) - 10%
+Wild (Victory Road 1F & 3F, Level 44, 46) - 5%
+Wild (Victory Road 2F, Level 46, 48) - 5%"
+106,106,274,Hitmonlee,,,,"Special (Saffron City, Fighting Dojo, Level 25)","Special (Saffron City, Fighting Dojo, Level 25)"
+107,107,275,Hitmonchan,,,,"Special (Saffron City, Fighting Dojo, Level 25)","Special (Saffron City, Fighting Dojo, Level 25)"
+108,108,276,Lickitung,,,,"Trade (Route 18, For Golduck)","Trade (Route 18, For Slowbro)"
+109,109,108,Koffing,"Wild (Fiery Path, Level 15 - 16) - 25%","Wild (Fiery Path, Level 14) - 2%","Wild (Fiery Path, Level 15 - 16) - 25%","Wild (Pokemon Mansion B1F - 3F, Level 28, 30) - 30%
+Surf (Celadon City, Level 30 - 40) - 1%","Wild (Pokemon Mansion B1F - 3F, Level 28) - 5%
+Surf (Celadon City, Level 30 - 40) - 1%"
+110,110,109,Weezing,Evolve Koffing (Level 35),Evolve Koffing (Level 35),Evolve Koffing (Level 35),"Evolve Koffing (Level 35)
+Wild (Pokemon Mansion 1F - 3F, Level 32) - 5%
+Wild (Pokemon Mansion B1F, Level 34) - 5%",Evolve Koffing (Level 35)
+111,111,169,Rhyhorn,"Wild (Safari Zone Area 3, Level 27, 29) - 30%","Wild (Safari Zone Area 3, Level 27, 29) - 30%","Wild (Safari Zone Area 3, Level 27, 29) - 30%","Safari Zone (Center, Level 25) - 20%
+Safari Zone (Area 2, Level 26) - 20%","Safari Zone (Center, Level 25) - 20%
+Safari Zone (Area 2, Level 26) - 20%"
+112,112,170,Rhydon,Evolve Rhyhorn (Level 42),Evolve Rhyhorn (Level 42),Evolve Rhyhorn (Level 42),Evolve Rhyhorn (Level 42),Evolve Rhyhorn (Level 42)
+113,113,277,Chansey,,,,"Safari Zone (Area 2, Level 26) - 4%
+Safari Zone (Center, Level 23) - 1%","Safari Zone (Area 2, Level 26) - 4%
+Safari Zone (Center, Level 23) - 1%"
+114,114,278,Tangela,,,,"Wild (Route 21, Level 17 - 28) - 100%
+Wild (Treasure Beach, Level 31) - 30%
+Trade (Cinnabar Island, For Venonat)","Wild (Route 21, Level 17 - 28) - 100%
+Wild (Treasure Beach, Level 31) - 30%
+Trade (Cinnabar Island, For Venonat)"
+115,115,279,Kangaskhan,,,,"Safari Zone (Area 1, Level 25) - 4%
+Safari Zone (Area 3, Level 28) - 1%","Safari Zone (Area 1, Level 25) - 4%
+Safari Zone (Area 3, Level 28) - 1%"
+116,116,184,Horsea,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,"Trade (Pacifidlog Town, For Bagon)
+Fish - See RSE Fishing Patterns",Fish - See FRLG Fishing Patterns,Fish - See FRLG Fishing Patterns
+117,117,185,Seadra,Evolve Horsea (Level 32),Evolve Horsea (Level 32),Evolve Horsea (Level 32),"Evolve Horsea (Level 32)
+Fish - See FRLG Fishing Patterns","Evolve Horsea (Level 32)
+Fish - See FRLG Fishing Patterns"
+118,118,50,Goldeen,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,"Surf (Route 102, Level 20 - 30) - 1%
+Surf (Route 111, Level 20 - 30) - 1%
+Surf (Route 114, Level 20 - 30) - 1%
+Surf (Route 117, Level 20 - 30) - 1%
+Surf (Route 120, Level 20 - 30) - 1%
+Fish - See RSE Fishing Patterns",Fish - See FRLG Fishing Patterns,Fish - See FRLG Fishing Patterns
+119,119,51,Seaking,"Evolve Goldeen (Level 33)
+Fish - See FRLG Fishing Patterns","Evolve Goldeen (Level 33)
+Fish - See FRLG Fishing Patterns","Evolve Goldeen (Level 33)
+Fish - See FRLG Fishing Patterns","Evolve Goldeen (Level 33)
+Fish - See FRLG Fishing Patterns","Evolve Goldeen (Level 33)
+Fish - See FRLG Fishing Patterns"
+120,120,143,Staryu,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,Fish - See FRLG Fishing Patterns
+121,121,144,Starmie,Evolve Staryu (Water Stone),Evolve Staryu (Water Stone),Evolve Staryu (Water Stone),,Evolve Staryu (Water Stone)
+122,122,280,Mr. Mime,,,,"Trade (Route 2, For Abra)","Trade (Route 2, For Abra)"
+123,123,281,Scyther,,,,"Special (Celadon Game Corner, Purchase for 5500C, Level 25)
+Safari Zone (Center, Level 23) - 4%
+Safari Zone (Area 1, Level 28) - 1%",
+124,124,282,Jynx,,,,"Trade (Cerulean City, For Poliwhirl)",
+125,125,283,Electabuzz,,,,"Wild (Kanto Power Plant, Level 32, 35) - 5%",
+126,126,284,Magmar,,,,"Wild (Mt. Ember Base, Level 38, 40) - 5%",
+127,127,167,Pinsir,"Wild (Safari Zone Area 3, Level 27, 29) - 5%","Wild (Safari Zone Area 3, Level 27, 29) - 5%","Wild (Safari Zone Area 3, Level 27, 29) - 5%",,"Special (Celadon Game Corner, Purchase for 2500C, Level 18)
+Safari Zone (Center, Level 23) - 4%
+Safari Zone (Area 1, Level 28) - 1%"
+128,128,285,Tauros,,,,"Safari Zone (Area 3, Level 25) - 4%
+Safari Zone (Area 2, Level 28) - 1%","Safari Zone (Area 3, Level 25) - 4%
+Safari Zone (Area 2, Level 28) - 1%"
+129,129,52,Magikarp,"Surf (Sootopolis City, Level 5 - 35) - 100%
+Fish - See RSE Fishing Patterns","Surf (Sootopolis City, Level 5 - 35) - 100%
+Fish - See RSE Fishing Patterns","Surf (Sootopolis City, Level 5 - 35) - 100%
+Fish - See RSE Fishing Patterns","Special (Purchase for P500)
+Fish - See FRLG Fishing Patterns","Special (Purchase for P500)
+Fish - See FRLG Fishing Patterns"
+130,130,53,Gyarados,"Evolve Magikarp (Level 20)
+Fish - See RSE Fishing Patterns","Evolve Magikarp (Level 20)
+Fish - See RSE Fishing Patterns","Evolve Magikarp (Level 20)
+Fish - See RSE Fishing Patterns","Evolve Magikarp (Level 20)
+Fish - See FRLG Fishing Patterns","Evolve Magikarp (Level 20)
+Fish - See FRLG Fishing Patterns"
+131,131,286,Lapras,,,,"Special (Silph Co., Level 25)
+Surf (Icefall Cave Back, Level 30 - 45) - 1%","Special (Silph Co., Level 25)
+Surf (Icefall Cave Back, Level 30 - 45) - 1%"
+132,132,287,Ditto,,,"Wild (Desert Underpass, Level 38, 40 - 43, 45) - 50%","Wild (Cerulean Cave B1F, Level 58, 67) - 25%
+Wild (Route 14, Level 23) - 15%
+Wild (Cerulean Cave 1F, Level 52, 61) - 11%
+Wild (Cerulean Cave 2F, Level 55, 64) - 11%
+Wild (Pokemon Mansion B1F, Level 30) - 10%
+Wild (Route 13, Level 25) - 5%
+Wild (Route 15, Level 25) - 5%","Wild (Cerulean Cave B1F, Level 58, 67) - 25%
+Wild (Route 14, Level 23) - 15%
+Wild (Cerulean Cave 1F, Level 52, 61) - 11%
+Wild (Cerulean Cave 2F, Level 55, 64) - 11%
+Wild (Pokemon Mansion B1F, Level 30) - 10%
+Wild (Route 13, Level 25) - 5%
+Wild (Route 15, Level 25) - 5%"
+133,133,288,Eevee,,,,"Special (Celadon Condominium, Level 25)","Special (Celadon Condominium, Level 25)"
+134,134,289,Vaporeon,,,,Evolve Eevee (Water Stone),Evolve Eevee (Water Stone)
+135,135,290,Jolteon,,,,Evolve Eevee (Thunder Stone),Evolve Eevee (Thunder Stone)
+136,136,291,Flareon,,,,Evolve Eevee (Fire Stone),Evolve Eevee (Fire Stone)
+137,137,292,Porygon,,,,"Special (Celadon Game Corner, Purchase for 9999C, Level 26)","Special (Celadon Game Corner, Purchase for 6500, Level 18)"
+138,138,293,Omanyte,,,,"Fossil (Helix Fossil, Mt. Moon, Level 5)","Fossil (Helix Fossil, Mt. Moon, Level 5)"
+139,139,294,Omastar,,,,Evolve Omanyte (Level 40),Evolve Omanyte (Level 40)
+140,140,295,Kabuto,,,,"Fossil (Dome Fossil, Mt. Moon, Level 5)","Fossil (Dome Fossil, Mt. Moon, Level 5)"
+141,141,296,Kabutops,,,,Evolve Kabuto (Level 40),Evolve Kabuto (Level 40)
+142,142,297,Aerodactyl,,,,"Fossil (Old Amber, Pewter Museum of Science, Level 5)","Fossil (Old Amber, Pewter Museum of Science, Level 5)"
+143,143,298,Snorlax,,,,"Special (Route 12, Level 30)
+Special (Route 16, Level 30)","Special (Route 12, Level 30)
+Special (Route 16, Level 30)"
+144,144,299,Articuno,,,,"Special (Seafom Islands B4F, Level 50)","Special (Seafom Islands B4F, Level 50)"
+145,145,300,Zapdos,,,,"Special (Kanto Power Plant, Level 50)","Special (Kanto Power Plant, Level 50)"
+146,146,301,Moltres,,,,"Special (Mt. Ember Summit, Level 50)","Special (Mt. Ember Summit, Level 50)"
+147,147,302,Dratini,,,,"Special (Celadon Game Corner, Purchase for 2800C, Level 18)
+Fish - See FRLG Fishing Patterns","Special (Celadon Game Corner, Purchase for 4600C, Level 24)
+Fish - See FRLG Fishing Patterns"
+148,148,303,Dragonair,,,,"Evolve Dratini (Level 30)
+Fish - See FRLG Fishing Patterns","Evolve Dratini (Level 30)
+Fish - See FRLG Fishing Patterns"
+149,149,304,Dragonite,,,,Evolve Dragonair (Level 55),Evolve Dragonair (Level 55)
+150,150,305,Mewtwo,,,,"Special (Cerulean Cave B1F, Level 70)","Special (Cerulean Cave B1F, Level 70)"
+151,151,306,Mew,,EVENT ONLY,EVENT ONLY,EVENT ONLY,EVENT ONLY
+152,,307,Chikorita,,,"Special (Littleroot Town, Level 5)",,
+153,,308,Bayleef,,,Evolve Chikorita (Level 16),,
+154,,309,Meganium,,,Evolve Bayleef (Level 32),,
+155,,310,Cyndaquil,,,"Special (Littleroot Town, Level 5)",,
+156,,311,Quilava,,,Evolve Cyndaquil (Level 14),,
+157,,312,Typhlosion,,,Evolve Quilava (Level 36),,
+158,,313,Totodile,,,"Special (Littleroot Town, Level 5)",,
+159,,314,Croconaw,,,Evolve Totodile (Level 18),,
+160,,315,Feraligatr,,,Evolve Croconaw (Level 30),,
+161,,316,Sentret,,,,"Wild (Five Isle Meadow, Level 10 - 15) - 30%
+Wild (Canyon Entrance, Level 10,15) - 30%
+Wild (Water Path, Level 10, 15) - 10%","Wild (Five Isle Meadow, Level 10 - 15) - 30%
+Wild (Canyon Entrance, Level 10,15) - 30%
+Wild (Water Path, Level 10, 15) - 10%"
+162,,317,Furret,,,,Evolve Sentret (Level 15),Evolve Sentret (Level 15)
+163,,318,Hoothoot,,,"Wild (Safari Zone Area 5, Level 35) - 5%
+Wild (Safari Zone Area 6, Level 35) - 5%",,
+164,,319,Noctowl,,,Evolve Hoothoot (Level 20),,
+165,,320,Ledyba,,,"Wild (Safari Zone Area 6, Level 33) - 10%","Wild (Pattern Bush, Level 9, 14) - 5%","Wild (Pattern Bush, Level 9, 14) - 30%"
+166,,321,Ledian,,,Evolve Ledyba (Level 18),Evolve Ledyba (Level 18),Evolve Ledyba (Level 18)
+167,,322,Spinarak,,,"Wild (Safari Zone Area 5, Level 33) - 10%","Wild (Pattern Bush, Level 9, 14) - 30%","Wild (Pattern Bush, Level 9, 14) - %"
+168,,323,Ariados,,,Evolve Spinarak (Level 22),Evolve Spinarak (Level 22),Evolve Spinarak (Level 22)
+169,,65,Crobat,Evolve Golbat (High Friendship),Evolve Golbat (High Friendship),Evolve Golbat (High Friendship),Evolve Golbat (High Friendship),Evolve Golbat (High Friendship)
+170,,181,Chinchou,"Dive (Route 124 & 126, Level 20 - 30) - 30%","Dive (Route 124 & 126, Level 20 - 30) - 30%","Dive (Route 124 & 126, Level 20 - 30) - 30%",,
+171,,182,Lanturn,Evolve Chinchou (Level 27),Evolve Chinchou (Level 27),Evolve Chinchou (Level 27),,
+172,,155,Pichu,Breed Pikachu / Raichu,Breed Pikachu / Raichu,Breed Pikachu / Raichu,Breed Pikachu / Raichu ,Breed Pikachu / Raichu 
+173,,324,Cleffa,,,,Breed Clefairy / Clefable,Breed Clefairy / Clefable
+174,,137,Igglybuff,Breed Jigglypuff / Wigglytuff,Breed Jigglypuff / Wigglytuff,Breed Jigglypuff / Wigglytuff,Breed Jigglypuff / Wigglytuff,Breed Jigglypuff / Wigglytuff
+175,,325,Togepi,,,,"Special (Water Labrynth, Egg, Level 5)","Special (Water Labrynth, Egg, Level 5)"
+176,,326,Togetic,,,,Evolve Togepi (High Friendship),Evolve Togepi (High Friendship)
+177,,162,Natu,"Wild (Safari Zone Area 4, Level 27, 29) - 15%
+Wild (Safari Zone Area 1 & 2, Level 25) - 10%","Wild (Safari Zone Area 4, Level 27, 29) - 15%
+Wild (Safari Zone Area 1 & 2, Level 25) - 10%","Wild (Safari Zone Area 4, Level 27, 29) - 15%
+Wild (Safari Zone Area 1 & 2, Level 25) - 10%","Wild (Ruin Valley, Level 15, 20) - 25%","Wild (Ruin Valley, Level 15, 20) - 25%"
+178,,163,Xatu,"Evolve Natu (Level 25)
+Wild (Safari Zone Area 4, Level 29, 31) - 5%","Evolve Natu (Level 25)
+Wild (Safari Zone Area 4, Level 29, 31) - 5%","Evolve Natu (Level 25)
+Wild (Safari Zone Area 4, Level 29, 31) - 5%",Evolve Natu (Level 25),Evolve Natu (Level 25)
+179,,327,Mareep,,,"Wild (Safari Zone Area 5, Level 34, 36) - 30%",,
+180,,328,Flaaffy,,,Evolve Mareep (Level 15),,
+181,,329,Ampharos,,,Evolve Flaaffy (Level 30),,
+182,,91,Bellossom,Evolve Gloom (Sun Stone),Evolve Gloom (Sun Stone),Evolve Gloom (Sun Stone),Evolve Gloom (Sun Stone),
+183,,55,Marill,"Surf (Petalburg City, Level 5 - 35) - 100%
+Surf (Route 102, Level 5 - 35) - 99%
+Surf (Route 111, Level 5 - 35) - 99%
+Surf (Route 114, Level 5 - 35) - 99%
+Surf (Route 117, Level 5 - 35) - 99%
+Surf (Route 120, Level 5 - 35) - 99%
+Wild (Route 120, Level 25, 27)  - 15%
+Wild (Route 117, Level 13) - 10%","Surf (Petalburg City, Level 5 - 35) - 100%
+Surf (Route 102, Level 5 - 35) - 99%
+Surf (Route 111, Level 5 - 35) - 99%
+Surf (Route 114, Level 5 - 35) - 99%
+Surf (Route 117, Level 5 - 35) - 99%
+Surf (Route 120, Level 5 - 35) - 99%
+Wild (Route 120, Level 25, 27)  - 15%
+Wild (Route 117, Level 13) - 10%","Surf (Petalburg City, Level 5 - 35) - 100%
+Surf (Route 102, Level 5 - 35) - 99%
+Surf (Route 111, Level 5 - 35) - 99%
+Surf (Route 114, Level 5 - 35) - 99%
+Surf (Route 117, Level 5 - 35) - 99%
+Surf (Route 120, Level 5 - 35) - 99%
+Surf (Safari Zone Area 5, Level 25 - 35) - 39%
+Wild (Route 112, Level 14 - 16) - 25%
+Wild (Route 104, Level 4 - 5) - 20%
+Wild (Route 120, Level 25, 27)  - 15%
+Wild (Route 117, Level 13) - 10%",,"Surf (Ruin Valley, Level 5 - 25) - 100%
+Wild (Ruin Valley, Level 15) - 10%
+Surf (Icefall Cave Entrance, Level 5 - 15) - 5%"
+184,,56,Azumarill,Evolve Marill (Level 18),Evolve Marill (Level 18),Evolve Marill (Level 18),,Evolve Marill (Level 18)
+185,,330,Sudowoodo,,,"Special (Battle Frontier, Level 40)",,
+186,,331,Politoed,,,,Evolve Poliwhirl (Trade holding King's Rock,Evolve Poliwhirl (Trade holding King's Rock
+187,,332,Hoppip,,,,"Wild (Memorial Pillar, Level 6, 8, 10, 12, 14, 16) - 100%
+Surf (Water Labrynth, Level 5 - 15) - 30%
+Surf (Resort Gorgeous, Level 5 - 15) - 30%
+Surf (Five Isle Meadow, Level 5 - 15) - 30%
+Surf (Memorial Pillar, Level 5 - 15) - 30%
+Wild (Five Isle Meadow, Level 10, 15) - 15%","Wild (Memorial Pillar, Level 6, 8, 10, 12, 14, 16) - 100%
+Surf (Water Labrynth, Level 5 - 15) - 30%
+Surf (Resort Gorgeous, Level 5 - 15) - 30%
+Surf (Five Isle Meadow, Level 5 - 15) - 30%
+Surf (Memorial Pillar, Level 5 - 15) - 30%
+Wild (Five Isle Meadow, Level 10, 15) - 15%"
+188,,333,Skiploom,,,,Evolve Hoppip (Level 18),Evolve Hoppip (Level 18)
+189,,334,Jumpluff,,,,Evolve Jumpluff (Level 27),Evolve Jumpluff (Level 27)
+190,,335,Aipom,,,"Wild (Safari Zone Area 5, Level 34) - 10%
+Wild (Safari Zone Area 6, Level 33, 35) - 30%",,
+191,,336,Sunkern,,,"Wild (Safari Zone Area 5, Level 33, 35) - 30%
+Wild (Safari Zone Area 6, Level 34) - 10%",,
+192,,337,Sunflora,,,Evolve Sunkern (Sun Stone),,
+193,,338,Yanma,,,,"Wild (Ruin Valley, Level 18) - 10%","Wild (Ruin Valley, Level 18) - 10%"
+194,,339,Wooper,,,"Surf (Safari Zone Area 5, Level 25 - 30) - 60%","Surf (Ruin Valley, Level 5 - 25) - 100%
+Wild (Ruin Valley, Level 15) - 10%
+Surf (Icefall Cave Entrance, Level 5 - 15) - 5%",
+195,,340,Quagsire,,,"Evolve Wooper (Level 20)
+Surf (Safari Zone Area 5, Level 35 - 40) - 1%",Evolve Wooper (Level 20),
+196,,341,Espeon,Evolve Eevee (High Friendship during Day),Evolve Eevee (High Friendship during Day),Evolve Eevee (High Friendship during Day),Evolve Eevee (Must trade to RSE first due to lack Day/Night Cycle in FRLG),Evolve Eevee (Must trade to RSE first due to lack Day/Night Cycle in FRLG)
+197,,342,Umbreon,Evolve Eevee (High Friendship during Night),Evolve Eevee (High Friendship during Night),Evolve Eevee (High Friendship during Night),Evolve Eevee (Must trade to RSE first due to lack Day/Night Cycle in FRLG),Evolve Eevee (Must trade to RSE first due to lack Day/Night Cycle in FRLG)
+198,,343,Murkrow,,,,"Wild (Lost Cave Item Room, Level 15, 20, 22) - 20%
+Wild (Lost Cave, Level 22) - 5%",
+199,,344,Slowking,,,,Evolve Slowpoke (Trade holding King's Rock),Evolve Slowpoke (Trade holding King's Rock)
+200,,345,Misdreavus,,,,,"Wild (Lost Cave Item Room, Level 15, 20, 22) - 20%
+Wild (Lost Cave, Level 22) - 5%"
+201,,346,Unown,,,,"Wild (Tanoby Chambers)
+A - Monean Chamber - 99%
+B - Rixy Chamber - 2%
+C - Liptoo Chamber - 50%
+D - Liptoo Chamber - 30%
+E - Weepth Chamber - 2%
+F - Scufib Chamber - 13%
+G - Scufib Chamber - 20%
+H - Liptoo Chamber - 14%
+I - Weepth Chamber - 8%
+J - Dilford Chamber - 20%
+K - Scufib Chamber - 2%
+L - Dilford Chamber - 20%
+M - Rixy Chamber - 8%
+N - Weepth Chamber - 60%
+O - Liptoo Chamber - 1%
+P - Dilford Chamber - 40%
+Q - Dilford Chamber - 6%
+R - Dilford Chamber - 14%
+S - Weepth Chamber - 30%
+T - Scufib Chamber - 20%
+U - Liptoo Chamber - 5%
+V - Rixy Chamber - 50%
+W - Rixy Chamber  - 30%
+X - Rixy Chamber - 10%
+Y - Scufib Chamber - 40%
+Z - Viapois Chamber - 99%
+! - Viapois Chamber - 1%
+? - Monean Chamber - 1%","Wild (Tanoby Chambers)
+A - Monean Chamber - 99%
+B - Rixy Chamber - 2%
+C - Liptoo Chamber - 50%
+D - Liptoo Chamber - 30%
+E - Weepth Chamber - 2%
+F - Scufib Chamber - 13%
+G - Scufib Chamber - 20%
+H - Liptoo Chamber - 14%
+I - Weepth Chamber - 8%
+J - Dilford Chamber - 20%
+K - Scufib Chamber - 2%
+L - Dilford Chamber - 20%
+M - Rixy Chamber - 8%
+N - Weepth Chamber - 60%
+O - Liptoo Chamber - 1%
+P - Dilford Chamber - 40%
+Q - Dilford Chamber - 6%
+R - Dilford Chamber - 14%
+S - Weepth Chamber - 30%
+T - Scufib Chamber - 20%
+U - Liptoo Chamber - 5%
+V - Rixy Chamber - 50%
+W - Rixy Chamber  - 30%
+X - Rixy Chamber - 10%
+Y - Scufib Chamber - 40%
+Z - Viapois Chamber - 99%
+! - Viapois Chamber - 1%
+? - Monean Chamber - 1%"
+202,,161,Wobbuffet,"Evolve Wynaut (Level 15)
+Wild (Safari Zone Area 1 & 2, Level 27, 29) - 10%","Evolve Wynaut (Level 15)
+Wild (Safari Zone Area 1 & 2, Level 27, 29) - 10%","Evolve Wynaut (Level 15)
+Wild (Safari Zone Area 1 & 2, Level 27, 29) - 10%","Wild (Ruin Valley, Level 25) - 5%
+Wild (Cerulean Cave 2F, Level 58) - 5%
+Wild (Cerulean Cave 1F, Level 55) - 4%
+Wild (Cerulean Cave B1F, Level 61) - 1%","Wild (Ruin Valley, Level 25) - 5%
+Wild (Cerulean Cave 2F, Level 58) - 5%
+Wild (Cerulean Cave 1F, Level 55) - 4%
+Wild (Cerulean Cave B1F, Level 61) - 1%"
+203,,164,Girafarig,"Wild (Safari Zone Area 1 & 2, Level 25, 27) - 20%","Wild (Safari Zone Area 1 & 2, Level 25, 27) - 20%","Wild (Safari Zone Area 1 & 2, Level 25, 27) - 20%",,
+204,,347,Pineco,,,"Wild (Safari Zone Area 6, Level 34) - 5%",,
+205,,348,Forretress,,,Evolve Pineco (Level 31),,
+206,,349,Dunsparce,,,,"Wild (Three Isle Port, Level 5, 10, 15, 20, 25, 30, 35) - 100%","Wild (Three Isle Port, Level 5, 10, 15, 20, 25, 30, 35) - 100%"
+207,,350,Gligar,,,"Wild (Safari Zone Area 5, Level 37, 40) - 5%",,
+208,,351,Steelix,,,,Evolve Onix (Trade holding Metal Coat),Evolve Onix (Trade holding Metal Coat)
+209,,352,Snubbull,,,"Wild (Safari Zone Area 5, Level 34) - 5%",,
+210,,353,Granbull,,,Evolve Snubull (Level 23),,
+211,,354,Qwilfish,,,,Fish - See FRLG FIshing Patterns,Fish - See FRLG FIshing Patterns
+212,,355,Scizor,,,,Evolve Scyther (Trade holding Metal Coat),Evolve Scyther (Trade holding Metal Coat)
+213,,356,Shuckle,,,"Rock Smash (Safari Zone Area 6, Level 20 - 40) - 100%",,
+214,,168,Heracross,"Wild (Safari Zone Area 4, Level 27, 29) - 5%","Wild (Safari Zone Area 4, Level 27, 29) - 5%","Wild (Safari Zone Area 4, Level 27, 29) - 5%","Wild (Pattern Bush, Level 15, 20, 25, 30) - 20%","Wild (Pattern Bush, Level 15, 20, 25, 30) - 20%"
+215,,357,Sneasel,,,,,"Wild (Icefall Cave Inner, Level 30) - 5%"
+216,,358,Teddiursa,,,"Wild (Safari Zone Area 6, Level 34, 36) - 30%",,
+217,,359,Ursaring,,,Evolve Teddiursa (Level 30),,
+218,,103,Slugma,"Wild (Fiery Path, Level 15) - 10%","Wild (Fiery Path, Level 15) - 10%","Wild (Route 113, Level 14 - 16) - 25%
+Wild (Fiery Path, Level 15) - 10%","Wild (Ruby Path B3F, Level  18, 20, 22, 24, 26, 28, 30, 32, 34, 36) - 100%
+Rock Smash (Ruby Path B3F, Level 15 - 35) - 90%
+Wild (Ruby Path B2F & B4F, Level 22, 24, 26, 28) - 60%
+Wild (Ruby Path B1F & B5F, Level 24, 26, 28, 30) - 30%","Wild (Ruby Path B3F, Level  18, 20, 22, 24, 26, 28, 30, 32, 34, 36) - 100%
+Rock Smash (Ruby Path B3F, Level 15 - 35) - 90%
+Wild (Ruby Path B2F & B4F, Level 22, 24, 26, 28) - 60%
+Wild (Ruby Path B1F & B5F, Level 24, 26, 28, 30) - 30%"
+219,,104,Magcargo,Evolve Slugma (Level 38),Evolve Slugma (Level 38),Evolve Slugma (Level 38),"Evolve Slugma (Level 38)
+Rock Smash (Ruby Path B3F, Level 25 - 45) - 10%","Evolve Slugma (Level 38)
+Rock Smash (Ruby Path B3F, Level 25 - 45) - 10%"
+220,,360,Swinub,,,,"Wild (Icefall Cave Inner, Level 23, 25, 27, 29, 31) - 50%","Wild (Icefall Cave Inner, Level 23, 25, 27, 29, 31) - 50%"
+221,,361,Pilowsine,,,,Evolve Swinub (Level 33),Evolve Swinub (Level 33)
+222,,180,Corsola,"Trade (Pacifidlog Town, For Bellossom)
+Fish - See RSE Fishing Patterns","Trade (Pacifidlog Town, For Bellossom)
+Fish - See RSE Fishing Patterns",Fish - See RSE Fishing Patterns,,
+223,,362,Remoraid,,,Fish - See RSE Fishing Patterns,Fish - See FRLG Fishing Patterns,Fish - See FRLG Fishing Patterns
+224,,363,Octillery,,,"Evolve Remoraid (Level 25)
+Fish - See RSE Fishing Patterns",Evolve Remoraid (Level 25),Evolve Remoraid (Level 25)
+225,,364,Deliberd,,,,"Wild (Icefall Cave Inner, Level 30) - 5%",
+226,,365,Mantine,,,,,"Surf (Trainer Tower, Level 35 - 40) - 5%
+Surf (Tanoby Ruins, Level 35 - 40) - 5%"
+227,,115,Skarmory,"Wild (Route 113, Level 16) - 5%","Wild (Route 113, Level 16) - 5%","Wild (Route 113, Level 16) - 5%","Wild (Sevault Canyon, Level 30) - 5%",
+228,,366,Houndour,,,"Wild (Safari Zone Area 6, Level 36, 39) - 5%",,
+229,,367,Houndoom,,,Evolve Houndour (Level 24),,
+230,,186,Kingdra,Evolve Seadra (Trade holding Dragon Scale),Evolve Seadra (Trade holding Dragon Scale),Evolve Seadra (Trade holding Dragon Scale),Evolve Seadra (Holding Dragon Scale),Evolve Seadra (Holding Dragon Scale)
+231,,165,Phanpy,"Wild (Safari Zone Area 4, Level 27, 29) - 30%","Wild (Safari Zone Area 4, Level 27, 29) - 30%","Wild (Safari Zone Area 4, Level 27, 29) - 30%","Wild (Sevault Canyon, Level 15) - 15%
+Wild (Canyon Entrance, Level 10, 15) - 15%","Wild (Sevault Canyon, Level 15) - 15%
+Wild (Canyon Entrance, Level 10, 15) - 15%"
+232,,166,Donphan,Evolve Phanpy (Level 25),Evolve Phanpy (Level 25),Evolve Phanpy (Level 25),Evolve Phanpy (Level 25),Evolve Phanpy (Level 25)
+233,,368,Porygon2,,,,Evolve Porygon (Trade holding Upgrade),Evolve Porygon (Trade holding Upgrade)
+234,,369,Stantler,,,"Wild (Safari Zone Area 5, Level 36, 38) - 5%",,
+235,,370,Smeargle,,,"Wild (Artisan Cave, Level 40 - 50) - 100%",,
+236,,371,Tyrogue,,,,Breed Hitmonchan / Hitmonlee,Breed Hitmonchan / Hitmonlee
+237,,372,Hitmontop,,,,Evolve Tyrogue (Level 20 with equal Attack and Defense stats),Evolve Tyrogue (Level 20 with equal Attack and Defense stats)
+238,,373,Smoochum,,,,Breed Jynx ,Breed Jynx 
+239,,374,Elekid,,,,Breed Electabuzz,Breed Electabuzz
+240,,375,Magby,,,,Breed Magby,Breed Magby
+241,,376,Miltank,,,"Wild (Safari Zone Area 6, Level 37, 40) - 5%",,
+242,,377,Blissey,,,,Evolve Chansey (High Friendship),Evolve Chansey (High Friendship)
+243,,378,Raikou,,,,"Special (Roaming, Level 50)","Special (Roaming, Level 50)"
+244,,379,Entei,,,,"Special (Roaming, Level 50)","Special (Roaming, Level 50)"
+245,,380,Suicune,,,,"Special (Roaming, Level 50)","Special (Roaming, Level 50)"
+246,,381,Larvitar,,,,"Wild (Sevault Canyon, Level 15, 20) - 5%","Wild (Sevault Canyon, Level 15, 20) - 5%"
+247,,382,Pupitar,,,,Evolve Larvitar (Level 30),Evolve Larvitar (Level 30)
+248,,383,Tyranitar,,,,Evolve Pupitar (Level 55),Evolve Pupitar (Level 55)
+249,,384,Lugia,,,EVENT ONLY,EVENT ONLY,EVENT ONLY
+250,,385,Ho-Oh,,,EVENT ONLY,EVENT ONLY,EVENT ONLY
+251,,386,Celebi,EVENT ONLY,EVENT ONLY,EVENT ONLY,EVENT ONLY,EVENT ONLY
+252,,1,Treecko,Special (Starter),Special (Starter),Special (Starter),,
+253,,2,Grovyle,Evolve Treecko (Level 16),Evolve Treecko (Level 16),Evolve Treecko (Level 16),,
+254,,3,Sceptile,Evolve Grovyle (Level 36),Evolve Grovyle (Level 36),Evolve Grovyle (Level 36),,
+255,,4,Torchic,Special (Starter),Special (Starter),Special (Starter),,
+256,,5,Combusken,Evolve Torchic (Level 16),Evolve Torchic (Level 16),Evolve Torchic (Level 16),,
+257,,6,Blaziken,Evolve Combusken (Level 36),Evolve Combusken (Level 36),Evolve Combusken (Level 36),,
+258,,7,Mudkip,Special (Starter),Special (Starter),Special (Starter),,
+259,,8,Marshtomp,Evolve Mudkip (Level 16),Evolve Mudkip (Level 16),Evolve Mudkip (Level 16),,
+260,,9,Swampert,Evolve Marshtomp (Level 16),Evolve Marshtomp (Level 16),Evolve Marshtomp (Level 16),,
+261,,10,Poochyena,"Wild (Route 103, Level 2 - 4) - 30%
+Wild (Route 102, Level 3 - 4) - 15%
+Wild (Route 101, Level 2 - 3) - 10%","Wild (Route 103, Level 2 - 4) - 30%
+Wild (Route 102, Level 3 - 4) - 15%
+Wild (Route 101, Level 2 - 3) - 10%","Wild (Route 103, Level 2 - 4) - 60%
+Wild (Route 101, Level 2 - 3) - 45%
+Wild (Route 104, Level 4 - 5) - 40%
+Wild (Route 102, Level 3 - 4) - 30%
+Wild (Petalburg Woods, Level 5 - 6) - 30%
+Wild (Route 117, Level 13 - 14) - 30%
+Wild (Route 116, Level 6 - 8) - 28%
+Wild (Route 120, Level 25)  - 20%
+Wild (Route 121, Level 26) - 20%
+Wild (Route 123, Level 26) - 20%
+Wild (Route 110, Level 12) - 20%",,
+262,,11,Mightyena,Evolve Poochyena (Level 18),Evolve Poochyena (Level 18),"Evolve Poochyena (Level 18)
+Wild (Route 120, Level 25, 27)  - 30%
+Wild (Route 121, Level 26, 28) - 20%
+Wild (Route 123, Level 26 - 28) - 20%",,
+263,,12,Zigzagoon,"Wild (Route 103, Level 2 - 4) - 60%
+Wild (Route 104, Level 4 - 5) - 50%
+Wild (Route 101, Level 2 - 3) - 45%
+Wild (Route 102, Level 3 - 4) - 30%
+Wild (Route 118, Level 24 - 26) - 30%
+Wild (Petalburg Woods, Level 5 - 6) - 30%
+Wild (Route 117, Level 13 - 14) - 30%
+Wild (Route 119, Level 25, 27) - 30%
+Wild (Route 116, Level 6 - 8) - 28%
+Wild (Route 110, Level 12) - 20%
+Wild (Route 120, Level 25)  - 20%
+Wild (Route 121, Level 26) - 20%
+Wild (Route 123, Level 26) - 20%","Wild (Route 103, Level 2 - 4) - 60%
+Wild (Route 104, Level 4 - 5) - 50%
+Wild (Route 101, Level 2 - 3) - 45%
+Wild (Route 102, Level 3 - 4) - 30%
+Wild (Route 118, Level 24 - 26) - 30%
+Wild (Petalburg Woods, Level 5 - 6) - 30%
+Wild (Route 117, Level 13 - 14) - 30%
+Wild (Route 119, Level 25, 27) - 30%
+Wild (Route 116, Level 6 - 8) - 28%
+Wild (Route 110, Level 12) - 20%
+Wild (Route 120, Level 25)  - 20%
+Wild (Route 121, Level 26) - 20%
+Wild (Route 123, Level 26) - 20%","Wild (Route 118, Level 24 - 26) - 30%
+Wild (Route 119, Level 25, 27) - 30%
+Wild (Route 103, Level 3 - 4) - 20%
+Wild (Route 102, Level 3 - 4) - 15%
+Wild (Route 101, Level 2 - 3) - 10%",,
+264,,13,Linoone,"Evolve Zigzagoon (Level 20)
+Wild (Route 119, Level 25, 27) - 30%
+Wild (Route 120, Level 25, 27)  - 30%
+Wild (Route 121, Level 26, 28) - 20%
+Wild (Route 123, Level 26, 28) - 20%
+Wild (Route 118, Level 26) - 10%","Evolve Zigzagoon (Level 20)
+Wild (Route 119, Level 25, 27) - 30%
+Wild (Route 120, Level 25, 27)  - 30%
+Wild (Route 121, Level 26, 28) - 20%
+Wild (Route 123, Level 26, 28) - 20%
+Wild (Route 118, Level 26) - 10%","Evolve Zigzagoon (Level 20)
+Wild (Route 118, Level 26) - 10%",,
+265,,14,Wurmple,"Wild (Route 101, Level 2 - 3) - 45%
+Wild (Route 102, Level 3 - 4) - 30%
+Wild (Route 104, Level 4 - 5) - 30%
+Wild (Petalburg Woods, Level 5 - 6) - 25%","Wild (Route 101, Level 2 - 3) - 45%
+Wild (Route 102, Level 3 - 4) - 30%
+Wild (Route 104, Level 4 - 5) - 30%
+Wild (Petalburg Woods, Level 5 - 6) - 25%","Wild (Route 101, Level 2 - 3) - 45%
+Wild (Route 102, Level 3 - 4) - 30%
+Wild (Petalburg Woods, Level 5 - 6) - 25%
+Wild (Route 104, Level 4) - 20%",,
+266,,15,Silcoon,"Evolve Wurmple (Level 7, Random)
+Wild (Petalburg Woods, Level 5) - 10%","Evolve Wurmple (Level 7, Random)
+Wild (Petalburg Woods, Level 5) - 10%","Evolve Wurmple (Level 7, Random)
+Wild (Petalburg Woods, Level 5) - 10%",,
+267,,16,Beautifly,Evolve Silcoon (Level 10),Evolve Silcoon (Level 10),Evolve Silcoon (Level 10),,
+268,,17,Cascoon,"Evolve Wurmple (Level 7, Random)
+Wild (Petalburg Woods, Level 5) - 10%","Evolve Wurmple (Level 7, Random)
+Wild (Petalburg Woods, Level 5) - 10%","Evolve Wurmple (Level 7, Random)
+Wild (Petalburg Woods, Level 5) - 10%",,
+269,,18,Dustox,Evolve (Cascoon (Level 10),Evolve (Cascoon (Level 10),Evolve (Cascoon (Level 10),,
+270,,19,Lotad,,"Wild (Route 114, Level 15 - 16) - 30%
+Wild (Route 102, Level 3 - 4) - 20%","Wild (Route 114, Level 15 - 16) - 30%
+Wild (Route 102, Level 3 - 4) - 20%",,
+271,,20,Lombre,,"Evolve Lotad (Level 14)
+Wild (Route 114, Level 17 - 18) - 10%","Evolve Lotad (Level 14)
+Wild (Route 114, Level 17 - 18) - 20%",,
+272,,21,Ludicolo,,Evolve Lombre (Water Stone),Evolve Lombre (Water Stone),,
+273,,22,Seedot,"Wild (Route 114, Level 15 - 16) - 30%
+Wild (Route 102, Level 3 - 4) - 20%",,"Trade (Rustboro City, For Ralts)
+Swarm (Route 102, Level 3) - 50%
+Swarm (Route 117, Level 15 - 50%
+Swarm (Route 120, Level2528) - 50%
+Wild (Route 102, Level 3) - 1%
+Wild (Route 117, Level 13) - 1%
+Wild (Route 120, Level 25) - 1%",,
+274,,23,Nuzleaf,"Evolve Seedot (Level 14)
+Wild (Route 114, Level 16, 18) - 10%",,"Evolve Seedot (Level 14)
+Swarm (Route 114, Level 15) - 50%
+Wild (Route 114, Level 15) - 1%",,
+275,,24,Shiftry,Evolve Nuzleaf (Leaf Stone),,Evolve Nuzleaf (Leaf Stone),,
+276,,25,Taillow,"Wild (Route 115, Level 23 - 25) - 40%
+Wild (Route 116, Level 6 - 8) - 20%
+Wild (Route 104, Level 4 - 5) - 10%
+Wild (Route Petalburg Woods, Level 5 - 6) - 5%","Wild (Route 115, Level 23 - 25) - 40%
+Wild (Route 116, Level 6 - 8) - 20%
+Wild (Route 104, Level 4 - 5) - 10%
+Wild (Route Petalburg Woods, Level 5 - 6) - 5%","Wild (Route 115, Level 23 - 25) - 40%
+Wild (Route 116, Level 6 - 8) - 20%
+Wild (Route 104, Level 4 - 5) - 10%
+Wild (Route Petalburg Woods, Level 5 - 6) - 5%",,
+277,,26,Swellow,"Evolve Taillow (Level 22)
+Wild (Route 115, Level 25) - 10%","Evolve Taillow (Level 22)
+Wild (Route 115, Level 25) - 10%","Evolve Taillow (Level 22)
+Wild (Route 115, Level 25) - 10%",,
+278,,27,Wingull,"Surf (Route 104, Level 10 - 30) - 95%
+Surf (Route 115, Level 10 - 30) - 35%
+Surf (Route 105 - 110, Level 10 - 30) - 35%
+Surf (Dewford Town, Level 10 - 30) - 35%
+Surf (Slateport City, Level 10 - 30) - 35%
+Surf (Route 118, Level 10 - 30) - 35%
+Surf (Route 119, Level 10 - 30) - 35%
+Surf (Route 121 - 134, Level 10 - 30) - 35%
+Surf (Pacifidlog Town, Level 10 - 30) - 35%
+Surf (Lilycove City, Level 10 - 30) - 35%
+Surf (Mossdeep City, Level 10 - 30) - 35%
+Surf (Ever Grande City, Level 10 - 30) - 35%
+Wild (Route 118, Level 25 - 27) - 19%
+Surf (Route 103, Level 10 - 30) - 10%
+Wild (Route 115, Level 24 - 26) - 10%
+Wild (Route 103, Level 2 - 4) - 10%
+Wild (Route 104, Level 3 - 5) - 10%
+Wild (Mt. Pyre Exterior, Level 26 - 28) - 10%
+Wild (Route 121, Level 26, 28) - 9%
+Wild (Route 123, Level 26 - 28) - 9%
+Wild (Route 110, Level 12) - 8%","Surf (Route 104, Level 10 - 30) - 95%
+Surf (Route 115, Level 10 - 30) - 35%
+Surf (Route 105 - 110, Level 10 - 30) - 35%
+Surf (Dewford Town, Level 10 - 30) - 35%
+Surf (Slateport City, Level 10 - 30) - 35%
+Surf (Route 118, Level 10 - 30) - 35%
+Surf (Route 119, Level 10 - 30) - 35%
+Surf (Route 121 - 134, Level 10 - 30) - 35%
+Surf (Pacifidlog Town, Level 10 - 30) - 35%
+Surf (Lilycove City, Level 10 - 30) - 35%
+Surf (Mossdeep City, Level 10 - 30) - 35%
+Surf (Ever Grande City, Level 10 - 30) - 35%
+Wild (Route 118, Level 25 - 27) - 19%
+Surf (Route 103, Level 10 - 30) - 10%
+Wild (Route 115, Level 24 - 26) - 10%
+Wild (Route 103, Level 2 - 4) - 10%
+Wild (Route 104, Level 3 - 5) - 10%
+Wild (Mt. Pyre Exterior, Level 26 - 28) - 10%
+Wild (Route 121, Level 26, 28) - 9%
+Wild (Route 123, Level 26 - 28) - 9%
+Wild (Route 110, Level 12) - 8%","Surf (Route 104, Level 10 - 30) - 95%
+Surf (Route 115, Level 10 - 30) - 35%
+Surf (Route 105 - 110, Level 10 - 30) - 35%
+Surf (Dewford Town, Level 10 - 30) - 35%
+Surf (Slateport City, Level 10 - 30) - 35%
+Surf (Route 118, Level 10 - 30) - 35%
+Surf (Route 119, Level 10 - 30) - 35%
+Surf (Route 121 - 134, Level 10 - 30) - 35%
+Surf (Pacifidlog Town, Level 10 - 30) - 35%
+Surf (Lilycove City, Level 10 - 30) - 35%
+Surf (Mossdeep City, Level 10 - 30) - 35%
+Surf (Ever Grande City, Level 10 - 30) - 35%
+Wild (Route 103, Level 2 - 4) - 20%
+Wild (Route 118, Level 25 - 27) - 19%
+Surf (Route 103, Level 10 - 30) - 10%
+Wild (Route 115, Level 24 - 26) - 10%
+Wild (Route 104, Level 3 - 5) - 10%
+Wild (Mt. Pyre Exterior, Level 26 - 28) - 10%
+Wild (Route 121, Level 26, 28) - 9%
+Wild (Route 123, Level 26 - 28) - 9%
+Wild (Route 110, Level 12) - 8%",,
+279,,28,Pelipper,"Evolve Wingull (Level 25)
+Surf (Route 103 - 110, Level 25 - 30) - 5%
+Surf (Dewford Town, Level 25 - 30) - 5%
+Surf (Slateport City, Level 25 - 30) - 5%
+Surf (Route 115, Level 25 - 30) - 5%
+Surf (Route 118, Level 25 - 30) - 5%
+Surf (Route 119, Level 25 - 30) - 5%
+Surf (Route 121 - 128, Level 25 - 30) - 5%
+Surf (Route 130 - 134, Level 25 - 30) - 5%
+Surf (Pacifidlog Town, Level 25 - 30) - 5%
+Surf (Lilycove City, Level 25 - 30) - 5%
+Surf (Mossdeep City, Level 25 - 30) - 5%
+Surf (Ever Grande City, Level 25 - 30) - 5%
+Surf (Route 129, Level 25 - 30) - 4%","Evolve Wingull (Level 25)
+Surf (Route 103 - 110, Level 25 - 30) - 5%
+Surf (Dewford Town, Level 25 - 30) - 5%
+Surf (Slateport City, Level 25 - 30) - 5%
+Surf (Route 115, Level 25 - 30) - 5%
+Surf (Route 118, Level 25 - 30) - 5%
+Surf (Route 119, Level 25 - 30) - 5%
+Surf (Route 121 - 128, Level 25 - 30) - 5%
+Surf (Route 130 - 134, Level 25 - 30) - 5%
+Surf (Pacifidlog Town, Level 25 - 30) - 5%
+Surf (Lilycove City, Level 25 - 30) - 5%
+Surf (Mossdeep City, Level 25 - 30) - 5%
+Surf (Ever Grande City, Level 25 - 30) - 5%
+Surf (Route 129, Level 25 - 30) - 4%","Evolve Wingull (Level 25)
+Surf (Route 103 - 110, Level 25 - 30) - 5%
+Surf (Dewford Town, Level 25 - 30) - 5%
+Surf (Slateport City, Level 25 - 30) - 5%
+Surf (Route 115, Level 25 - 30) - 5%
+Surf (Route 118, Level 25 - 30) - 5%
+Surf (Route 119, Level 25 - 30) - 5%
+Surf (Route 121 - 128, Level 25 - 30) - 5%
+Surf (Route 130 - 134, Level 25 - 30) - 5%
+Surf (Pacifidlog Town, Level 25 - 30) - 5%
+Surf (Lilycove City, Level 25 - 30) - 5%
+Surf (Mossdeep City, Level 25 - 30) - 5%
+Surf (Ever Grande City, Level 25 - 30) - 5%
+Surf (Route 129, Level 25 - 30) - 4%",,
+280,,29,Ralts,"WIld (Route 102, Level 4) - 4%","WIld (Route 102, Level 4) - 4%","WIld (Route 102, Level 4) - 4%",,
+281,,30,Kirlia,Evolve Ralts (Level 20),Evolve Ralts (Level 20),Evolve Ralts (Level 20),,
+282,,31,Gardevoir,Evolve Kirlia (Level 30),Evolve Kirlia (Level 30),Evolve Kirlia (Level 30),,
+283,,32,Surskit,"Swarm (Route 102, Level 3) - 50%
+Swarm (Route 114, Level 15) - 50%
+Swarm (Route 117, Level 15) - 50%
+Swarm (Route 120, Level 28) - 50%
+Surf (Route 102, Level 20 - 30) - 1%
+Surf (Route 111, Level 20 - 30) - 1%
+Surf (Route 114, Level 20 - 30) - 1%
+Surf (Route 117, Level 20 - 30) - 1%
+Surf (Route 120, Level 20 - 30) - 1%
+Wild (Route 102, Level 3) - 1%
+Wild (Route 114, Level 15) - 1%
+Wild (Route 117, Level 13) - 1%
+Wild (Route 120, Level 25) - 1%","Swarm (Route 102, Level 3) - 50%
+Swarm (Route 114, Level 15) - 50%
+Swarm (Route 117, Level 15) - 50%
+Swarm (Route 120, Level 28) - 50%
+Surf (Route 102, Level 20 - 30) - 1%
+Surf (Route 111, Level 20 - 30) - 1%
+Surf (Route 114, Level 20 - 30) - 1%
+Surf (Route 117, Level 20 - 30) - 1%
+Surf (Route 120, Level 20 - 30) - 1%
+Wild (Route 102, Level 3) - 1%
+Wild (Route 114, Level 15) - 1%
+Wild (Route 117, Level 13) - 1%
+Wild (Route 120, Level 25) - 1%",,,
+284,,33,Masquerain,Evolve Surskit (Level 22),Evolve Surskit (Level 22),,,
+285,,34,Shroomish,"Wild (Petalburg Woods, Level 5 - 6) - 15%","Wild (Petalburg Woods, Level 5 - 6) - 15%","Wild (Petalburg Woods, Level 5 - 6) - 15%",,
+286,,35,Breloom,Evolve Shroomish (Level 23),Evolve Shroomish (Level 23),Evolve Shroomish (Level 23),,
+287,,36,Slakoth,"Wild (Petalburg Woods, Level 5 - 6) - 5%","Wild (Petalburg Woods, Level 5 - 6) - 5%","Wild (Petalburg Woods, Level 5 - 6) - 5%",,
+288,,37,Vigoroth,Evolve Slakoth (Level 18),Evolve Slakoth (Level 18),Evolve Slakoth (Level 18),,
+289,,38,Slaking,Evolve Vigoroth (Level 36),Evolve Vigoroth (Level 36),Evolve Vigoroth (Level 36),,
+290,,42,Nincada,"Wild (Route 116, Level 6 - 7) - 20%","Wild (Route 116, Level 6 - 7) - 20%","Wild (Route 116, Level 6 - 7) - 20%",,
+291,,43,Ninjask,Evolve Nincada (Level 20),Evolve Nincada (Level 20),Evolve Nincada (Level 20),,
+292,,44,Shedinja,"Evolve Nincada (Level 20, Player must have spare Party slot to appear)","Evolve Nincada (Level 20, Player must have spare Party slot to appear)","Evolve Nincada (Level 20, Player must have spare Party slot to appear)",,
+293,,45,Whismur,"Wild (Rusturf Tunnel, Level 5 - 8) - 100%
+Wild (Route 116, Level 6 - 7) - 30%
+Wild (Victory Road 1F, Level 36) - 5%","Wild (Rusturf Tunnel, Level 5 - 8) - 100%
+Wild (Route 116, Level 6 - 7) - 30%
+Wild (Victory Road 1F, Level 36) - 5%","Wild (Rusturf Tunnel, Level 5 - 8) - 100%
+Wild (Desert Underpass, Level 35 - 36, 38) - 34%
+Wild (Route 116, Level 6) - 20%
+Wild (Victory Road 1F, Level 36) - 5%",,
+294,,46,Loudred,"Evolve Whismur (Level 20)
+Wild (Victory Road 1F, Level 40) - 10%","Evolve Whismur (Level 20)
+Wild (Victory Road 1F, Level 40) - 10%","Evolve Whismur (Level 20)
+Wild (Desert Underpass, Level 38, 40, 44) - 16%
+Wild (Victory Road 1F, Level 40) - 10%",,
+295,,47,Exploud,Evolve Loudred (Level 40),Evolve Loudred (Level 40),Evolve Loudred (Level 40),,
+296,,48,Makuhita,"Wild (Granite Cave 1F, Level 6 - 10) - 50%
+Wild (Granite Cave Steven's Room, Level 6 - 10) - 50%
+Wild (Granite Cave B1F, Level 10 - 11) - 10%
+Wild (Victory Road 1F, Level 36) - 10%
+Trade (Rustboro City, For Slakoth)","Wild (Granite Cave 1F, Level 6 - 10) - 50%
+Wild (Granite Cave Steven's Room, Level 6 - 10) - 50%
+Wild (Granite Cave B1F, Level 10 - 11) - 10%
+Wild (Victory Road 1F, Level 36) - 10%
+Trade (Rustboro City, For Slakoth)","Wild (Granite Cave 1F, Level 6 - 10) - 50%
+Wild (Granite Cave Steven's Room, Level 6 - 10) - 50%
+Wild (Granite Cave B1F, Level 10 - 11) - 10%
+Wild (Victory Road 1F, Level 36) - 10%",,
+297,,49,Hariyama,"Evolve Makuhita (Level 24)
+Wild (Victory Road B1F, Level 38, 40, 42) - 35%
+Wild (Victory Road 1F, Level 38, 40) - 25%","Evolve Makuhita (Level 24)
+Wild (Victory Road B1F, Level 38, 40, 42) - 35%
+Wild (Victory Road 1F, Level 38, 40) - 25%","Evolve Makuhita (Level 24)
+Wild (Victory Road B1F, Level 38, 40, 42) - 35%
+Wild (Victory Road 1F, Level 38, 40) - 25%",,
+298,,54,Azurill,Breed Marill / Azumarill (Holding Sea Incense),Breed Marill / Azumarill (Holding Sea Incense),Breed Marill / Azumarill (Holding Sea Incense),,Breed Marill / Azumarill (Holding Sea Incense)
+299,,60,Nosepass,"Rock Smash (Granite Cave B2F, Level 10 - 20) - 30%","Rock Smash (Granite Cave B2F, Level 10 - 20) - 30%","Rock Smash (Granite Cave B2F, Level 10 - 20) - 30%",,
+300,,61,Skitty,"Swarm (Route 116, Level 15) - 50%
+Wild (Route 116, Level 7 - 8) - 2%
+Trade (Fortree City, For Pikachu)","Swarm (Route 116, Level 15) - 50%
+Wild (Route 116, Level 7 - 8) - 2%
+Trade (Fortree City, For Pikachu)","Swarm (Route 116, Level 8) - 50%
+Wild (Route 116, Level 7 - 8) - 2%",,
+301,,62,Delcatty,Evolve Skitty (Moon Stone),Evolve Skitty (Moon Stone),Evolve Skitty (Moon Stone),,
+302,,68,Sableye,,"Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Sky Pillar 1F, Level 48, 50) - 30%
+Wild (Sky Pillar 3F, Level 51, 53) - 30%
+Wild (Sky PIllar 5F, Level 54, 56) - 30%
+Wild (Cave of Origin, Level 30, 32, 34) - 30%
+Wild (Granite Cave B2F, Level 10 - 12) - 20%
+Wild (Granite Cave B1F, Level 9 - 11) - 10%","Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Sky Pillar, Level 33 - 34) - 30%
+Wild (Cave of Origin, Level 30, 32, 34) - 30%
+Wild (Granite Cave B2F, Level 10 - 12) - 20%
+Wild (Granite Cave B1F, Level 9 - 11) - 10%",,
+303,,69,Mawile,"Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Sky Pillar 1F, Level 48, 50) - 30%
+Wild (Sky Pillar 3F, Level 51, 53) - 30%
+Wild (Sky PIllar 5F, Level 54, 56) - 30%
+Wild (Cave of Origin, Level 30, 32, 34) - 30%
+Wild (Granite Cave B2F, Level 10 - 12) - 20%
+Wild (Granite Cave B1F, Level 9 - 11) - 10%",,"Wild (Victory Road B1F, Level 38) - 5%
+Wild (Victory Road B2F, Level 42, 44) - 5%",,
+304,,70,Aron,"Wild (Granite Cave B1F, Level 9 - 11) - 40%
+Wild (Granite Cave B2F, Level 10 - 12) - 40%
+Wild (Granite Cave Steven's Room, Level 7 - 8) - 10%
+Wild (Victory Road 1F, Level 36)  - 5%","Wild (Granite Cave B1F, Level 9 - 11) - 40%
+Wild (Granite Cave B2F, Level 10 - 12) - 40%
+Wild (Granite Cave Steven's Room, Level 7 - 8) - 10%
+Wild (Victory Road 1F, Level 36)  - 5%","Wild (Granite Cave B1F, Level 9 - 11) - 40%
+Wild (Granite Cave B2F, Level 10 - 12) - 40%
+Wild (Granite Cave Steven's Room, Level 7 - 8) - 10%
+Wild (Victory Road 1F, Level 36)  - 5%",,
+305,,71,Lairon,"Evolve Aron (Level 32)
+Wild (Victory Road B1F, Level 40, 42) - 15%
+Wild (Victory Road B2F, Level 40, 42, 44) - 15%
+Wild (Victory Road 1F, Level 40)  - 10%","Evolve Aron (Level 32)
+Wild (Victory Road B1F, Level 40, 42) - 15%
+Wild (Victory Road B2F, Level 40, 42, 44) - 15%
+Wild (Victory Road 1F, Level 40)  - 10%","Evolve Aron (Level 32)
+Wild (Victory Road B1F, Level 40, 42) - 25%
+Wild (Victory Road B2F, Level 40, 42, 44) - 25%
+Wild (Victory Road 1F, Level 40)  - 10%",,
+306,,72,Aggron,Evolve Lairon (Level 42),Evolve Lairon (Level 42),Evolve Lairon (Level 42),,
+307,,76,Meditite,"Wild (Mt. Pyre Exterior, Level 27, 29) - 30%
+Wild (Victory Road B1F, Level 38) - 5%","Wild (Mt. Pyre Exterior, Level 27, 29) - 30%
+Wild (Victory Road B1F, Level 38) - 5%",,,
+308,,77,Medicham,"Evolve Meditite (Level 37)
+Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Victory Road B1F, Level 40) - 10%","Evolve Meditite (Level 37)
+Wild (Victory Road B2F, Level 40, 42, 44) - 35%
+Wild (Victory Road B1F, Level 40) - 10%",,,
+309,,78,Electrike,"Wild (Route 110, Level 12 - 13) - 30%
+Wild (Route 118, Level 24, 26) - 30%","Wild (Route 110, Level 12 - 13) - 30%
+Wild (Route 118, Level 24, 26) - 30%","Wild (Route 110, Level 12 - 13) - 30%
+Wild (Route 118, Level 24, 26) - 30%",,
+310,,79,Manectric,"Evolve Electrike (Level 26)
+Wild (Route 118, Level 26) - 10%","Evolve Electrike (Level 26)
+Wild (Route 118, Level 26) - 10%","Evolve Electrike (Level 26)
+Wild (Route 118, Level 26) - 10%",,
+311,,80,Plusle,"Wild (Route 110, Level 12 - 13) - 2%","Wild (Route 110, Level 13) - 15%","Wild (Route 110, Level 12 - 13) - 2%
+Trade (Fortree City, For Volbeat)",,
+312,,81,Minun,"Wild (Route 110, Level 13) - 15%","Wild (Route 110, Level 12 - 13) - 2%","Wild (Route 110, Level 13) - 15%",,
+313,,86,Volbeat,"Wild (Route 117, Level 13) - 1%","Wild (Route 117, Level 13 - 14) - 18%","Wild (Route 117, Level 13) - 1%",,
+314,,87,Illumise,"Wild (Route 117, Level 13 - 14) - 18%","Wild (Route 117, Level 13) - 1%","Wild (Route 117, Level 13 - 14) - 18%",,
+315,,94,Roselia,"Wild (Route 117, Level 13 - 14) - 30%","Wild (Route 117, Level 13 - 14) - 30%",,,
+316,,95,Gulpin,"Wild (Route 110, Level 12 - 13) - 15%","Wild (Route 110, Level 12 - 13) - 15%","Wild (Route 110, Level 12 - 13) - 15%",,
+317,,96,Swalot,Evolve Gulpin (Level 26),Evolve Gulpin (Level 26),Evolve Gulpin (Level 26),,
+318,,97,Carvanha,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,
+319,,98,Sharpedo,"Evolve Carvanha (Level 30)
+Fish - See RSE Fishing Patterns","Evolve Carvanha (Level 30)
+Fish - See RSE Fishing Patterns","Evolve Carvanha (Level 30)
+Fish - See RSE Fishing Patterns",,
+320,,99,Wailmer,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,
+321,,100,Wailord,"Evolve Wailmer (Level 40)
+Surf (Route 129, Level 35 - 40) - 1%","Evolve Wailmer (Level 40)
+Surf (Route 129, Level 25 - 30) - 1%","Evolve Wailmer (Level 40)
+Surf (Route 129, Level 25 - 30) - 1%",,
+322,,101,Numel,"Wild (Route 112, Level 14 - 16) - 75%
+Wild (Jagged Pass, Level 18 - 20) - 55%
+Wild (Fiery Path, Level 15 - 16) - 30%","Wild (Route 112, Level 14 - 16) - 75%
+Wild (Jagged Pass, Level 20- 22) - 55%
+Wild (Fiery Path, Level 15 - 16) - 30%","Wild (Route 112, Level 14 - 16) - 75%
+Wild (Jagged Pass, Level 20- 22) - 55%
+Wild (Fiery Path, Level 15 - 16) - 30%",,
+323,,102,Camerupt,Evolve Numel (Level 33),Evolve Numel (Level 33),Evolve Numel (Level 33),,
+324,,105,Torkoal,"Wild (Fiery Path, Level 14 - 16) - 18%","Wild (Fiery Path, Level 14 - 16) - 18%","Wild (Jagged Pass Magma Hideout, Level 28, 30) - 30%
+Wild (Fiery Path, Level 14 - 16) - 18%",,
+325,,110,Spoink,"Wild (Jagged Pass, Level 18 - 20) - 20%","Wild (Jagged Pass, Level 20 - 22) - 20%","Wild (Jagged Pass, Level 20 - 22) - 20%",,
+326,,111,Grumpig,Evolve Spoink (Level 32),Evolve Spoink (Level 32),Evolve Spoink (Level 32),,
+327,,114,Spinda,"WIld (Route 113, Level 14 - 16) - 70%","WIld (Route 113, Level 14 - 16) - 70%","WIld (Route 113, Level 14 - 16) - 70%",,
+328,,116,Trapinch,"Wild (Route 111, Level 19 - 21) - 35%","Wild (Route 111, Level 19 - 21) - 35%","Wild (Mirage Tower, Level 20 - 24) - 50%
+Wild (Route 111, Level 19 - 21) - 35%",,
+329,,117,Vibrava,Evolve Trapinch (Level 35),Evolve Trapinch (Level 35),Evolve Trapinch (Level 35),,
+330,,118,Flygon,Evolve Vibrava (Level 45),Evolve Vibrava (Level 45),Evolve Vibrava (Level 45),,
+331,,119,Cacnea,"Wild (Route 111, Level 19, 21) - 20%","Wild (Route 111, Level 19, 21) - 20%","Wild (Route 111, Level 20, 22) - 6%",,
+332,,120,Cacturne,Evolve Cacnea (Level 32),Evolve Cacnea (Level 32),Evolve Cacnea (Level 32),,
+333,,121,Swablu,"Wild (Route 114, Level 15 - 17) - 40%
+Wild (Route 115, Level 23, 25) - 30%","Wild (Route 114, Level 15 - 17) - 40%
+Wild (Route 115, Level 23, 25) - 30%","Wild (Route 114, Level 15 - 17) - 40%
+Wild (Route 115, Level 23, 25) - 30%",,
+334,,122,Altaria,"Evolve Swablu (Level 35)
+Wild (Sky Pillar 5F, Level 54, 57, 60) - 6%","Evolve Swablu (Level 35)
+Wild (Sky Pillar 5F, Level 54, 57, 60) - 6%","Evolve Swablu (Level 35)
+Wild (Sky Pillar 5F, Level 38 - 39) - 6%",,
+335,,123,Zangoose,"Wild (Route 114, Level 15 - 17) - 19%",,,,
+336,,124,Seviper,,"Wild (Route 114, Level 15 - 17) - 19%","Wild (Route 114, Level 15, 17) - 9%",,
+337,,125,Lunatone,,"Surf (Meteor Falls 1F 2R & B1F 1R, Level 33, 35, 37, 39) - 35%
+Wild (Meteor Falls B1F 2R, Level 35, 37, 39) - 25%
+Wild (Meteor Falls 1F 1R, Level 14, 16, 18) - 20%
+Surf (Meteor Falls 1F 1R, Level 5 - 35) - 10%
+Surf (Meteor Falls B1F 2R, Level 5 - 35) - 10%",,,
+338,,126,Solrock,"Surf (Meteor Falls 1F 2R & B1F 1R, Level 33, 35, 37, 39) - 35%
+Wild (Meteor Falls B1F 2R, Level 35, 37, 39) - 25%
+Wild (Meteor Falls 1F 1R, Level 14, 16, 18) - 20%
+Surf (Meteor Falls 1F 1R, Level 5 - 35) - 10%
+Surf (Meteor Falls B1F 2R, Level 5 - 35) - 10%",,"Surf (Meteor Falls 1F 2R & B1F 1R, Level 33, 35, 37, 39) - 35%
+Wild (Meteor Falls Steven's Cave, Level 33, 35, 37, 39) - 65%
+Wild (Meteor Falls B1F 2R, Level 35, 37, 39) - 25%
+Wild (Meteor Falls 1F 1R, Level 14, 16, 18) - 20%
+Surf (Meteor Falls 1F 1R, Level 5 - 35) - 10%
+Surf (Meteor Falls B1F 2R, Level 5 - 35) - 10%",,
+339,,127,Barboach,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,
+340,,128,Whiscash,"Evolve Barboach (Level 30)
+Fish - See RSE Fishing Patterns","Evolve Barboach (Level 30)
+Fish - See RSE Fishing Patterns","Evolve Barboach (Level 30)
+Fish - See RSE Fishing Patterns",,
+341,,129,Corphish,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,
+342,,130,Crawdaunt,Evolve Corphish (Level 30),Evolve Corphish (Level 30),Evolve Corphish (Level 30),,
+343,,131,Baltoy,"Wild (Route 111, Level 20, 22) - 10%","Wild (Route 111, Level 20, 22) - 10%","Wild (Route 111, Level 19 - 21) - 24%",,
+344,,132,Claydol,"Evolve Baltoy (Level 36)
+Wild (Sky Pillar 1F, Level 47 - 50) - 25%
+Wild (Sky Pillar 3F, Level 50 - 53) - 25%
+Wild (Sky Pillar 5F, Level 54 - 56) - 19%","Evolve Baltoy (Level 36)
+Wild (Sky Pillar 1F, Level 47 - 50) - 25%
+Wild (Sky Pillar 3F, Level 50 - 53) - 25%
+Wild (Sky Pillar 5F, Level 54 - 56) - 19%","Evolve Baltoy (Level 36)
+Wild (Sky Pillar 1F & 3F, Level 36 - 38) - 25%
+Wild (Sky Pillar 5F, Level 36 - 38) - 19%",,
+345,,133,Lileep,"Fossil (Root Fossil, Mirage Tower, Level 20)","Fossil (Root Fossil, Mirage Tower, Level 20)","Fossil (Root Fossil, Mirage Tower, Level 20)
+Fossil (Root Fossil, Desert Underpass, Level 20)",,
+346,,134,Cradily,Evolve Lileep (Level 40),Evolve Lileep (Level 40),Evolve Lileep (Level 40),,
+347,,135,Anorith,"Fossil (Claw Fossil, Mirage Tower, Level 20)","Fossil (Claw Fossil, Mirage Tower, Level 20)","Fossil (Claw Fossil, Mirage Tower, Level 20)
+Fossil (Claw Fossil, Desert Underpass, Level 20)",,
+348,,136,Armaldo,Evolve Anorith (Level 40),Evolve Anorith (Level 40),Evolve Anorith (Level 40),,
+349,,140,Feebas,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,
+350,,141,Milotic,Evolve Milotic (With High Beauty),Evolve Milotic (With High Beauty),Evolve Milotic (With High Beauty),,
+351,,142,Castform,"Special (Weather Institute, Level 25)","Special (Weather Institute, Level 25)","Special (Weather Institute, Level 25)",,
+352,,145,Kecleon,"Special (Route 119, Level 30, Two)
+Special (Route 120, Level 30, Six)
+Wild (Route 118, Level 25) - 1%
+Wild (Route 119, Level 25) - 1%
+Wild (Route 120, Level 25) - 1%
+Wild (Route 121, Level 25) - 1%
+Wild (Route 123, Level 25) - 1%","Special (Route 119, Level 30, Two)
+Special (Route 120, Level 30, Six)
+Wild (Route 118, Level 25) - 1%
+Wild (Route 119, Level 25) - 1%
+Wild (Route 120, Level 25) - 1%
+Wild (Route 121, Level 25) - 1%
+Wild (Route 123, Level 25) - 1%","Special (Route 119, Level 30, Two)
+Special (Route 120, Level 30, Six)
+Wild (Route 118, Level 25) - 1%
+Wild (Route 119, Level 25) - 1%
+Wild (Route 120, Level 25) - 1%
+Wild (Route 121, Level 25) - 1%
+Wild (Route 123, Level 25) - 1%",,
+353,,146,Shuppet,"Wild (Mt. Pyre Summit, Level 26, 28, 30) - 13%
+Wild (Mt. Pyre Interior 4F - 6F, Level 25, 27, 29) - 10%","Wild (Mt. Pyre Interior 1F - 3F, Level 22 - 29) - 100%
+Wild (Mt. Pyre Interior 4F - 6F, Level 22 - 29) - 90%
+Wild (Mt. Pyre Summit, Level 24 - 30) - 85%
+Wild (Mt. Pyre Exterior, Level 27 - 29) - 40%
+Wild (Route 123, Level 26, 28) - 30%
+Wild (Route 121, Level 26, 28) - 30%","Wild (Mt. Pyre Interior 1F - 3F, Level 22 - 29) - 100%
+Wild (Mt. Pyre Interior 4F - 6F, Level 22 - 29) - 90%
+Wild (Mt. Pyre Summit, Level 24 - 30) - 85%
+Wild (Mt. Pyre Exterior, Level 27 - 29) - 60%
+Wild (Route 123, Level 26, 28) - 30%
+Wild (Route 121, Level 26, 28) - 30%",,
+354,,147,Banette,Evolve Shuppet (Level 37),"Evolve Shuppet (Level 37)
+Wild (Sky Pillar 1F, Level 48, 50) - 15%
+Wild (Sky Pillar 3F, Level 51, 53) - 15%
+WIld (Sky Pillar 5F, Level 54, 56) - 15%","Evolve Shuppet (Level 37)
+Wild (Sky Pillar, Level 37 - 38) - 15%",,
+355,,148,Duskull,"Wild (Mt. Pyre Interior 1F - 3F, Level 22 - 29) - 100%
+Wild (Mt. Pyre Interior 4F - 6F, Level 22 - 29) - 90%
+Wild (Mt. Pyre Summit, Level 24 - 30) - 85%
+Wild (Mt. Pyre Exterior, Level 27 - 29) - 40%
+Wild (Route 121, Level 26, 28) - 30%
+Wild (Route 123, Level 26, 28) - 30%","Wild (Mt. Pyre Summit, Level 26, 28, 30) - 13%
+Wild (Mt. Pyre Interior 4F - 6F, Level 25, 27, 29) - 10%","Wild (Mt. Pyre Summit, Level 26, 28, 30) - 13%
+Wild (Mt. Pyre Interior 4F - 6F, Level 25, 27, 29) - 10%",,
+356,,149,Dusclops,"Evolve Duskull (Level 37)
+Wild (Sky Pillar 1F, Level 48, 50) - 15%
+Wild (Sky Pillar 3F, Level 51, 53) - 15%
+Wild (Sky Pillar 5F, Level 54, 56) - 15%",Evolve Duskull (Level 37),Evolve Duskull (Level 37),,
+357,,150,Tropius,"Wild (Route 119, Level 25 - 27) - 9%","Wild (Route 119, Level 25 - 27) - 9%","Wild (Route 119, Level 25 - 27) - 9%",,
+358,,151,Chimecho,"Wild (Mt. Pyre Summit, Level 28) - 2%","Wild (Mt. Pyre Summit, Level 28) - 2%","Wild (Mt. Pyre Summit, Level 28) - 2%",,
+359,,152,Absol,"Wild (Route 120, Level 25, 27) - 8%","Wild (Route 120, Level 25, 27) - 8%","Wild (Route 120, Level 25, 27) - 8%",,
+360,,160,Wynaut,"Breed Wobbuffet (Holding Lax Incense)
+Special (Lavaridge Town, Egg, Level 5)
+Wild (Mirage Island, Level 5, 10, 15, 20, 25, 30, 35, 40, 45, 50) - 100%","Breed Wobbuffet (Holding Lax Incense)
+Special (Lavaridge Town, Egg, Level 5)
+Wild (Mirage Island, Level 5, 10, 15, 20, 25, 30, 35, 40, 45, 50) - 100%","Breed Wobbuffet (Holding Lax Incense)
+Special (Lavaridge Town, Egg, Level 5)
+Wild (Mirage Island, Level 5, 10, 15, 20, 25, 30, 35, 40, 45, 50) - 100%",Breed Wobbuffet (Holding Lax Incense),Breed Wobbuffet (Holding Lax Incense)
+361,,171,Snorunt,"Wild (Shoal Cave Ice, Level 26, 28, 30) - 10%","Wild (Shoal Cave Ice, Level 26, 28, 30) - 10%","Wild (Shoal Cave Ice, Level 26, 28, 30) - 10%",,
+362,,172,Glalie,Evolve Snorunt (Level 42),Evolve Snorunt (Level 42),Evolve Snorunt (Level 42),,
+363,,173,Spheal,"Wild (Shoal Cave Main, Level 26, 28, 30, 32) - 50%
+Wild (Shoal Cave Ice, Level 26, 28, 30) - 10%
+Surf (Shoal Cave Main, Level 25 - 35) - 10%","Wild (Shoal Cave Main, Level 26, 28, 30, 32) - 50%
+Wild (Shoal Cave Ice, Level 26, 28, 30) - 10%
+Surf (Shoal Cave Main, Level 25 - 35) - 10%","Wild (Shoal Cave Main, Level 26, 28, 30, 32) - 50%
+Wild (Shoal Cave Ice, Level 26, 28, 30) - 10%
+Surf (Shoal Cave Main, Level 25 - 35) - 10%",,
+364,,174,Sealeo,Evolve Spheal (Level 32),Evolve Spheal (Level 32),Evolve Spheal (Level 32),,
+365,,175,Walrein,Evolve Walrein (Level 44),Evolve Walrein (Level 44),Evolve Walrein (Level 44),,
+366,,176,Clamperl,"Dive (Route 124 & 126, Level 20 - 35) - 65%","Dive (Route 124 & 126, Level 20 - 35) - 65%","Dive (Route 124 & 126, Level 20 - 35) - 65%",,
+367,,177,Huntail,Evolve Clamperl (Trade holding Deep Sea Tooth),Evolve Clamperl (Trade holding Deep Sea Tooth),Evolve Clamperl (Trade holding Deep Sea Tooth),,
+368,,178,Gorebyss,Evolve Clamperl (Trade holding Deap Sea Scale),Evolve Clamperl (Trade holding Deap Sea Scale),Evolve Clamperl (Trade holding Deap Sea Scale),,
+369,,179,Relicanth,"Dive (Route 124 & 126, Level 30 - 35) - 5%","Dive (Route 124 & 126, Level 30 - 35) - 5%","Dive (Route 124 & 126, Level 30 - 35) - 5%",,
+370,,183,Luvdisc,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,Fish - See RSE Fishing Patterns,,
+371,,187,Bagon,"Wild (Meteor Falls B1F 2R, Level 25, 30, 35) - 25%","Wild (Meteor Falls B1F 2R, Level 25, 30, 35) - 25%","Wild (Meteor Falls B1F 2R, Level 25, 30, 35) - 25%",,
+372,,188,Shelgon,Evolve Bagon (Level 30),Evolve Bagon (Level 30),Evolve Bagon (Level 30),,
+373,,189,Salamence,Evolve Shelgon (Level 50),Evolve Shelgon (Level 50),Evolve Shelgon (Level 50),,
+374,,190,Beldum,"Special (Mossdeep City, Level 5)","Special (Mossdeep City, Level 5)","Special (Mossdeep City, Level 5)",,
+375,,191,Metang,Evolve Beldum (Level 20),Evolve Beldum (Level 20),Evolve Beldum (Level 20),,
+376,,192,Metagross,Evolve Metang (Level 45),Evolve Metang (Level 45),Evolve Metang (Level 45),,
+377,,193,Regirock,"Special (Desert Ruins, Level 40)","Special (Desert Ruins, Level 40)","Special (Desert Ruins, Level 40)",,
+378,,194,Regice,"Special (Island Cave, Level 40)","Special (Island Cave, Level 40)","Special (Island Cave, Level 40)",,
+379,,195,Registeel,"Special (Ancient Tomb, Level 40)","Special (Ancient Tomb, Level 40)","Special (Ancient Tomb, Level 40)",,
+380,,196,Latias,EVENT ONLY,EVENT ONLY,EVENT ONLY,,
+381,,197,Latios,EVENT ONLY,EVENT ONLY,EVENT ONLY,,
+382,,198,Kyogre,,"Special (Cave of Origin, Level 45)","Special (Marine Cave, Level 70)",,
+383,,199,Groudon,"Special (Cave of Origin, Level 45)",,"Special (Terra Cave, Level 70)",,
+384,,200,Rayquaza,"Special (Sky Pillar, Level 70)","Special (Sky Pillar, Level 70)","Special (Sky Pillar, Level 70)",,
+385,,201,Jirachi,EVENT ONLY,EVENT ONLY,EVENT ONLY,EVENT ONLY,EVENT ONLY
+386,,202,Deoxys,,,EVENT ONLY,,

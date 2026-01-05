@@ -343,10 +343,12 @@ class PK3Parser {
         isShiny: (() => {
           const tid = buffer.readUInt16LE(0x04);
           const sid = buffer.readUInt16LE(0x06);
-          const id32 = tid | (sid << 16);
-          const xor = personality ^ id32;
-          const shinyXor = (xor >> 16) ^ (xor & 0xFFFF);
-          return shinyXor < 8;
+          // Gen 3 shiny formula: (TID XOR SID XOR (PID & 0xFFFF) XOR (PID >>> 16)) < 8
+          // Use unsigned right shift (>>>) to ensure upper 16 bits are treated as unsigned
+          const pidLower = personality & 0xFFFF;
+          const pidUpper = (personality >>> 16) & 0xFFFF;
+          const shinyValue = (tid ^ sid ^ pidLower ^ pidUpper) & 0xFFFF;
+          return shinyValue < 8;
         })(),
         
         hp: 0, // PKHeX exports don't have HP, needs calculation
@@ -425,10 +427,12 @@ class PK3Parser {
         isShiny: (() => {
           const tid = buffer.readUInt16LE(0x04);
           const sid = buffer.readUInt16LE(0x06);
-          const id32 = tid | (sid << 16);
-          const xor = personality ^ id32;
-          const shinyXor = (xor >> 16) ^ (xor & 0xFFFF);
-          return shinyXor < 8;
+          // Gen 3 shiny formula: (TID XOR SID XOR (PID & 0xFFFF) XOR (PID >>> 16)) < 8
+          // Use unsigned right shift (>>>) to ensure upper 16 bits are treated as unsigned
+          const pidLower = personality & 0xFFFF;
+          const pidUpper = (personality >>> 16) & 0xFFFF;
+          const shinyValue = (tid ^ sid ^ pidLower ^ pidUpper) & 0xFFFF;
+          return shinyValue < 8;
         })(),
         
         // Party format stats are in unencrypted section (0x50-0x63)

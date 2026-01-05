@@ -51,11 +51,18 @@ let availableGenerations = [];
 const databaseSelect = document.getElementById('databaseSelect');
 const loadBtn = document.getElementById('loadBtn');
 const pokedexBtn = document.getElementById('pokedexBtn');
+const mapBtn = document.getElementById('mapBtn');
 const batchEvolveBtn = document.getElementById('batchEvolveBtn');
 const batchEvolveModal = document.getElementById('batchEvolveModal');
 const closeBatchEvolveModal = document.getElementById('closeBatchEvolveModal');
 const pokedexModal = document.getElementById('pokedexModal');
 const closePokedexModal = document.getElementById('closePokedexModal');
+const mapModal = document.getElementById('mapModal');
+const closeMapModal = document.getElementById('closeMapModal');
+const mapFRLGBtn = document.getElementById('mapFRLGBtn');
+const mapEmeraldBtn = document.getElementById('mapEmeraldBtn');
+const mapContainer = document.getElementById('mapContainer');
+const mapRoot = document.getElementById('mapRoot');
 const closePokemonInfoModal = document.getElementById('closePokemonInfoModal');
 const pokemonInfoModal = document.getElementById('pokemonInfoModal');
 const dbReloadNotification = document.getElementById('dbReloadNotification');
@@ -208,6 +215,76 @@ if (closePokedexModal && pokedexModal) {
     closePokedexModal.addEventListener('click', () => {
         pokedexModal.classList.add('hidden');
     });
+}
+
+// Map button - set up event listener
+if (mapBtn && mapModal) {
+    mapBtn.addEventListener('click', openMapModal);
+}
+
+if (closeMapModal && mapModal) {
+    closeMapModal.addEventListener('click', () => {
+        mapModal.classList.add('hidden');
+    });
+}
+
+// Load map into container
+async function loadMap(game) {
+    if (!mapRoot) return;
+    
+    // Clear previous map
+    mapRoot.innerHTML = '';
+    
+    // Create iframe for the map
+    const iframe = document.createElement('iframe');
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+    iframe.src = game === 'frlg' ? '/FRLGIronmonMap/' : '/EmeraldIronmonMap/';
+    mapRoot.appendChild(iframe);
+    
+    // Store reference for postMessage
+    window.currentMapIframe = iframe;
+}
+
+if (mapFRLGBtn && mapEmeraldBtn) {
+    mapFRLGBtn.addEventListener('click', () => {
+        loadMap('frlg');
+        mapFRLGBtn.classList.remove('btn-secondary');
+        mapFRLGBtn.classList.add('btn-primary', 'active');
+        mapEmeraldBtn.classList.remove('btn-primary', 'active');
+        mapEmeraldBtn.classList.add('btn-secondary');
+        // Refresh encounters if a location is selected
+        const encountersDisplay = document.getElementById('encountersDisplay');
+        if (encountersDisplay && !encountersDisplay.classList.contains('hidden')) {
+            const selectedLocationName = document.getElementById('selectedLocationName');
+            if (selectedLocationName) {
+                selectLocation(selectedLocationName.textContent);
+            }
+        }
+    });
+    
+    mapEmeraldBtn.addEventListener('click', () => {
+        loadMap('emerald');
+        mapEmeraldBtn.classList.remove('btn-secondary');
+        mapEmeraldBtn.classList.add('btn-primary', 'active');
+        mapFRLGBtn.classList.remove('btn-primary', 'active');
+        mapFRLGBtn.classList.add('btn-secondary');
+        // Refresh encounters if a location is selected
+        const encountersDisplay = document.getElementById('encountersDisplay');
+        if (encountersDisplay && !encountersDisplay.classList.contains('hidden')) {
+            const selectedLocationName = document.getElementById('selectedLocationName');
+            if (selectedLocationName) {
+                selectLocation(selectedLocationName.textContent);
+            }
+        }
+    });
+}
+
+// Close encounters button
+const closeEncountersBtn = document.getElementById('closeEncountersBtn');
+if (closeEncountersBtn) {
+    closeEncountersBtn.addEventListener('click', closeEncountersDisplay);
 }
 
 if (closePokemonInfoModal && pokemonInfoModal) {
@@ -959,11 +1036,19 @@ function filterNeedsEvolution(data) {
         }
     });
     
+    // Known non-evolving Pokemon - exclude them from this filter
+    const nonEvolvingPokemon = [234, 267, 323, 334, 335, 336, 337, 338, 340];
+    
     // Filter to only Pokemon that:
     // 1. Can evolve (have an evolution)
     // 2. The evolved form is NOT in the database
     return data.filter(pokemon => {
         if (pokemon.error || !pokemon.species) return false;
+        
+        // Exclude non-evolving Pokemon
+        if (nonEvolvingPokemon.includes(pokemon.species)) {
+            return false;
+        }
         
         const evolvedSpecies = getEvolutionSpecies(pokemon.species);
         if (!evolvedSpecies) {
@@ -2550,12 +2635,11 @@ function getEvolutionSpecies(speciesId) {
         225: 226, 228: 229, 231: 232, 233: 234, 234: 235, 236: 125, 238: 126, 239: 240,
         // Gen 3
         252: 253, 253: 254, 255: 256, 256: 257, 258: 259, 259: 260, 261: 262, 263: 264,
-        265: 266, 266: 267, 267: 268, 269: 270, 270: 271, 273: 274, 274: 275, 276: 277,
+        265: 266, 266: 267, 268: 269, 269: 270, 270: 271, 273: 274, 274: 275, 276: 277,
         278: 279, 280: 281, 281: 282, 283: 284, 285: 286, 287: 288, 288: 289, 290: 291,
         293: 294, 294: 295, 296: 297, 298: 183, 300: 301, 304: 305, 305: 306, 307: 308,
-        309: 310, 315: 316, 316: 317, 317: 318, 318: 319, 320: 321, 322: 323, 323: 324,
-        324: 325, 325: 326, 331: 332, 332: 333, 333: 334, 334: 335, 335: 336, 336: 337,
-        339: 340, 340: 341, 341: 342, 347: 348, 348: 349, 349: 350, 352: 353, 353: 354,
+        309: 310, 315: 316, 316: 317, 317: 318, 318: 319, 321: 322, 328: 329, 329: 330,
+        331: 332, 333: 334, 339: 340, 341: 342, 343: 344, 345: 346, 347: 348, 349: 350, 353: 354,
         354: 355, 355: 356
     };
     return evolutionMap[speciesId] || null;
@@ -6449,6 +6533,313 @@ if (document.readyState === 'loading') {
     })();
 }
 
+// Location index cache
+let locationIndex = null;
+let allEncounterData = null;
+
+// Load encounter data and build location index
+async function loadLocationIndex() {
+    if (locationIndex) return locationIndex;
+    
+    try {
+        const response = await fetch('/api/pokemon/encounter-rates');
+        if (!response.ok) {
+            console.error('Failed to load encounter data');
+            return null;
+        }
+        
+        allEncounterData = await response.json();
+        locationIndex = {};
+        
+        // Build location index: location -> { game -> [pokemon encounters] }
+        for (const [speciesId, pokemonData] of Object.entries(allEncounterData.pokemon)) {
+            if (!pokemonData.encounters) continue;
+            
+            for (const [game, encounters] of Object.entries(pokemonData.encounters)) {
+                for (const encounter of encounters) {
+                    if (encounter.method === 'Wild' && encounter.location) {
+                        const locationKey = encounter.location.toLowerCase().trim();
+                        if (!locationIndex[locationKey]) {
+                            locationIndex[locationKey] = {};
+                        }
+                        if (!locationIndex[locationKey][game]) {
+                            locationIndex[locationKey][game] = [];
+                        }
+                        locationIndex[locationKey][game].push({
+                            speciesId: parseInt(speciesId),
+                            name: pokemonData.name,
+                            encounter: encounter
+                        });
+                    }
+                }
+            }
+        }
+        
+        return locationIndex;
+    } catch (error) {
+        console.error('Error loading location index:', error);
+        return null;
+    }
+}
+
+// Get all unique locations
+function getAllLocations() {
+    if (!locationIndex) return [];
+    return Object.keys(locationIndex).sort();
+}
+
+// Get encounters for a location and game
+function getLocationEncounters(locationName, game) {
+    if (!locationIndex) return [];
+    const locationKey = locationName.toLowerCase().trim();
+    // Try exact match first
+    if (locationIndex[locationKey]?.[game]) {
+        return locationIndex[locationKey][game];
+    }
+    // Try fuzzy match
+    const matchedLocation = findLocationByName(locationName);
+    if (matchedLocation) {
+        const matchedKey = matchedLocation.toLowerCase().trim();
+        return locationIndex[matchedKey]?.[game] || [];
+    }
+    return [];
+}
+
+// Location name normalization and matching
+function normalizeLocationName(name) {
+    if (!name) return '';
+    return name.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+// Find location by fuzzy matching
+function findLocationByName(searchName) {
+    if (!locationIndex) return null;
+    
+    const normalizedSearch = normalizeLocationName(searchName);
+    const locations = getAllLocations();
+    
+    // Exact match
+    for (const loc of locations) {
+        if (normalizeLocationName(loc) === normalizedSearch) {
+            return loc;
+        }
+    }
+    
+    // Contains match
+    for (const loc of locations) {
+        const normalizedLoc = normalizeLocationName(loc);
+        if (normalizedLoc.includes(normalizedSearch) || normalizedSearch.includes(normalizedLoc)) {
+            return loc;
+        }
+    }
+    
+    // Partial word match
+    const searchWords = normalizedSearch.split(' ');
+    for (const loc of locations) {
+        const normalizedLoc = normalizeLocationName(loc);
+        const locWords = normalizedLoc.split(' ');
+        if (searchWords.some(word => locWords.some(lw => lw.includes(word) || word.includes(lw)))) {
+            return loc;
+        }
+    }
+    
+    return null;
+}
+
+// Open Map Modal
+async function openMapModal() {
+    const modal = document.getElementById('mapModal');
+    if (!modal) {
+        alert('Map modal not found. Please refresh the page.');
+        return;
+    }
+    modal.classList.remove('hidden');
+    
+    // Load location index if not already loaded
+    await loadLocationIndex();
+    
+    // Populate location list
+    populateLocationList();
+    
+    // Set up postMessage listener for iframe communication
+    setupMapMessageListener();
+    
+    // Load default map (FRLG)
+    if (mapFRLGBtn && mapFRLGBtn.classList.contains('active')) {
+        loadMap('frlg');
+    }
+}
+
+
+// Select a location and show encounters
+function selectLocation(locationName) {
+    const encountersDisplay = document.getElementById('encountersDisplay');
+    const encountersContent = document.getElementById('encountersContent');
+    const selectedLocationName = document.getElementById('selectedLocationName');
+    const locationList = document.getElementById('locationList');
+    
+    if (!encountersDisplay || !encountersContent || !selectedLocationName) return;
+    
+    // Determine current game
+    const mapFRLGBtn = document.getElementById('mapFRLGBtn');
+    const isFRLG = mapFRLGBtn && mapFRLGBtn.classList.contains('active');
+    
+    // Get encounters for this location
+    // For FRLG, combine FireRed and LeafGreen encounters (they're usually the same)
+    let encounters = [];
+    if (isFRLG) {
+        const frEncounters = getLocationEncounters(locationName, 'firered');
+        const lgEncounters = getLocationEncounters(locationName, 'leafgreen');
+        // Combine and deduplicate by species ID
+        const encounterMap = new Map();
+        [...frEncounters, ...lgEncounters].forEach(enc => {
+            const key = enc.speciesId;
+            if (!encounterMap.has(key) || (enc.encounter.rate || 0) > (encounterMap.get(key).encounter.rate || 0)) {
+                encounterMap.set(key, enc);
+            }
+        });
+        encounters = Array.from(encounterMap.values());
+    } else {
+        encounters = getLocationEncounters(locationName, 'emerald');
+    }
+    
+    const gameName = isFRLG ? 'FireRed/LeafGreen' : 'Emerald';
+    
+    selectedLocationName.textContent = locationName;
+    encountersContent.innerHTML = '';
+    
+    if (encounters.length === 0) {
+        encountersContent.innerHTML = `<p>No wild encounters found for ${locationName} in ${gameName}.</p>`;
+    } else {
+        // Group by method and sort by rate
+        const grouped = {};
+        encounters.forEach(({ speciesId, name, encounter }) => {
+            const key = encounter.method || 'Wild';
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push({ speciesId, name, encounter });
+        });
+        
+        // Sort encounters by rate (highest first)
+        Object.keys(grouped).forEach(method => {
+            grouped[method].sort((a, b) => {
+                const rateA = a.encounter.rate || 0;
+                const rateB = b.encounter.rate || 0;
+                return rateB - rateA;
+            });
+        });
+        
+        // Display encounters
+        Object.entries(grouped).forEach(([method, pokemonList]) => {
+            const methodSection = document.createElement('div');
+            methodSection.className = 'encounter-method-section';
+            methodSection.innerHTML = `<h5>${method}</h5>`;
+            
+            const pokemonListEl = document.createElement('ul');
+            pokemonListEl.className = 'encounter-pokemon-list';
+            
+            pokemonList.forEach(({ speciesId, name, encounter }) => {
+                const li = document.createElement('li');
+                li.className = 'encounter-pokemon-item';
+                
+                let text = `<span class="pokemon-link" data-species="${speciesId}">#${speciesId} ${name}</span>`;
+                if (encounter.level) {
+                    if (encounter.level.min === encounter.level.max) {
+                        text += ` (Level ${encounter.level.min})`;
+                    } else {
+                        text += ` (Level ${encounter.level.min}-${encounter.level.max})`;
+                    }
+                }
+                if (encounter.rate) {
+                    text += ` - <span class="encounter-rate">${encounter.rate}%</span>`;
+                }
+                
+                li.innerHTML = text;
+                pokemonListEl.appendChild(li);
+            });
+            
+            methodSection.appendChild(pokemonListEl);
+            encountersContent.appendChild(methodSection);
+        });
+        
+        // Add click handlers for Pokemon links
+        encountersContent.querySelectorAll('.pokemon-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const speciesId = parseInt(link.dataset.species);
+                const pokemonInfoModal = document.getElementById('pokemonInfoModal');
+                if (pokemonInfoModal) {
+                    pokemonInfoModal.classList.add('hidden');
+                }
+                showPokemonInfo(speciesId);
+            });
+        });
+    }
+    
+    // Show encounters panel, hide location list
+    encountersDisplay.classList.remove('hidden');
+    if (locationList) {
+        locationList.style.display = 'none';
+    }
+}
+
+// Close encounters display
+function closeEncountersDisplay() {
+    const encountersDisplay = document.getElementById('encountersDisplay');
+    const locationList = document.getElementById('locationList');
+    
+    if (encountersDisplay) {
+        encountersDisplay.classList.add('hidden');
+    }
+    if (locationList) {
+        locationList.style.display = 'block';
+    }
+}
+
+// Set up postMessage listener for iframe communication
+function setupMapMessageListener() {
+    // Remove any existing listener to avoid duplicates
+    if (window.mapMessageHandler) {
+        window.removeEventListener('message', window.mapMessageHandler);
+    }
+    
+    // Listen for messages from the iframe (the integrated maps)
+    window.mapMessageHandler = (event) => {
+        // Accept messages from same origin (local maps)
+        const isLocalOrigin = event.origin === window.location.origin || 
+                              event.origin.startsWith('http://localhost') ||
+                              event.origin.startsWith('http://127.0.0.1');
+        
+        if (!isLocalOrigin) {
+            return;
+        }
+        
+        // Handle location data from the map
+        if (event.data && event.data.type === 'location' && event.data.location) {
+            console.log('Received location from map:', event.data.location);
+            const locationName = event.data.location;
+            const matchedLocation = findLocationByName(locationName);
+            if (matchedLocation) {
+                selectLocation(matchedLocation);
+            } else {
+                // Try direct match
+                const mapFRLGBtn = document.getElementById('mapFRLGBtn');
+                const isFRLG = mapFRLGBtn && mapFRLGBtn.classList.contains('active');
+                const game = isFRLG ? 'firered' : 'emerald';
+                
+                if (getLocationEncounters(locationName, game).length > 0) {
+                    selectLocation(locationName);
+                } else {
+                    console.log('Location not found:', locationName);
+                }
+            }
+        }
+    };
+    
+    window.addEventListener('message', window.mapMessageHandler);
+}
+
 // Open Pokedex
 async function openPokedex() {
     const modal = document.getElementById('pokedexModal');
@@ -6596,7 +6987,10 @@ async function displayPokedex(data) {
             continue;
         }
         
-        // Show all generations - filters handle what to display
+        // Only show Pokemon from generations present in the database
+        if (availableGenerations && availableGenerations.length > 0 && !availableGenerations.includes(gen)) {
+            continue;
+        }
         
         // Convert speciesId to string for lookup (JSON keys are strings)
         const entry = pokedex[String(speciesId)] || pokedex[speciesId] || { owned: false, shiny: false };
@@ -6644,7 +7038,10 @@ async function displayPokedex(data) {
             continue;
         }
         
-        // Show all generations - filters handle what to display
+        // Only show Pokemon from generations present in the database
+        if (availableGenerations && availableGenerations.length > 0 && !availableGenerations.includes(gen)) {
+            continue;
+        }
         
         // Convert speciesId to string for lookup (JSON keys are strings)
         const entry = pokedex[String(speciesId)] || pokedex[speciesId] || { owned: false, shiny: false };
@@ -6737,6 +7134,19 @@ async function showPokemonInfo(speciesId) {
 // Fetch Pokemon data from API (using server-side endpoints)
 async function fetchPokemonData(speciesId) {
     try {
+        // Fetch encounter rates from Gen 3 location sheet
+        let encounterRates = null;
+        if (speciesId >= 1 && speciesId <= 386) {
+            try {
+                const encounterResponse = await fetch(`/api/pokemon/encounter-rates/${speciesId}`);
+                if (encounterResponse.ok) {
+                    encounterRates = await encounterResponse.json();
+                }
+            } catch (err) {
+                console.warn('Failed to fetch encounter rates:', err);
+            }
+        }
+        
         // Fetch Pokemon data from server (cached/proxied)
         const pokemonResponse = await fetch(`/api/pokemon/data/${speciesId}`);
         if (!pokemonResponse.ok) {
@@ -6788,7 +7198,8 @@ async function fetchPokemonData(speciesId) {
             locationAreas,
             evolutionInfo,
             evolutionDetails,
-            pokedexEntries
+            pokedexEntries,
+            encounterRates
         };
     } catch (error) {
         console.error('Error fetching Pokemon data:', error);
@@ -6932,80 +7343,124 @@ function isSpeciesInAvailableGenerations(speciesId) {
 function getEvolutionDetails(chain, targetSpeciesId) {
     const details = { evolvesFrom: null, evolvesInto: [] };
     
-    function traverseChain(node) {
-        const speciesId = parseInt(node.species.url.split('/').slice(-2, -1)[0]);
+    // Helper to extract species ID from URL
+    function getSpeciesIdFromUrl(url) {
+        const parts = url.split('/').filter(p => p);
+        return parseInt(parts[parts.length - 1]);
+    }
+    
+    // Find the target Pokemon in the chain and its direct relationships
+    function findTarget(node, parentSpeciesId = null) {
+        const currentSpeciesId = getSpeciesIdFromUrl(node.species.url);
         
-        if (speciesId === targetSpeciesId) {
-            // This is the current Pokemon, check its evolutions
-            node.evolves_to.forEach(evolution => {
-                const evoId = parseInt(evolution.species.url.split('/').slice(-2, -1)[0]);
-                const evoName = evolution.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        // Check if this is the target Pokemon
+        if (currentSpeciesId === targetSpeciesId) {
+            // This is the target - find what it evolves into (direct children only)
+            // Only add if evolution_details exists and has valid data (not empty)
+            if (node.evolves_to && node.evolves_to.length > 0) {
+                node.evolves_to.forEach(evolution => {
+                    // Only process if evolution_details exists and is not empty
+                    // A valid evolution MUST have evolution_details
+                    if (!evolution.evolution_details || evolution.evolution_details.length === 0) {
+                        return; // Skip - not a valid evolution
+                    }
+                    
+                    const evoId = getSpeciesIdFromUrl(evolution.species.url);
+                    const evoName = evolution.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    const evoDetails = evolution.evolution_details.map(detail => ({
+                        trigger: detail.trigger && detail.trigger.name ? detail.trigger.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        minLevel: detail.min_level,
+                        item: detail.item ? detail.item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        timeOfDay: detail.time_of_day || null,
+                        location: detail.location ? detail.location.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        heldItem: detail.held_item ? detail.held_item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        knownMove: detail.known_move ? detail.known_move.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        minHappiness: detail.min_happiness,
+                        minBeauty: detail.min_beauty,
+                        minAffection: detail.min_affection,
+                        needsOverworldRain: detail.needs_overworld_rain,
+                        partySpecies: detail.party_species ? detail.party_species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        partyType: detail.party_type ? detail.party_type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        relativePhysicalStats: detail.relative_physical_stats,
+                        turnUpsideDown: detail.turn_upside_down
+                    }));
+                    
+                    details.evolvesInto.push({ id: evoId, name: evoName, details: evoDetails });
+                });
+            }
+            
+            // If we have a parent, that's what it evolves from
+            if (parentSpeciesId !== null) {
+                const parentName = node.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                // Find the evolution details from parent to this Pokemon
+                // We need to look back at the parent node, but we'll handle this differently
+                return { found: true, isTarget: true };
+            }
+            
+            return { found: true, isTarget: true };
+        }
+        
+        // Check if any direct child is the target (meaning this is the parent)
+        // Only process if evolution_details exists and is valid
+        if (node.evolves_to && node.evolves_to.length > 0) {
+            for (const evolution of node.evolves_to) {
+                // Only process if evolution_details exists and is not empty
+                // A valid evolution MUST have evolution_details
+                if (!evolution.evolution_details || evolution.evolution_details.length === 0) {
+                    continue; // Skip - not a valid evolution
+                }
                 
-                const evoDetails = evolution.evolution_details.map(detail => ({
-                    trigger: detail.trigger.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    minLevel: detail.min_level,
-                    item: detail.item ? detail.item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    timeOfDay: detail.time_of_day || null,
-                    location: detail.location ? detail.location.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    heldItem: detail.held_item ? detail.held_item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    knownMove: detail.known_move ? detail.known_move.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    minHappiness: detail.min_happiness,
-                    minBeauty: detail.min_beauty,
-                    minAffection: detail.min_affection,
-                    needsOverworldRain: detail.needs_overworld_rain,
-                    partySpecies: detail.party_species ? detail.party_species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    partyType: detail.party_type ? detail.party_type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    relativePhysicalStats: detail.relative_physical_stats,
-                    turnUpsideDown: detail.turn_upside_down
-                }));
-                
-                details.evolvesInto.push({ id: evoId, name: evoName, details: evoDetails });
-            });
-        } else {
-            // Check if this Pokemon evolves from the target
-            if (node.evolves_to.some(evo => {
-                const evoId = parseInt(evo.species.url.split('/').slice(-2, -1)[0]);
-                return evoId === targetSpeciesId;
-            })) {
-                const preEvoId = parseInt(node.species.url.split('/').slice(-2, -1)[0]);
-                const preEvoName = node.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                
-                const preEvoDetails = node.evolves_to.find(evo => {
-                    const evoId = parseInt(evo.species.url.split('/').slice(-2, -1)[0]);
-                    return evoId === targetSpeciesId;
-                })?.evolution_details.map(detail => ({
-                    trigger: detail.trigger.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    minLevel: detail.min_level,
-                    item: detail.item ? detail.item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    timeOfDay: detail.time_of_day || null,
-                    location: detail.location ? detail.location.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    heldItem: detail.held_item ? detail.held_item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    knownMove: detail.known_move ? detail.known_move.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    minHappiness: detail.min_happiness,
-                    minBeauty: detail.min_beauty,
-                    minAffection: detail.min_affection,
-                    needsOverworldRain: detail.needs_overworld_rain,
-                    partySpecies: detail.party_species ? detail.party_species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    partyType: detail.party_type ? detail.party_type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
-                    relativePhysicalStats: detail.relative_physical_stats,
-                    turnUpsideDown: detail.turn_upside_down
-                })) || [];
-                
-                details.evolvesFrom = { id: preEvoId, name: preEvoName, details: preEvoDetails };
+                const evoId = getSpeciesIdFromUrl(evolution.species.url);
+                if (evoId === targetSpeciesId) {
+                    // This node is the parent of the target
+                    const preEvoId = currentSpeciesId;
+                    const preEvoName = node.species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    const preEvoDetails = evolution.evolution_details.map(detail => ({
+                        trigger: detail.trigger && detail.trigger.name ? detail.trigger.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        minLevel: detail.min_level,
+                        item: detail.item ? detail.item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        timeOfDay: detail.time_of_day || null,
+                        location: detail.location ? detail.location.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        heldItem: detail.held_item ? detail.held_item.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        knownMove: detail.known_move ? detail.known_move.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        minHappiness: detail.min_happiness,
+                        minBeauty: detail.min_beauty,
+                        minAffection: detail.min_affection,
+                        needsOverworldRain: detail.needs_overworld_rain,
+                        partySpecies: detail.party_species ? detail.party_species.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        partyType: detail.party_type ? detail.party_type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+                        relativePhysicalStats: detail.relative_physical_stats,
+                        turnUpsideDown: detail.turn_upside_down
+                    }));
+                    
+                    details.evolvesFrom = { id: preEvoId, name: preEvoName, details: preEvoDetails };
+                    return { found: true, isTarget: false };
+                }
             }
         }
         
-        // Continue traversing
-        node.evolves_to.forEach(child => traverseChain(child));
+        // Continue searching in children
+        if (node.evolves_to && node.evolves_to.length > 0) {
+            for (const child of node.evolves_to) {
+                const result = findTarget(child, currentSpeciesId);
+                if (result && result.found) {
+                    return result;
+                }
+            }
+        }
+        
+        return { found: false };
     }
     
-    traverseChain(chain);
+    findTarget(chain);
     return details;
 }
 
 // Format Pokemon information for display
 function formatPokemonInfo(data, speciesId, speciesName) {
-    const { pokemon, locationAreas, evolutionInfo, evolutionDetails, pokedexEntries, error } = data;
+    const { pokemon, locationAreas, evolutionInfo, evolutionDetails, pokedexEntries, encounterRates, error } = data;
     
     let html = '<div class="pokemon-info-container">';
     
@@ -7057,7 +7512,23 @@ function formatPokemonInfo(data, speciesId, speciesName) {
     html += '<div class="pokemon-info-section evolution-section">';
     html += '<h3>Evolution</h3>';
     
-    if (evolutionDetails || evolutionInfo) {
+    // Validate evolution data - reject obviously incorrect relationships
+    // Known non-evolving Pokemon in Gen 3: Seviper (336), Zangoose (335), Lunatone (337), Solrock (338),
+    // Altaria (334), Whiscash (340), Camerupt (323), Beautifly (267), Stantler (234)
+    const nonEvolvingPokemon = [234, 267, 323, 334, 335, 336, 337, 338, 340];
+    const hasInvalidEvolutionData = nonEvolvingPokemon.includes(speciesId);
+    
+    // Check if there's actual evolution data (not just empty objects)
+    // Skip if this Pokemon is known to not evolve
+    let hasEvolutionData = !hasInvalidEvolutionData && ((evolutionDetails && (
+        evolutionDetails.evolvesFrom || 
+        (evolutionDetails.evolvesInto && evolutionDetails.evolvesInto.length > 0)
+    )) || (evolutionInfo && (
+        evolutionInfo.evolvesFrom || 
+        evolutionInfo.evolvesInto
+    )));
+    
+    if (hasEvolutionData) {
         // Use evolutionDetails from PokeAPI if available, otherwise fall back to evolutionInfo
         if (evolutionDetails && evolutionDetails.evolvesFrom) {
             let preEvoName = speciesCache.get(evolutionDetails.evolvesFrom.id) || evolutionDetails.evolvesFrom.name;
@@ -7114,13 +7585,9 @@ function formatPokemonInfo(data, speciesId, speciesName) {
             }
             html += `<p><strong>Evolves into:</strong> <span class="pokemon-link" data-species="${evolutionInfo.evolvesInto}">#${evolutionInfo.evolvesInto} ${evoName}</span></p>`;
         }
-        
-        if ((!evolutionDetails || (!evolutionDetails.evolvesFrom && (!evolutionDetails.evolvesInto || evolutionDetails.evolvesInto.length === 0))) &&
-            (!evolutionInfo || (!evolutionInfo.evolvesFrom && !evolutionInfo.evolvesInto))) {
-            html += '<p>This Pokemon does not evolve.</p>';
-        }
     } else {
-        html += '<p>Evolution data not available.</p>';
+        // No evolution data - Pokemon does not evolve
+        html += '<p>This Pokemon does not evolve.</p>';
     }
     
     html += '</div>';
@@ -7166,6 +7633,52 @@ function formatPokemonInfo(data, speciesId, speciesName) {
         } else {
             html += '<p>No Pokedex entries available.</p>';
         }
+        
+        html += '</div>';
+    }
+    
+    // Gen 3 Encounter Rates section (from Google Sheets)
+    if (encounterRates && encounterRates.encounters && Object.keys(encounterRates.encounters).length > 0) {
+        html += '<div class="pokemon-info-section encounter-rates-section">';
+        html += '<h3>Gen 3 Encounter Rates</h3>';
+        html += '<p class="encounter-rates-note"><em>Data from <a href="https://docs.google.com/spreadsheets/d/1d4uhbr4L0JrwK8Sa64aEWZVBKsVtU7BpwU0Yfw_23kk" target="_blank">Gen 3 Location Sheet</a></em></p>';
+        
+        const games = ['ruby', 'sapphire', 'emerald', 'firered', 'leafgreen'];
+        const gameNames = {
+            'ruby': 'Ruby',
+            'sapphire': 'Sapphire',
+            'emerald': 'Emerald',
+            'firered': 'FireRed',
+            'leafgreen': 'LeafGreen'
+        };
+        
+        games.forEach(game => {
+            if (encounterRates.encounters[game] && encounterRates.encounters[game].length > 0) {
+                html += `<div class="encounter-game-section">`;
+                html += `<h4>${gameNames[game]}</h4>`;
+                html += '<ul class="encounter-list">';
+                encounterRates.encounters[game].forEach(encounter => {
+                    html += '<li class="encounter-item">';
+                    html += `<strong>${encounter.method}:</strong> `;
+                    if (encounter.location) {
+                        html += encounter.location;
+                    }
+                    if (encounter.level) {
+                        if (encounter.level.min === encounter.level.max) {
+                            html += ` (Level ${encounter.level.min})`;
+                        } else {
+                            html += ` (Level ${encounter.level.min}-${encounter.level.max})`;
+                        }
+                    }
+                    if (encounter.rate) {
+                        html += ` - <span class="encounter-rate">${encounter.rate}%</span>`;
+                    }
+                    html += '</li>';
+                });
+                html += '</ul>';
+                html += '</div>';
+            }
+        });
         
         html += '</div>';
     }
