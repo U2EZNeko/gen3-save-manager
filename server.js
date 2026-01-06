@@ -175,6 +175,33 @@ const DEFAULT_PK3_FOLDER = path.join(__dirname, 'pk3-files');
 
 // Path to the folders configuration file
 const FOLDERS_CONFIG_PATH = path.join(__dirname, 'folders-config.json');
+const BOTS_CONFIG_PATH = path.join(__dirname, 'bots-config.json');
+
+// Load bots from JSON file or initialize with empty array
+function loadBots() {
+  if (fs.existsSync(BOTS_CONFIG_PATH)) {
+    try {
+      const data = fs.readFileSync(BOTS_CONFIG_PATH, 'utf8');
+      const bots = JSON.parse(data);
+      return Array.isArray(bots) ? bots : [];
+    } catch (error) {
+      console.error('Error loading bots config:', error);
+      return [];
+    }
+  }
+  return [];
+}
+
+// Save bots to JSON file
+function saveBots(bots) {
+  try {
+    fs.writeFileSync(BOTS_CONFIG_PATH, JSON.stringify(bots, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error saving bots config:', error);
+    return false;
+  }
+}
 
 // Load folders from JSON file or initialize with defaults
 function loadFolders() {
@@ -228,6 +255,44 @@ function getFolderPath(dbId) {
   const db = PK3_DATABASES.find(d => d.id === dbId);
   return db ? db.path : DEFAULT_PK3_FOLDER;
 }
+
+// API endpoint to get bot instances
+app.get('/api/bots', (req, res) => {
+  try {
+    const bots = loadBots();
+    res.json(bots);
+  } catch (error) {
+    console.error('Error loading bots:', error);
+    res.status(500).json({ error: 'Failed to load bot instances' });
+  }
+});
+
+// API endpoint to save bot instances
+app.post('/api/bots', express.json(), (req, res) => {
+  try {
+    const { bots } = req.body;
+    
+    if (!Array.isArray(bots)) {
+      return res.status(400).json({ error: 'bots must be an array' });
+    }
+    
+    // Validate bot instances
+    for (const bot of bots) {
+      if (!bot.id || !bot.name || !bot.url) {
+        return res.status(400).json({ error: 'Each bot must have id, name, and url' });
+      }
+    }
+    
+    if (saveBots(bots)) {
+      res.json({ success: true, message: 'Bot instances saved successfully' });
+    } else {
+      res.status(500).json({ error: 'Failed to save bot instances' });
+    }
+  } catch (error) {
+    console.error('Error saving bots:', error);
+    res.status(500).json({ error: 'Failed to save bot instances: ' + error.message });
+  }
+});
 
 // API endpoint to get available databases
 app.get('/api/databases', (req, res) => {
@@ -3655,6 +3720,287 @@ app.get('/api/pokemon/encounter-rates', (req, res) => {
 // Serve map files at their expected paths
 app.use('/FRLGIronmonMap', express.static(path.join(__dirname, 'public', 'maps', 'frlg')));
 app.use('/EmeraldIronmonMap', express.static(path.join(__dirname, 'public', 'maps', 'emerald')));
+
+// Bot API proxy endpoint (handles CORS)
+// Bot proxy endpoint (supports both GET and POST)
+const botProxyHandler = async (req, res) => {
+  try {
+    let targetUrl = req.query.url;
+    
+    if (!targetUrl) {
+      return res.status(400).json({ error: 'URL parameter is required' });
+    }
+
+    // Decode the URL (it might be double-encoded)
+    try {
+      targetUrl = decodeURIComponent(targetUrl);
+    } catch (err) {
+      // If decoding fails, use original
+    }
+
+    // Validate URL to prevent SSRF
+    let urlObj;
+    try {
+      urlObj = new URL(targetUrl);
+    } catch (err) {
+      console.error('Invalid URL:', targetUrl, err);
+      return res.status(400).json({ error: 'Invalid URL: ' + err.message });
+    }
+
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return res.status(400).json({ error: 'Only HTTP and HTTPS protocols are allowed' });
+    }
+
+    // Ensure port is preserved - extract from original URL if missing in parsed URL
+    let finalUrl = urlObj.href;
+    
+    // If port is missing or is default (80/443), check original URL for explicit port
+    if (!urlObj.port || urlObj.port === '80' || urlObj.port === '443') {
+      // Extract port from original URL string (before parsing)
+      const portMatch = targetUrl.match(/:(\d+)(?:\/|$)/);
+      if (portMatch && portMatch[1] !== '80' && portMatch[1] !== '443') {
+        urlObj.port = portMatch[1];
+        finalUrl = urlObj.href;
+      }
+    }
+    
+    // Fetch from target URL
+    if (!fetch) {
+      return res.status(500).json({ error: 'Fetch is not available on this server' });
+    }
+
+    // Determine method and body
+    const method = req.method;
+    let requestBody = null;
+    
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+      // Get request body - express.json() should have already parsed it
+      // But we need to check if it's actually there
+      if (req.body !== undefined && req.body !== null) {
+        if (typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+          requestBody = JSON.stringify(req.body);
+        } else if (typeof req.body === 'object') {
+          // Even if it's an empty object, stringify it
+          requestBody = JSON.stringify(req.body);
+        } else if (typeof req.body === 'string') {
+          // If it's already a string, use it directly
+          requestBody = req.body;
+        }
+      }
+      
+      // Debug: log what we received
+      if (requestBody) {
+        console.log(`[Bot Proxy] ${method} request - req.body:`, JSON.stringify(req.body), 'requestBody:', requestBody);
+      } else {
+        console.warn(`[Bot Proxy] ${method} request - No body received! req.body:`, req.body);
+      }
+    }
+
+    let response;
+    try {
+      const fetchOptions = {
+        method: method,
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Gen3-Pokemon-Viewer/1.0'
+        },
+        timeout: 10000 // 10 second timeout
+      };
+      
+      // Add Content-Type and body for POST/PUT/PATCH
+      if (requestBody && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+        fetchOptions.headers['Content-Type'] = 'application/json';
+        fetchOptions.body = requestBody;
+        console.log(`[Bot Proxy] ${method} ${finalUrl} with body:`, requestBody);
+      }
+      
+      response = await fetch(finalUrl, fetchOptions);
+    } catch (fetchError) {
+      // Handle connection errors gracefully (bot is offline)
+      const errorCode = fetchError.cause?.code || fetchError.code;
+      const errorMessage = fetchError.cause?.message || fetchError.message;
+      
+      // ECONNREFUSED, ETIMEDOUT, ENOTFOUND are expected when bot is offline
+      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+        // Return a clean error response without logging (expected behavior)
+        return res.status(503).json({ 
+          error: 'Bot is offline or unreachable',
+          code: errorCode
+        });
+      }
+      
+      // For other errors, log and return error
+      console.error('[Bot Proxy] Fetch error:', errorCode, errorMessage);
+      return res.status(503).json({ 
+        error: 'Failed to connect to bot',
+        code: errorCode,
+        message: errorMessage
+      });
+    }
+
+    if (!response.ok) {
+      return res.status(response.status).json({ 
+        error: `Bot API returned ${response.status}: ${response.statusText}` 
+      });
+    }
+
+    // Check content type - if it's HTML, the endpoint probably doesn't exist
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      const text = await response.text();
+      console.error('[Bot Proxy] Received HTML instead of JSON:', text.substring(0, 200));
+      return res.status(400).json({ 
+        error: 'Endpoint returned HTML instead of JSON. The endpoint may not exist or the bot may be returning an error page.',
+        details: 'Check the bot API documentation for available endpoints.'
+      });
+    }
+
+    // Try to parse as JSON
+    try {
+      const data = await response.json();
+      res.json(data);
+    } catch (parseError) {
+      const text = await response.text();
+      console.error('[Bot Proxy] JSON parse error:', parseError, 'Response:', text.substring(0, 200));
+      return res.status(500).json({ 
+        error: 'Failed to parse response as JSON',
+        details: parseError.message
+      });
+    }
+  } catch (error) {
+    // Check if this is a connection error (expected when bot is offline)
+    const errorCode = error.cause?.code || error.code;
+    const isConnectionError = errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND';
+    
+    // Only log unexpected errors
+    if (!isConnectionError) {
+      console.error('[Bot Proxy] Unexpected error:', error.message || error);
+    }
+    
+    // Return appropriate status code
+    const statusCode = isConnectionError ? 503 : 500;
+    res.status(statusCode).json({ 
+      error: isConnectionError ? 'Bot is offline or unreachable' : (error.message || 'Failed to fetch from bot API'),
+      code: errorCode || 'UNKNOWN'
+    });
+  }
+};
+
+// Register the handler for both GET and POST (and PUT/PATCH)
+app.get('/api/bot-proxy', botProxyHandler);
+app.post('/api/bot-proxy', botProxyHandler);
+app.put('/api/bot-proxy', botProxyHandler);
+app.patch('/api/bot-proxy', botProxyHandler);
+
+// Bot video stream proxy endpoint
+app.get('/api/bot-video-proxy', async (req, res) => {
+  try {
+    let targetUrl = req.query.url;
+    
+    if (!targetUrl) {
+      return res.status(400).json({ error: 'URL parameter is required' });
+    }
+
+    // Decode the URL
+    try {
+      targetUrl = decodeURIComponent(targetUrl);
+    } catch (err) {
+      // If decoding fails, use original
+    }
+
+    // Validate URL to prevent SSRF
+    let urlObj;
+    try {
+      urlObj = new URL(targetUrl);
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid URL: ' + err.message });
+    }
+
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return res.status(400).json({ error: 'Only HTTP and HTTPS protocols are allowed' });
+    }
+
+    // Ensure port is preserved
+    let finalUrl = urlObj.href;
+    if (!urlObj.port || urlObj.port === '80' || urlObj.port === '443') {
+      const portMatch = targetUrl.match(/:(\d+)(?:\/|$)/);
+      if (portMatch && portMatch[1] !== '80' && portMatch[1] !== '443') {
+        urlObj.port = portMatch[1];
+        finalUrl = urlObj.href;
+      }
+    }
+
+    // For video streams, we need to pipe the response
+    try {
+      const response = await fetch(finalUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'video/*',
+          'User-Agent': 'Gen3-Pokemon-Viewer/1.0'
+        },
+        timeout: 30000 // 30 second timeout for video
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ 
+          error: `Video stream returned ${response.status}: ${response.statusText}` 
+        });
+      }
+
+      // Set appropriate headers for video streaming (MJPEG)
+      const contentType = response.headers.get('content-type') || 'multipart/x-mixed-replace; boundary=frame';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Connection', 'keep-alive');
+
+      // Pipe the video stream
+      const reader = response.body.getReader();
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+        } catch (err) {
+          res.end();
+        }
+      };
+      pump();
+    } catch (fetchError) {
+      const errorCode = fetchError.cause?.code || fetchError.code;
+      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+        return res.status(503).json({ 
+          error: 'Bot is offline or unreachable',
+          code: errorCode
+        });
+      }
+      console.error('[Bot Video Proxy] Error:', errorCode, fetchError.message);
+      return res.status(503).json({ 
+        error: 'Failed to connect to bot video stream',
+        code: errorCode
+      });
+    }
+  } catch (error) {
+    const errorCode = error.cause?.code || error.code;
+    if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+      return res.status(503).json({ 
+        error: 'Bot is offline or unreachable',
+        code: errorCode
+      });
+    }
+    console.error('[Bot Video Proxy] Unexpected error:', error.message || error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to fetch video stream',
+      code: errorCode || 'UNKNOWN'
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

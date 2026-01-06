@@ -47,11 +47,23 @@ let currentDatabase = localStorage.getItem('selectedDatabase') || 'db1';
 // Available generations in current database
 let availableGenerations = [];
 
+// Bot status polling interval
+let botStatusInterval = null;
+
 // DOM elements
 const databaseSelect = document.getElementById('databaseSelect');
 const loadBtn = document.getElementById('loadBtn');
 const pokedexBtn = document.getElementById('pokedexBtn');
 const mapBtn = document.getElementById('mapBtn');
+const plannerBtn = document.getElementById('plannerBtn');
+const plannerModal = document.getElementById('plannerModal');
+const closePlannerModal = document.getElementById('closePlannerModal');
+const plannerGameSelect = document.getElementById('plannerGameSelect');
+const generatePlannerBtn = document.getElementById('generatePlannerBtn');
+const plannerLoading = document.getElementById('plannerLoading');
+const plannerResults = document.getElementById('plannerResults');
+const plannerSummaryContent = document.getElementById('plannerSummaryContent');
+const plannerEncountersContent = document.getElementById('plannerEncountersContent');
 const batchEvolveBtn = document.getElementById('batchEvolveBtn');
 const batchEvolveModal = document.getElementById('batchEvolveModal');
 const closeBatchEvolveModal = document.getElementById('closeBatchEvolveModal');
@@ -220,6 +232,19 @@ if (closePokedexModal && pokedexModal) {
 // Map button - set up event listener
 if (mapBtn && mapModal) {
     mapBtn.addEventListener('click', openMapModal);
+}
+if (plannerBtn && plannerModal) {
+    plannerBtn.addEventListener('click', () => {
+        plannerModal.classList.remove('hidden');
+    });
+}
+if (closePlannerModal && plannerModal) {
+    closePlannerModal.addEventListener('click', () => {
+        plannerModal.classList.add('hidden');
+    });
+}
+if (generatePlannerBtn) {
+    generatePlannerBtn.addEventListener('click', generatePlanner);
 }
 
 if (closeMapModal && mapModal) {
@@ -584,6 +609,7 @@ function updateDbStatistics(data) {
         statSpecies.textContent = '0';
         statShiny.textContent = '0';
         statIVSum.textContent = '-';
+        updateBotStatusDisplay();
         return;
     }
     
@@ -608,6 +634,73 @@ function updateDbStatistics(data) {
     statSpecies.textContent = uniqueSpecies;
     statShiny.textContent = shinyCount;
     statIVSum.textContent = avgIVSum;
+    
+    // Update bot status
+    updateBotStatusDisplay();
+}
+
+// Update bot status display
+async function updateBotStatusDisplay() {
+    const statBotsOnline = document.getElementById('statBotsOnline');
+    if (!statBotsOnline) {
+        return;
+    }
+    
+    try {
+        // Get bot instances from localStorage
+        const botInstances = JSON.parse(localStorage.getItem('botInstances') || '[]');
+        
+        if (botInstances.length === 0) {
+            statBotsOnline.textContent = '0/0';
+            return;
+        }
+        
+        // Check status of all bots in parallel
+        const statusChecks = botInstances.map(async (bot) => {
+            try {
+                // Try to fetch bot status through proxy or direct
+                const endpoints = ['/emulator', '/game_state', '/player'];
+                for (const endpoint of endpoints) {
+                    try {
+                        // Try proxy first
+                        const response = await fetch(`/api/bot-proxy?url=${encodeURIComponent(bot.url + endpoint)}`, {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' },
+                            signal: AbortSignal.timeout(5000) // 5 second timeout
+                        });
+                        if (response && response.ok) {
+                            return true;
+                        }
+                    } catch (proxyErr) {
+                        // Try direct connection
+                        try {
+                            const response = await fetch(`${bot.url}${endpoint}`, {
+                                method: 'GET',
+                                headers: { 'Accept': 'application/json' },
+                                signal: AbortSignal.timeout(5000)
+                            });
+                            if (response && response.ok) {
+                                return true;
+                            }
+                        } catch (directErr) {
+                            continue;
+                        }
+                    }
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
+        });
+        
+        const results = await Promise.all(statusChecks);
+        const onlineCount = results.filter(r => r === true).length;
+        
+        statBotsOnline.textContent = `${onlineCount}/${botInstances.length}`;
+    } catch (error) {
+        console.error('Error checking bot status:', error);
+        statBotsOnline.textContent = '-';
+    }
 }
 
 // Build index for fast sorting/grouping
@@ -6513,6 +6606,16 @@ if (document.readyState === 'loading') {
         setTimeout(() => {
             startAutoScanIfEnabled();
         }, 1000);
+        
+        // Initialize bot status display and start polling
+        updateBotStatusDisplay();
+        // Update bot status every 30 seconds
+        if (botStatusInterval) {
+            clearInterval(botStatusInterval);
+        }
+        botStatusInterval = setInterval(() => {
+            updateBotStatusDisplay();
+        }, 30000); // 30 seconds
     });
 } else {
     // DOM is already ready, load immediately
@@ -6806,12 +6909,17 @@ function setupMapMessageListener() {
     
     // Listen for messages from the iframe (the integrated maps)
     window.mapMessageHandler = (event) => {
-        // Accept messages from same origin (local maps)
+        console.log('Message received:', event.origin, event.data);
+        
+        // Accept messages from same origin (local maps) or any origin for debugging
         const isLocalOrigin = event.origin === window.location.origin || 
                               event.origin.startsWith('http://localhost') ||
-                              event.origin.startsWith('http://127.0.0.1');
+                              event.origin.startsWith('http://127.0.0.1') ||
+                              event.origin === 'null' || // file:// protocol
+                              true; // Accept all for debugging
         
         if (!isLocalOrigin) {
+            console.log('Rejected message from origin:', event.origin);
             return;
         }
         
@@ -6821,6 +6929,7 @@ function setupMapMessageListener() {
             const locationName = event.data.location;
             const matchedLocation = findLocationByName(locationName);
             if (matchedLocation) {
+                console.log('Matched location:', matchedLocation);
                 selectLocation(matchedLocation);
             } else {
                 // Try direct match
@@ -6828,16 +6937,19 @@ function setupMapMessageListener() {
                 const isFRLG = mapFRLGBtn && mapFRLGBtn.classList.contains('active');
                 const game = isFRLG ? 'firered' : 'emerald';
                 
-                if (getLocationEncounters(locationName, game).length > 0) {
+                const encounters = getLocationEncounters(locationName, game);
+                console.log('Direct match encounters:', encounters.length);
+                if (encounters.length > 0) {
                     selectLocation(locationName);
                 } else {
-                    console.log('Location not found:', locationName);
+                    console.log('Location not found:', locationName, 'tried game:', game);
                 }
             }
         }
     };
     
     window.addEventListener('message', window.mapMessageHandler);
+    console.log('Map message listener set up');
 }
 
 // Open Pokedex
@@ -7134,18 +7246,6 @@ async function showPokemonInfo(speciesId) {
 // Fetch Pokemon data from API (using server-side endpoints)
 async function fetchPokemonData(speciesId) {
     try {
-        // Fetch encounter rates from Gen 3 location sheet
-        let encounterRates = null;
-        if (speciesId >= 1 && speciesId <= 386) {
-            try {
-                const encounterResponse = await fetch(`/api/pokemon/encounter-rates/${speciesId}`);
-                if (encounterResponse.ok) {
-                    encounterRates = await encounterResponse.json();
-                }
-            } catch (err) {
-                console.warn('Failed to fetch encounter rates:', err);
-            }
-        }
         
         // Fetch Pokemon data from server (cached/proxied)
         const pokemonResponse = await fetch(`/api/pokemon/data/${speciesId}`);
@@ -7198,8 +7298,7 @@ async function fetchPokemonData(speciesId) {
             locationAreas,
             evolutionInfo,
             evolutionDetails,
-            pokedexEntries,
-            encounterRates
+            pokedexEntries
         };
     } catch (error) {
         console.error('Error fetching Pokemon data:', error);
@@ -7460,7 +7559,7 @@ function getEvolutionDetails(chain, targetSpeciesId) {
 
 // Format Pokemon information for display
 function formatPokemonInfo(data, speciesId, speciesName) {
-    const { pokemon, locationAreas, evolutionInfo, evolutionDetails, pokedexEntries, encounterRates, error } = data;
+    const { pokemon, locationAreas, evolutionInfo, evolutionDetails, pokedexEntries, error } = data;
     
     let html = '<div class="pokemon-info-container">';
     
@@ -7637,51 +7736,6 @@ function formatPokemonInfo(data, speciesId, speciesName) {
         html += '</div>';
     }
     
-    // Gen 3 Encounter Rates section (from Google Sheets)
-    if (encounterRates && encounterRates.encounters && Object.keys(encounterRates.encounters).length > 0) {
-        html += '<div class="pokemon-info-section encounter-rates-section">';
-        html += '<h3>Gen 3 Encounter Rates</h3>';
-        html += '<p class="encounter-rates-note"><em>Data from <a href="https://docs.google.com/spreadsheets/d/1d4uhbr4L0JrwK8Sa64aEWZVBKsVtU7BpwU0Yfw_23kk" target="_blank">Gen 3 Location Sheet</a></em></p>';
-        
-        const games = ['ruby', 'sapphire', 'emerald', 'firered', 'leafgreen'];
-        const gameNames = {
-            'ruby': 'Ruby',
-            'sapphire': 'Sapphire',
-            'emerald': 'Emerald',
-            'firered': 'FireRed',
-            'leafgreen': 'LeafGreen'
-        };
-        
-        games.forEach(game => {
-            if (encounterRates.encounters[game] && encounterRates.encounters[game].length > 0) {
-                html += `<div class="encounter-game-section">`;
-                html += `<h4>${gameNames[game]}</h4>`;
-                html += '<ul class="encounter-list">';
-                encounterRates.encounters[game].forEach(encounter => {
-                    html += '<li class="encounter-item">';
-                    html += `<strong>${encounter.method}:</strong> `;
-                    if (encounter.location) {
-                        html += encounter.location;
-                    }
-                    if (encounter.level) {
-                        if (encounter.level.min === encounter.level.max) {
-                            html += ` (Level ${encounter.level.min})`;
-                        } else {
-                            html += ` (Level ${encounter.level.min}-${encounter.level.max})`;
-                        }
-                    }
-                    if (encounter.rate) {
-                        html += ` - <span class="encounter-rate">${encounter.rate}%</span>`;
-                    }
-                    html += '</li>';
-                });
-                html += '</ul>';
-                html += '</div>';
-            }
-        });
-        
-        html += '</div>';
-    }
     
     // Location section
     html += '<div class="pokemon-info-section location-section">';
@@ -7971,6 +8025,318 @@ function updateLocationDisplay(container, filteredLocations) {
         const noData = document.createElement('p');
         noData.textContent = 'No location data available for the selected generation.';
         container.appendChild(noData);
+    }
+}
+
+// Map game names to PokeAPI version names
+function getPokeAPIVersionName(game) {
+    const versionMap = {
+        'firered': 'fire-red',
+        'leafgreen': 'leaf-green',
+        'ruby': 'ruby',
+        'sapphire': 'sapphire',
+        'emerald': 'emerald'
+    };
+    return versionMap[game] || game;
+}
+
+// Format encounter method names for display
+function formatEncounterMethod(method) {
+    if (!method) return 'Unknown';
+    
+    const methodLower = method.toLowerCase();
+    const methodMap = {
+        'walk': 'Grass',
+        'old-rod': 'Old Rod',
+        'good-rod': 'Good Rod',
+        'super-rod': 'Super Rod',
+        'surf': 'Water',
+        'rock-smash': 'Rock Smash',
+        'headbutt': 'Headbutt',
+        'cave': 'Cave',
+        'land': 'Land',
+        'water-edge': 'Water Edge',
+        'water': 'Water',
+        'fishing': 'Fishing',
+        'special': 'Special',
+        'gift': 'Gift',
+        'trade': 'Trade',
+        'event': 'Event'
+    };
+    
+    // Check for exact matches first
+    if (methodMap[methodLower]) {
+        return methodMap[methodLower];
+    }
+    
+    // Check for partial matches
+    for (const [key, value] of Object.entries(methodMap)) {
+        if (methodLower.includes(key)) {
+            return value;
+        }
+    }
+    
+    // Default: capitalize first letter of each word
+    return method.split(/[- ]/).map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    ).join(' ');
+}
+
+// Pokedex Completion Planner
+async function generatePlanner() {
+    const game = plannerGameSelect.value;
+    if (!game) {
+        alert('Please select a game');
+        return;
+    }
+
+    plannerLoading.classList.remove('hidden');
+    plannerResults.classList.add('hidden');
+    plannerSummaryContent.innerHTML = '';
+    plannerEncountersContent.innerHTML = '';
+
+    try {
+        // Fetch owned Pokemon from pokedex
+        const pokedexResponse = await fetch(`/api/pokedex?db=${currentDatabase}`);
+        if (!pokedexResponse.ok) {
+            throw new Error('Failed to fetch pokedex data');
+        }
+        const pokedexData = await pokedexResponse.json();
+        const ownedSpecies = new Set();
+        for (const [speciesId, entry] of Object.entries(pokedexData.pokedex || {})) {
+            if (entry.owned) {
+                ownedSpecies.add(parseInt(speciesId));
+            }
+        }
+
+        // Get all Gen 3 Pokemon (1-386)
+        const allGen3Species = new Set();
+        for (let i = 1; i <= 386; i++) {
+            allGen3Species.add(i);
+        }
+
+        // Find missing Pokemon
+        const missingSpecies = [];
+        for (const speciesId of allGen3Species) {
+            if (!ownedSpecies.has(speciesId)) {
+                missingSpecies.push(speciesId);
+            }
+        }
+
+        // Map game to PokeAPI version name
+        const pokeAPIVersion = getPokeAPIVersionName(game);
+
+        // Build encounter map for missing Pokemon using PokeAPI location data
+        const locationEncounters = new Map(); // location -> [{ speciesId, name, encounter, priority }]
+        const pokemonEncounters = new Map(); // speciesId -> [encounters]
+
+        // Fetch location data for each missing Pokemon
+        for (const speciesId of missingSpecies) {
+            try {
+                // Get Pokemon name
+                const pokemonName = await getSpeciesName(speciesId);
+                
+                // Fetch location areas from PokeAPI
+                const locationAreas = await fetchLocationAreas(speciesId);
+                
+                if (!locationAreas || Object.keys(locationAreas).length === 0) {
+                    continue;
+                }
+
+                pokemonEncounters.set(speciesId, []);
+
+                // Process each location
+                for (const [locationName, encounters] of Object.entries(locationAreas)) {
+                    // Filter encounters for the selected game version
+                    const gameEncounters = encounters.filter(enc => {
+                        const versionName = enc.version.toLowerCase().replace(/\s+/g, '-');
+                        return versionName === pokeAPIVersion || 
+                               versionName.includes(game.toLowerCase());
+                    });
+
+                    if (gameEncounters.length === 0) {
+                        continue;
+                    }
+
+                    // Process each encounter
+                    for (const enc of gameEncounters) {
+                        // Skip non-wild encounters (trades, gifts, etc.)
+                        const method = enc.method.toLowerCase();
+                        if (method.includes('trade') || method.includes('gift') || 
+                            method.includes('event') || method.includes('special')) {
+                            continue;
+                        }
+
+                        const rate = enc.chance || 0;
+                        const formattedMethod = formatEncounterMethod(enc.method);
+                        
+                        // Determine priority
+                        let priority = 4; // Default: 1-time/special encounters
+                        if (rate > 0) {
+                            if (rate >= 10) {
+                                priority = 2; // High probability
+                            } else if (rate === 1) {
+                                priority = 3; // 1% encounters
+                            } else {
+                                priority = 2; // Other wild encounters
+                            }
+                        } else {
+                            priority = 4; // 1-time encounters
+                        }
+
+                        const encounterInfo = {
+                            speciesId,
+                            name: pokemonName,
+                            encounter: {
+                                method: enc.method,
+                                formattedMethod: formattedMethod,
+                                level: {
+                                    min: enc.minLevel,
+                                    max: enc.maxLevel
+                                },
+                                rate: rate
+                            },
+                            priority,
+                            rate,
+                            method: enc.method,
+                            formattedMethod: formattedMethod,
+                            location: locationName
+                        };
+
+                        pokemonEncounters.get(speciesId).push(encounterInfo);
+
+                        // Group by location
+                        if (!locationEncounters.has(locationName)) {
+                            locationEncounters.set(locationName, []);
+                        }
+                        locationEncounters.get(locationName).push(encounterInfo);
+                    }
+                }
+            } catch (error) {
+                console.warn(`Failed to fetch location data for species ${speciesId}:`, error);
+                continue;
+            }
+        }
+
+        // Count Pokemon per location for prioritization
+        const locationCounts = new Map();
+        for (const [location, encounters] of locationEncounters.entries()) {
+            const uniqueSpecies = new Set(encounters.map(e => e.speciesId));
+            locationCounts.set(location, uniqueSpecies.size);
+        }
+
+        // Sort locations by priority:
+        // 1. Routes with multiple encounters (highest count first)
+        // 2. High probability encounters (rate >= 10%)
+        // 3. 1% encounters
+        // 4. 1-time encounters
+        const sortedLocations = Array.from(locationEncounters.entries()).sort((a, b) => {
+            const [locationA, encountersA] = a;
+            const [locationB, encountersB] = b;
+            const countA = locationCounts.get(locationA);
+            const countB = locationCounts.get(locationB);
+
+            // First priority: locations with multiple Pokemon
+            if (countA > 1 && countB <= 1) return -1;
+            if (countA <= 1 && countB > 1) return 1;
+            if (countA > 1 && countB > 1) {
+                // Both have multiple, sort by count descending
+                return countB - countA;
+            }
+
+            // Second priority: highest encounter rate
+            const maxRateA = Math.max(...encountersA.map(e => e.rate || 0));
+            const maxRateB = Math.max(...encountersB.map(e => e.rate || 0));
+            if (maxRateA >= 10 && maxRateB < 10) return -1;
+            if (maxRateA < 10 && maxRateB >= 10) return 1;
+            if (maxRateA >= 10 && maxRateB >= 10) {
+                return maxRateB - maxRateA;
+            }
+
+            // Third priority: 1% encounters
+            if (maxRateA === 1 && maxRateB !== 1) return -1;
+            if (maxRateA !== 1 && maxRateB === 1) return 1;
+
+            // Fourth priority: 1-time encounters (alphabetical)
+            return locationA.localeCompare(locationB);
+        });
+
+        // Display summary
+        const totalMissing = missingSpecies.length;
+        const withEncounters = Array.from(pokemonEncounters.values()).filter(e => e.length > 0).length;
+        const withoutEncounters = totalMissing - withEncounters;
+        const multiEncounterLocations = Array.from(locationCounts.values()).filter(c => c > 1).length;
+
+        plannerSummaryContent.innerHTML = `
+            <div class="planner-stat">
+                <strong>Total Missing:</strong> ${totalMissing} Pokemon
+            </div>
+            <div class="planner-stat">
+                <strong>With Encounters:</strong> ${withEncounters} Pokemon
+            </div>
+            <div class="planner-stat">
+                <strong>Without Encounters:</strong> ${withoutEncounters} Pokemon (evolutions, trades, etc.)
+            </div>
+            <div class="planner-stat">
+                <strong>Multi-Encounter Locations:</strong> ${multiEncounterLocations} locations
+            </div>
+        `;
+
+        // Display encounters
+        let html = '';
+        for (const [location, encounters] of sortedLocations) {
+            const count = locationCounts.get(location);
+            const isMultiEncounter = count > 1;
+            
+            html += `<div class="planner-location ${isMultiEncounter ? 'multi-encounter' : ''}">`;
+            html += `<h4>${location} ${isMultiEncounter ? `<span class="badge">${count} Pokemon</span>` : ''}</h4>`;
+            html += '<ul class="planner-encounter-list">';
+            
+            // Sort encounters within location by priority and rate
+            const sortedEncounters = encounters.sort((a, b) => {
+                if (a.priority !== b.priority) return a.priority - b.priority;
+                return (b.rate || 0) - (a.rate || 0);
+            });
+
+            for (const enc of sortedEncounters) {
+                html += '<li class="planner-encounter-item">';
+                html += `<strong>#${enc.speciesId} ${enc.name}</strong>`;
+                
+                // Show encounter method (Grass, Water, Fishing, etc.)
+                const methodDisplay = enc.formattedMethod || formatEncounterMethod(enc.method || 'Unknown');
+                html += ` <span class="encounter-method">[${methodDisplay}]</span>`;
+                
+                if (enc.rate !== null && enc.rate > 0) {
+                    html += ` - ${enc.rate}%`;
+                } else if (enc.method && (enc.method.includes('Special') || enc.method.includes('Legendary'))) {
+                    html += ` - ${enc.method}`;
+                }
+                if (enc.encounter && enc.encounter.level) {
+                    const level = enc.encounter.level;
+                    if (level.min && level.max) {
+                        html += ` (Level ${level.min}-${level.max})`;
+                    } else if (level.min) {
+                        html += ` (Level ${level.min})`;
+                    }
+                }
+                html += '</li>';
+            }
+            html += '</ul>';
+            html += '</div>';
+        }
+
+        if (html === '') {
+            html = '<p>No encounter data available for missing Pokemon.</p>';
+        }
+
+        plannerEncountersContent.innerHTML = html;
+        plannerLoading.classList.add('hidden');
+        plannerResults.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error generating planner:', error);
+        plannerLoading.classList.add('hidden');
+        plannerSummaryContent.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+        plannerResults.classList.remove('hidden');
     }
 }
 

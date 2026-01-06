@@ -108,6 +108,34 @@ header {
     text-align: center;
 }
 
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.bots-online-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.bots-online-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.bots-online-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
 header h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
@@ -120,10 +148,7 @@ header h1 {
 }
 
 .theme-toggle {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    /* No longer needs absolute positioning since it's in header-actions */
 }
 
 .controls-section {
@@ -3094,6 +3119,138 @@ header h1 {
     max-height: 95vh;
     width: 1400px;
     height: 900px;
+}
+
+.planner-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+}
+
+.planner-content {
+    padding: 20px;
+    max-height: calc(95vh - 120px);
+    overflow-y: auto;
+}
+
+.planner-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.planner-controls label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.planner-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.planner-results {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.planner-summary {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.planner-summary h3 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+    font-size: 1.3em;
+}
+
+.planner-stat {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.planner-stat:last-child {
+    border-bottom: none;
+}
+
+.planner-encounters {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.planner-encounters h3 {
+    margin: 0 0 20px 0;
+    color: var(--text-primary);
+    font-size: 1.3em;
+}
+
+.planner-location {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.planner-location.multi-encounter {
+    border-left: 4px solid var(--accent-color);
+    background: var(--bg-tertiary);
+}
+
+.planner-location h4 {
+    margin: 0 0 12px 0;
+    color: var(--text-primary);
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.planner-location .badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: normal;
+}
+
+.planner-encounter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.planner-encounter-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.planner-encounter-item:last-child {
+    border-bottom: none;
+}
+
+.planner-encounter-item strong {
+    color: var(--accent-color);
+}
+
+.planner-encounter-item .encounter-method {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    font-weight: normal;
+    font-style: italic;
+    margin-left: 5px;
 }
 
 .map-content {

@@ -14,9 +14,16 @@
                     <h1>Gen3 Pokemon Viewer</h1>
                     <p class="subtitle">View and sort your .pk3 Pokemon files</p>
                 </div>
-                <button id="themeToggle" class="btn btn-secondary theme-toggle" title="Toggle light/dark mode">
-                    <span id="themeIcon">🌙</span>
-                </button>
+                <div class="header-actions">
+                    <div class="bots-online-display">
+                        <span class="bots-online-label">Bots Online:</span>
+                        <span id="statBotsOnline" class="bots-online-value">-</span>
+                    </div>
+                    <a href="bot-dashboard.html" class="btn btn-secondary">Bot Dashboard</a>
+                    <button id="themeToggle" class="btn btn-secondary theme-toggle" title="Toggle light/dark mode">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -27,6 +34,7 @@
                     <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
                     <button id="pokedexBtn" class="btn btn-secondary">Pokedex</button>
                     <button id="mapBtn" class="btn btn-secondary">Map</button>
+                    <button id="plannerBtn" class="btn btn-secondary">Completion Planner</button>
                     <label for="databaseSelect">Database:</label>
                     <select id="databaseSelect" class="select">
                         <option value="db1">Database 1</option>
@@ -770,6 +778,41 @@
                             </div>
                             <div id="encountersContent" class="encounters-content"></div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="plannerModal" class="modal hidden">
+        <div class="modal-content planner-modal" style="max-width: 1200px;">
+            <div class="modal-header">
+                <h2>Pokedex Completion Planner</h2>
+                <span class="modal-close" id="closePlannerModal">&times;</span>
+            </div>
+            <div class="planner-content">
+                <div class="planner-controls">
+                    <label for="plannerGameSelect">Select Game:</label>
+                    <select id="plannerGameSelect" class="select">
+                        <option value="firered">FireRed</option>
+                        <option value="leafgreen">LeafGreen</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="sapphire">Sapphire</option>
+                        <option value="emerald">Emerald</option>
+                    </select>
+                    <button id="generatePlannerBtn" class="btn btn-primary">Generate Plan</button>
+                </div>
+                <div id="plannerLoading" class="planner-loading hidden">
+                    <p>Loading planner data...</p>
+                </div>
+                <div id="plannerResults" class="planner-results hidden">
+                    <div class="planner-summary">
+                        <h3>Summary</h3>
+                        <div id="plannerSummaryContent"></div>
+                    </div>
+                    <div class="planner-encounters">
+                        <h3>Recommended Encounters</h3>
+                        <div id="plannerEncountersContent"></div>
                     </div>
                 </div>
             </div>
