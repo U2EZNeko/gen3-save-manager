@@ -8102,24 +8102,29 @@ async function generatePlanner() {
             throw new Error('Failed to fetch pokedex data');
         }
         const pokedexData = await pokedexResponse.json();
-        const ownedSpecies = new Set();
-        for (const [speciesId, entry] of Object.entries(pokedexData.pokedex || {})) {
-            if (entry.owned) {
-                ownedSpecies.add(parseInt(speciesId));
-            }
-        }
-
+        const shinyOnly = document.getElementById('plannerShinyOnly')?.checked || false;
+        
         // Get all Gen 3 Pokemon (1-386)
         const allGen3Species = new Set();
         for (let i = 1; i <= 386; i++) {
             allGen3Species.add(i);
         }
 
-        // Find missing Pokemon
+        // Find missing Pokemon (or missing shinies if checkbox is checked)
         const missingSpecies = [];
         for (const speciesId of allGen3Species) {
-            if (!ownedSpecies.has(speciesId)) {
-                missingSpecies.push(speciesId);
+            const entry = pokedexData.pokedex?.[speciesId] || pokedexData.pokedex?.[String(speciesId)] || { owned: false, shiny: false };
+            
+            if (shinyOnly) {
+                // Only show Pokemon that don't have a shiny (missing shiny)
+                if (!entry.shiny) {
+                    missingSpecies.push(speciesId);
+                }
+            } else {
+                // Original logic: show Pokemon that aren't owned at all
+                if (!entry.owned) {
+                    missingSpecies.push(speciesId);
+                }
             }
         }
 
@@ -8218,6 +8223,50 @@ async function generatePlanner() {
             }
         }
 
+        // Deduplicate Pokemon across locations - keep only on route with most other mons
+        // First, build a map of species -> locations where it appears
+        const speciesToLocations = new Map(); // speciesId -> [location names]
+        for (const [location, encounters] of locationEncounters.entries()) {
+            const uniqueSpecies = new Set(encounters.map(e => e.speciesId));
+            for (const speciesId of uniqueSpecies) {
+                if (!speciesToLocations.has(speciesId)) {
+                    speciesToLocations.set(speciesId, []);
+                }
+                speciesToLocations.get(speciesId).push(location);
+            }
+        }
+
+        // For each species that appears on multiple locations, keep only on the best one
+        for (const [speciesId, locations] of speciesToLocations.entries()) {
+            if (locations.length > 1) {
+                // Find the location with the most other Pokemon
+                let bestLocation = locations[0];
+                let maxOtherMons = 0;
+
+                for (const location of locations) {
+                    const encounters = locationEncounters.get(location);
+                    const uniqueSpecies = new Set(encounters.map(e => e.speciesId));
+                    // Count other Pokemon (excluding current species)
+                    const otherMonsCount = uniqueSpecies.size - 1;
+                    if (otherMonsCount > maxOtherMons) {
+                        maxOtherMons = otherMonsCount;
+                        bestLocation = location;
+                    }
+                }
+
+                // Remove this species from all other locations
+                for (const location of locations) {
+                    if (location !== bestLocation) {
+                        const encounters = locationEncounters.get(location);
+                        locationEncounters.set(
+                            location,
+                            encounters.filter(e => e.speciesId !== speciesId)
+                        );
+                    }
+                }
+            }
+        }
+
         // Count Pokemon per location for prioritization
         const locationCounts = new Map();
         for (const [location, encounters] of locationEncounters.entries()) {
@@ -8266,10 +8315,11 @@ async function generatePlanner() {
         const withEncounters = Array.from(pokemonEncounters.values()).filter(e => e.length > 0).length;
         const withoutEncounters = totalMissing - withEncounters;
         const multiEncounterLocations = Array.from(locationCounts.values()).filter(c => c > 1).length;
+        const missingLabel = shinyOnly ? 'Missing Shinies' : 'Total Missing';
 
         plannerSummaryContent.innerHTML = `
             <div class="planner-stat">
-                <strong>Total Missing:</strong> ${totalMissing} Pokemon
+                <strong>${missingLabel}:</strong> ${totalMissing} Pokemon
             </div>
             <div class="planner-stat">
                 <strong>With Encounters:</strong> ${withEncounters} Pokemon

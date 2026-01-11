@@ -3839,30 +3839,78 @@ const botProxyHandler = async (req, res) => {
       });
     }
 
-    if (!response.ok) {
+    // For POST/PUT/PATCH requests, check status but don't fail on non-200
+    // Some APIs return 200, 201, 204, etc. for successful updates
+    const isSuccessStatus = response.status >= 200 && response.status < 300;
+    
+    if (!isSuccessStatus && response.status >= 400) {
+      // Only fail on 4xx/5xx errors
+      const errorText = await response.text().catch(() => '');
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText || response.statusText };
+      }
       return res.status(response.status).json({ 
-        error: `Bot API returned ${response.status}: ${response.statusText}` 
+        error: `Bot API returned ${response.status}: ${response.statusText}`,
+        details: errorData
       });
     }
 
+    // Read response once to avoid "body already read" errors
+    const responseText = await response.text().catch(() => '');
+    
     // Check content type - if it's HTML, the endpoint probably doesn't exist
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('text/html')) {
-      const text = await response.text();
-      console.error('[Bot Proxy] Received HTML instead of JSON:', text.substring(0, 200));
-      return res.status(400).json({ 
-        error: 'Endpoint returned HTML instead of JSON. The endpoint may not exist or the bot may be returning an error page.',
-        details: 'Check the bot API documentation for available endpoints.'
+      // For POST requests, HTML might be an error page
+      if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+        console.error('[Bot Proxy] POST request returned HTML:', responseText.substring(0, 500));
+        return res.status(response.status).json({ 
+          error: 'Bot API returned HTML instead of JSON',
+          status: response.status,
+          details: 'The endpoint may not exist or the request format may be incorrect.'
+        });
+      }
+      // For GET requests, silently handle HTML
+      return res.status(404).json({ 
+        error: 'Endpoint not found or returned HTML',
+        endpoint: finalUrl
       });
     }
 
     // Try to parse as JSON
+    
     try {
-      const data = await response.json();
-      res.json(data);
+      let data;
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          // If response is not JSON but status is success, that's OK for POST requests
+          if (isSuccessStatus && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+            data = { success: true, message: 'Command accepted' };
+          } else {
+            throw parseError;
+          }
+        }
+      } else {
+        // Empty response is OK for POST requests (204 No Content, etc.)
+        if (isSuccessStatus && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+          data = { success: true };
+        } else {
+          data = {};
+        }
+      }
+      // Return the response with the same status code
+      res.status(response.status).json(data);
     } catch (parseError) {
-      const text = await response.text();
-      console.error('[Bot Proxy] JSON parse error:', parseError, 'Response:', text.substring(0, 200));
+      // If response is empty (204 No Content), that's OK for POST requests
+      if (response.status === 204 || response.status === 201) {
+        return res.status(response.status).json({ success: true });
+      }
+      console.error('[Bot Proxy] JSON parse error:', parseError, 'Response:', responseText.substring(0, 200));
       return res.status(500).json({ 
         error: 'Failed to parse response as JSON',
         details: parseError.message
@@ -3892,6 +3940,114 @@ app.get('/api/bot-proxy', botProxyHandler);
 app.post('/api/bot-proxy', botProxyHandler);
 app.put('/api/bot-proxy', botProxyHandler);
 app.patch('/api/bot-proxy', botProxyHandler);
+
+// Bot event stream proxy endpoint (for /stream_events)
+app.get('/api/bot-stream-proxy', async (req, res) => {
+  try {
+    let targetUrl = req.query.url;
+    
+    if (!targetUrl) {
+      return res.status(400).json({ error: 'URL parameter is required' });
+    }
+
+    // Decode the URL
+    try {
+      targetUrl = decodeURIComponent(targetUrl);
+    } catch (err) {
+      // If decoding fails, use original
+    }
+
+    // Validate URL to prevent SSRF
+    let urlObj;
+    try {
+      urlObj = new URL(targetUrl);
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid URL: ' + err.message });
+    }
+
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return res.status(400).json({ error: 'Only HTTP and HTTPS protocols are allowed' });
+    }
+
+    // Ensure port is preserved
+    let finalUrl = urlObj.href;
+    if (!urlObj.port || urlObj.port === '80' || urlObj.port === '443') {
+      const portMatch = targetUrl.match(/:(\d+)(?:\/|$)/);
+      if (portMatch && portMatch[1] !== '80' && portMatch[1] !== '443') {
+        urlObj.port = portMatch[1];
+        finalUrl = urlObj.href;
+      }
+    }
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    // Proxy the stream
+    try {
+      const response = await fetch(finalUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/event-stream',
+          'User-Agent': 'Gen3-Pokemon-Viewer/1.0'
+        }
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ 
+          error: `Bot API returned ${response.status}: ${response.statusText}` 
+        });
+      }
+
+      // Pipe the stream to the client
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      const pump = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            res.write(chunk);
+          }
+          res.end();
+        } catch (err) {
+          console.error('[Bot Stream Proxy] Error:', err);
+          res.end();
+        }
+      };
+
+      pump();
+
+      // Clean up on client disconnect
+      req.on('close', () => {
+        reader.cancel();
+        res.end();
+      });
+    } catch (fetchError) {
+      const errorCode = fetchError.cause?.code || fetchError.code;
+      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+        return res.status(503).json({ 
+          error: 'Bot is offline or unreachable',
+          code: errorCode
+        });
+      }
+      throw fetchError;
+    }
+  } catch (error) {
+    console.error('[Bot Stream Proxy] Unexpected error:', error.message || error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: error.message || 'Failed to proxy stream'
+      });
+    }
+  }
+});
 
 // Bot video stream proxy endpoint
 app.get('/api/bot-video-proxy', async (req, res) => {
@@ -3952,26 +4108,46 @@ app.get('/api/bot-video-proxy', async (req, res) => {
       // Set appropriate headers for video streaming (MJPEG)
       const contentType = response.headers.get('content-type') || 'multipart/x-mixed-replace; boundary=frame';
       res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
       res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering if present
 
       // Pipe the video stream
       const reader = response.body.getReader();
+      
       const pump = async () => {
         try {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            res.write(value);
+            
+            // Write binary data directly
+            if (value instanceof Uint8Array) {
+              res.write(Buffer.from(value));
+            } else {
+              res.write(value);
+            }
           }
           res.end();
         } catch (err) {
-          res.end();
+          console.error('[Bot Video Proxy] Stream pump error:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Stream error' });
+          } else {
+            res.end();
+          }
         }
       };
+      
       pump();
+      
+      // Clean up on client disconnect
+      req.on('close', () => {
+        reader.cancel();
+        res.end();
+      });
     } catch (fetchError) {
       const errorCode = fetchError.cause?.code || fetchError.code;
       if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
@@ -4002,10 +4178,217 @@ app.get('/api/bot-video-proxy', async (req, res) => {
   }
 });
 
+// Bot data cache for SSE updates
+const botDataCache = new Map(); // botId -> { data, lastUpdate, lastHash }
+
+// Helper function to create a hash of bot data for change detection
+function hashBotData(data) {
+  if (!data) return null;
+  const str = JSON.stringify(data);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString();
+}
+
+// Fetch bot data (similar to client-side fetchBotData)
+async function fetchBotDataFromAPI(bot) {
+  try {
+    const baseUrl = bot.url;
+    
+    // Fetch all endpoints in parallel
+    const [statusData, partyData, statsData, encounterRateData, mapData, emulatorData, currentEncounter] = await Promise.all([
+      fetchBotEndpointForSSE(baseUrl, '/emulator', '/game_state', '/player'),
+      fetchBotEndpointForSSE(baseUrl, '/party'),
+      fetchBotEndpointForSSE(baseUrl, '/stats'),
+      fetchBotEndpointForSSE(baseUrl, '/encounter_rate'),
+      fetchBotEndpointForSSE(baseUrl, '/map'),
+      fetchBotEndpointForSSE(baseUrl, '/emulator'),
+      fetchBotEndpointForSSE(baseUrl, '/opponent', '/current_encounter', '/encounter')
+    ]);
+    
+    // Merge emulator data into status
+    const mergedStatus = {
+      ...(statusData || {}),
+      ...(emulatorData || {})
+    };
+    
+    return {
+      success: true,
+      data: {
+        status: mergedStatus,
+        party: partyData,
+        encounters: null, // Encounters are tracked client-side
+        currentEncounter: currentEncounter,
+        stats: statsData,
+        encounter_rate: encounterRateData?.encounter_rate,
+        map: mapData,
+        emulator: emulatorData
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Unknown error'
+    };
+  }
+}
+
+// Helper to fetch bot endpoint (for server-side use)
+async function fetchBotEndpointForSSE(baseUrl, ...endpoints) {
+  for (const endpoint of endpoints) {
+    try {
+      const fullUrl = baseUrl.endsWith('/') 
+        ? baseUrl.slice(0, -1) + endpoint 
+        : baseUrl + endpoint;
+      
+      // Create timeout using AbortController
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      try {
+        const response = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'Gen3-Pokemon-Viewer/1.0'
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('text/html')) {
+            continue; // Skip HTML responses
+          }
+          const data = await response.json();
+          return data;
+        }
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        if (fetchErr.name === 'AbortError') {
+          continue; // Timeout, try next endpoint
+        }
+        throw fetchErr;
+      }
+    } catch (err) {
+      // Try next endpoint
+      continue;
+    }
+  }
+  return null;
+}
+
+// Poll bots and update cache
+async function pollBots() {
+  const bots = loadBots();
+  
+  for (const bot of bots) {
+    try {
+      const result = await fetchBotDataFromAPI(bot);
+      const dataHash = hashBotData(result);
+      const cached = botDataCache.get(bot.id);
+      
+      // Only update if data changed
+      if (!cached || cached.lastHash !== dataHash) {
+        botDataCache.set(bot.id, {
+          data: result,
+          lastUpdate: Date.now(),
+          lastHash: dataHash
+        });
+        
+        // Notify all connected clients
+        notifyClients(bot.id, result);
+      } else {
+        // Update timestamp even if data didn't change
+        if (cached) {
+          cached.lastUpdate = Date.now();
+        }
+      }
+    } catch (error) {
+      console.error(`[SSE] Error polling bot ${bot.id}:`, error);
+    }
+  }
+}
+
+// SSE clients storage
+const sseClients = new Set();
+
+// Notify all connected SSE clients
+function notifyClients(botId, data) {
+  const message = JSON.stringify({ botId, data });
+  sseClients.forEach(client => {
+    try {
+      client.write(`data: ${message}\n\n`);
+    } catch (err) {
+      // Client disconnected, will be removed on next error
+      console.error('[SSE] Error sending to client:', err);
+    }
+  });
+}
+
+// SSE endpoint for bot updates
+app.get('/api/bot-updates', (req, res) => {
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+  
+  // Send initial connection message
+  res.write(': connected\n\n');
+  
+  // Send current cached data for all bots
+  const bots = loadBots();
+  bots.forEach(bot => {
+    const cached = botDataCache.get(bot.id);
+    if (cached) {
+      res.write(`data: ${JSON.stringify({ botId: bot.id, data: cached.data })}\n\n`);
+    }
+  });
+  
+  // Store client
+  sseClients.add(res);
+  
+  // Remove client on disconnect
+  req.on('close', () => {
+    sseClients.delete(res);
+    res.end();
+  });
+  
+  // Keep connection alive with periodic ping
+  const pingInterval = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch (err) {
+      clearInterval(pingInterval);
+      sseClients.delete(res);
+    }
+  }, 30000); // Ping every 30 seconds
+  
+  // Clean up on client disconnect
+  res.on('close', () => {
+    clearInterval(pingInterval);
+    sseClients.delete(res);
+  });
+});
+
+// Start polling bots every 2 seconds
+setInterval(pollBots, 2000);
+
+// Initial poll
+setTimeout(pollBots, 1000);
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Looking for .pk3 files in: ${DEFAULT_PK3_FOLDER}`);
   console.log(`Place your .pk3 files in the 'pk3-files' folder`);
   console.log(`Maps available at: http://localhost:${PORT}/FRLGIronmonMap and http://localhost:${PORT}/EmeraldIronmonMap`);
+  console.log(`Bot updates available via SSE at: http://localhost:${PORT}/api/bot-updates`);
 });
 

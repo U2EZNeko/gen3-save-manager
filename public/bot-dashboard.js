@@ -11,14 +11,78 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     showEncounters: true,
     showStats: true,
     showMap: true,
-    showEncounterRateGraph: false,
+    showCurrentEncounter: true,
+    showEmulator: false,
+    showGameState: false,
+    showPlayerInfo: false,
+    showTotalStats: false,
+    showEncounterRateGraph: false, // Per-bot graph toggle
+    showEncounterRateAsGraph: false, // Show graph instead of number in stats
     updateInterval: 5, // seconds
     recentFindsCount: 5, // number of recent finds to display
-    cardWidth: 240 // card width in pixels
+    cardWidth: 240, // card width in pixels
+    // Statistics individual toggles
+    showStatsTotalEncounters: true,
+    showStatsShinyEncounters: true,
+    showStatsPlayTime: true,
+    // Current Phase individual toggles
+    showPhaseCurrentStreak: true,
+    showPhaseEncounters: true,
+    showPhaseDuration: true,
+    showPhaseBestIV: true,
+    showPhaseLongest: true,
+    showPhasePokenav: true,
+    // Current Encounter individual toggles
+    showEncounterSprite: true,
+    showEncounterName: true,
+    showEncounterLevel: true,
+    showEncounterShiny: true,
+    showEncounterNature: true,
+    showEncounterAbility: true,
+    showEncounterIVSum: true,
+    showEncounterIVs: true,
+    // Emulator Info individual toggles
+    showEmulatorFrameRate: true,
+    showEmulatorFastForward: true,
+    showEmulatorPaused: true,
+    showEmulatorUptime: true,
+    // Game individual toggles
+    showGameBadges: true,
+    showGameName: true,
+    showGameLanguage: true,
+    showGameRevision: true,
+    showGameMapID: true,
+    showGamePosition: true,
+    showGameSteps: true,
+    showGameTimePlayed: true,
+    // Player Info individual toggles
+    showPlayerName: true,
+    showPlayerTID: true,
+    showPlayerSID: true,
+    showPlayerGender: true,
+    showPlayerPlayTime: true,
+    showPlayerID32: true
 }));
 
 // Encounter rate history for graphing (per bot)
 let encounterRateHistory = JSON.parse(localStorage.getItem('botEncounterRateHistory') || '{}');
+
+// Graph update throttling
+let lastGraphUpdate = 0;
+const GRAPH_UPDATE_INTERVAL = 5000; // 5 seconds
+
+// Tracked recent encounters (per bot) - tracks current encounter changes
+let trackedEncounters = JSON.parse(localStorage.getItem('botTrackedEncounters') || '{}');
+
+// Bot data cache - stores latest data for each bot (for summary calculations)
+let botDataCache = new Map(); // botId -> { stats, success, etc. }
+
+// Live encounter rate history - only in-memory, not persisted (for combined graph)
+let liveEncounterRateHistory = new Map(); // botId -> [{ time, rate }, ...]
+const MAX_LIVE_HISTORY_POINTS = 50; // Keep last 50 points per bot
+
+// Bot order and visibility configuration
+let botOrderConfig = {}; // botId -> { order: number, hidden: boolean }
 
 // DOM elements
 const addBotBtn = document.getElementById('addBotBtn');
@@ -27,15 +91,30 @@ const closeAddBotModal = document.getElementById('closeAddBotModal');
 const saveBotBtn = document.getElementById('saveBotBtn');
 const cancelBotBtn = document.getElementById('cancelBotBtn');
 const botInstancesContainer = document.getElementById('botInstances');
+const showHiddenBotsBtn = document.getElementById('showHiddenBotsBtn');
+const hiddenBotsModal = document.getElementById('hiddenBotsModal');
+const closeHiddenBotsModal = document.getElementById('closeHiddenBotsModal');
+const closeHiddenBotsBtn = document.getElementById('closeHiddenBotsBtn');
+const hiddenBotsList = document.getElementById('hiddenBotsList');
 const botStatusContainer = document.getElementById('botStatusContainer');
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
 const layoutSelect = document.getElementById('layoutSelect');
+const optionsBtn = document.getElementById('optionsBtn');
+const optionsModal = document.getElementById('optionsModal');
+const closeOptionsModal = document.getElementById('closeOptionsModal');
+const saveOptionsBtn = document.getElementById('saveOptionsBtn');
+const cancelOptionsBtn = document.getElementById('cancelOptionsBtn');
 const showParty = document.getElementById('showParty');
 const showEncounters = document.getElementById('showEncounters');
 const showStats = document.getElementById('showStats');
 const showMap = document.getElementById('showMap');
-const showEncounterRateGraph = document.getElementById('showEncounterRateGraph');
+const showCurrentEncounter = document.getElementById('showCurrentEncounter');
+const showEmulator = document.getElementById('showEmulator');
+const showGameState = document.getElementById('showGameState');
+const showPlayerInfo = document.getElementById('showPlayerInfo');
+const showTotalStats = document.getElementById('showTotalStats');
+const showEncounterRateAsGraph = document.getElementById('showEncounterRateAsGraph');
 const updateInterval = document.getElementById('updateInterval');
 const recentFindsCount = document.getElementById('recentFindsCount');
 const cardWidthSlider = document.getElementById('cardWidthSlider');
@@ -43,12 +122,25 @@ const cardWidthValue = document.getElementById('cardWidthValue');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('[Dashboard] DOMContentLoaded - initializing...');
     initializeTheme();
     loadDashboardSettings();
     await loadBotInstancesFromServer();
+    console.log('[Dashboard] Loaded', botInstances.length, 'bot instances');
+    
+    // Load bot order and visibility configuration
+    loadBotOrderConfig();
     setupEventListeners();
+    setupOptionsModal();
     setupPokemonInfoModal();
+    console.log('[Dashboard] Starting polling...');
     startPolling();
+    
+    // Initial update of combined encounter rate after a short delay
+    setTimeout(() => {
+        updateCombinedEncounterRate();
+    }, 2000);
+    console.log('[Dashboard] Initialization complete');
 });
 
 // Theme management
@@ -121,33 +213,58 @@ function loadDashboardSettings() {
         });
     }
     
-    if (showEncounterRateGraph) {
-        showEncounterRateGraph.checked = dashboardSettings.showEncounterRateGraph || false;
-        showEncounterRateGraph.addEventListener('change', (e) => {
-            dashboardSettings.showEncounterRateGraph = e.target.checked;
+    if (showCurrentEncounter) {
+        showCurrentEncounter.checked = dashboardSettings.showCurrentEncounter !== false;
+        showCurrentEncounter.addEventListener('change', (e) => {
+            dashboardSettings.showCurrentEncounter = e.target.checked;
             saveDashboardSettings();
-            // Show/hide graph container and render/clear chart
-            const container = document.getElementById('encounterRateGraphContainer');
-            if (container) {
-                if (e.target.checked) {
-                    renderDashboardEncounterRateChart();
-                } else {
-                    container.style.display = 'none';
-                    const canvas = document.getElementById('dashboardEncounterRateChart');
-                    if (canvas && canvas.chart) {
-                        canvas.chart.destroy();
-                        canvas.chart = null;
-                    }
-                }
-            }
+            refreshAllBotCards();
         });
-        
-        // Initial render if enabled
-        if (dashboardSettings.showEncounterRateGraph) {
-            setTimeout(() => {
-                renderDashboardEncounterRateChart();
-            }, 500);
-        }
+    }
+    
+    if (showEmulator) {
+        showEmulator.checked = dashboardSettings.showEmulator || false;
+        showEmulator.addEventListener('change', (e) => {
+            dashboardSettings.showEmulator = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
+    }
+    
+    if (showGameState) {
+        showGameState.checked = dashboardSettings.showGameState || false;
+        showGameState.addEventListener('change', (e) => {
+            dashboardSettings.showGameState = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
+    }
+    
+    if (showPlayerInfo) {
+        showPlayerInfo.checked = dashboardSettings.showPlayerInfo || false;
+        showPlayerInfo.addEventListener('change', (e) => {
+            dashboardSettings.showPlayerInfo = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
+    }
+    
+    if (showTotalStats) {
+        showTotalStats.checked = dashboardSettings.showTotalStats || false;
+        showTotalStats.addEventListener('change', (e) => {
+            dashboardSettings.showTotalStats = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
+    }
+    
+    if (showEncounterRateAsGraph) {
+        showEncounterRateAsGraph.checked = dashboardSettings.showEncounterRateAsGraph || false;
+        showEncounterRateAsGraph.addEventListener('change', (e) => {
+            dashboardSettings.showEncounterRateAsGraph = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
     }
     
     if (updateInterval) {
@@ -164,8 +281,8 @@ function loadDashboardSettings() {
                 dashboardSettings.updateInterval = value;
             }
             saveDashboardSettings();
-            // Restart polling with new interval
-            startPolling();
+            // Note: Update interval is now for fallback polling only
+            // SSE updates are server-controlled (every 2 seconds)
         });
     }
     
@@ -240,6 +357,34 @@ async function refreshAllBotCards() {
 
 // Event listeners
 function setupEventListeners() {
+    // Hidden bots modal
+    if (showHiddenBotsBtn) {
+        showHiddenBotsBtn.addEventListener('click', () => {
+            showHiddenBotsModal();
+        });
+    }
+    
+    if (closeHiddenBotsModal) {
+        closeHiddenBotsModal.addEventListener('click', () => {
+            hiddenBotsModal.classList.add('hidden');
+        });
+    }
+    
+    if (closeHiddenBotsBtn) {
+        closeHiddenBotsBtn.addEventListener('click', () => {
+            hiddenBotsModal.classList.add('hidden');
+        });
+    }
+    
+    // Close modal when clicking outside
+    if (hiddenBotsModal) {
+        hiddenBotsModal.addEventListener('click', (e) => {
+            if (e.target === hiddenBotsModal) {
+                hiddenBotsModal.classList.add('hidden');
+            }
+        });
+    }
+    
     if (addBotBtn) {
         addBotBtn.addEventListener('click', () => {
             addBotModal.classList.remove('hidden');
@@ -485,6 +630,79 @@ function clearAddBotForm() {
     }
 }
 
+// Show hidden bots modal
+function showHiddenBotsModal() {
+    if (!hiddenBotsList) return;
+    
+    // Get all hidden bots
+    const hiddenBots = botInstances.filter(bot => {
+        const config = botOrderConfig[bot.id];
+        return config && config.hidden;
+    });
+    
+    if (hiddenBots.length === 0) {
+        hiddenBotsList.innerHTML = '<p class="no-hidden-bots">No hidden bots.</p>';
+    } else {
+        hiddenBotsList.innerHTML = '';
+        hiddenBots.forEach(bot => {
+            const botItem = document.createElement('div');
+            botItem.className = 'hidden-bot-item';
+            botItem.innerHTML = `
+                <div class="hidden-bot-info">
+                    <h4>${bot.name || 'Unnamed Bot'}</h4>
+                    <p class="bot-url">${bot.url}</p>
+                </div>
+                <button class="btn btn-primary btn-small unhide-bot-btn" data-bot-id="${bot.id}">Unhide</button>
+            `;
+            
+            const unhideBtn = botItem.querySelector('.unhide-bot-btn');
+            if (unhideBtn) {
+                unhideBtn.addEventListener('click', () => {
+                    unhideBot(bot.id);
+                });
+            }
+            
+            hiddenBotsList.appendChild(botItem);
+        });
+    }
+    
+    hiddenBotsModal.classList.remove('hidden');
+}
+
+// Unhide a bot
+function unhideBot(botId) {
+    if (!botOrderConfig[botId]) {
+        botOrderConfig[botId] = { order: 0, hidden: false };
+    } else {
+        botOrderConfig[botId].hidden = false;
+    }
+    
+    saveBotOrderConfig();
+    
+    // Update the card if it exists
+    const card = document.getElementById(`bot-status-${botId}`);
+    if (card) {
+        card.style.display = '';
+        const toggleBtn = card.querySelector('.bot-toggle-visibility');
+        if (toggleBtn) {
+            toggleBtn.textContent = '👁️';
+            toggleBtn.title = 'Hide Bot';
+        }
+    } else {
+        // Card doesn't exist yet, trigger update
+        updateBotStatus();
+    }
+    
+    // Reorder cards
+    reorderBotCards();
+    
+    // Update summary
+    updateDashboardSummary();
+    
+    // Refresh the hidden bots list
+    showHiddenBotsModal();
+}
+
 function removeBotInstance(index) {
     if (confirm('Are you sure you want to remove this bot instance?')) {
         botInstances.splice(index, 1);
@@ -537,22 +755,8 @@ async function saveBotInstances() {
 // Fetch bot data from API
 async function fetchBotData(bot, testOnly = false) {
     try {
-        // First, try to get API documentation to understand available endpoints
-        let apiDoc = null;
-        try {
-            const docResponse = await fetch(`/api/bot-proxy?url=${encodeURIComponent(bot.url + '/static/api-doc.html')}`, {
-                method: 'GET',
-                signal: AbortSignal.timeout(5000)
-            });
-            if (docResponse.ok) {
-                const docText = await docResponse.text();
-                // Try to extract endpoints from the documentation
-                apiDoc = docText;
-            }
-        } catch (err) {
-            // API doc not available, continue with default endpoints
-            console.log('Could not fetch API documentation, using default endpoints');
-        }
+        // Skip API documentation fetch - not needed and causes errors
+        // The bot API endpoints are well-known and don't need to be discovered
 
         // Try to fetch through server proxy first (handles CORS), then direct
         // PokeBotGen-3 API endpoints (from api.json documentation)
@@ -622,41 +826,113 @@ async function fetchBotData(bot, testOnly = false) {
         // Based on PokeBotGen-3 API documentation
         // Note: encounter_log is fetched separately with retry logic to avoid SQLite cursor conflicts
         const baseUrl = bot.url;
-        const [partyData, statsData, encounterRateData, mapData, emulatorData] = await Promise.all([
+        
+        // Fetch player data separately if we didn't get it from the status endpoint
+        const needsPlayerData = workingEndpoint !== '/player';
+        const needsEmulatorData = workingEndpoint !== '/emulator';
+        const needsGameStateData = workingEndpoint !== '/game_state';
+        
+        const fetchPromises = [
             fetchBotEndpoint(bot, baseUrl, '/party'),
             fetchBotEndpoint(bot, baseUrl, '/stats'),
             fetchBotEndpoint(bot, baseUrl, '/encounter_rate'),
-            fetchBotEndpoint(bot, baseUrl, '/map'),
-            fetchBotEndpoint(bot, baseUrl, '/emulator')
-        ]);
+            fetchBotEndpoint(bot, baseUrl, '/map')
+        ];
         
-        // Fetch encounter_log separately with retry logic to handle SQLite cursor errors
+        if (needsEmulatorData) {
+            fetchPromises.push(fetchBotEndpoint(bot, baseUrl, '/emulator'));
+        } else {
+            fetchPromises.push(Promise.resolve(null)); // Placeholder
+        }
+        
+        if (needsPlayerData) {
+            fetchPromises.push(fetchBotEndpoint(bot, baseUrl, '/player'));
+        } else {
+            fetchPromises.push(Promise.resolve(null)); // Placeholder
+        }
+        
+        if (needsGameStateData) {
+            fetchPromises.push(fetchBotEndpoint(bot, baseUrl, '/game_state'));
+        } else {
+            fetchPromises.push(Promise.resolve(null)); // Placeholder
+        }
+        
+        const [partyData, statsData, encounterRateData, mapData, emulatorData, playerData, gameStateData] = await Promise.all(fetchPromises);
+        
+        // Use statusData as emulatorData if we got it from /emulator endpoint
+        const finalEmulatorData = needsEmulatorData ? (emulatorData || null) : (workingEndpoint === '/emulator' ? statusData : null);
+        // Use statusData as playerData if we got it from /player endpoint
+        const finalPlayerData = needsPlayerData ? (playerData || null) : (workingEndpoint === '/player' ? statusData : null);
+        // Use statusData as gameStateData if we got it from /game_state endpoint
+        const finalGameStateData = needsGameStateData ? (gameStateData || null) : (workingEndpoint === '/game_state' ? statusData : null);
+        
+        // Debug: log encounter rate data
+        if (encounterRateData) {
+            console.log(`[${bot.name}] Raw encounter_rate endpoint response:`, encounterRateData);
+            console.log(`[${bot.name}] Extracted encounter_rate:`, encounterRateData?.encounter_rate);
+            console.log(`[${bot.name}] Type of encounterRateData:`, typeof encounterRateData, 'Is object:', typeof encounterRateData === 'object');
+        }
+        
+        // Calculate final encounter_rate value
+        // encounterRateData should be { encounter_rate: number }
+        let finalEncounterRate = undefined;
+        if (encounterRateData) {
+            if (typeof encounterRateData === 'object' && encounterRateData.encounter_rate !== undefined) {
+                finalEncounterRate = encounterRateData.encounter_rate;
+            } else if (typeof encounterRateData === 'number') {
+                finalEncounterRate = encounterRateData;
+            }
+        }
+        if (!finalEncounterRate && statsData && statsData.encounter_rate !== undefined) {
+            finalEncounterRate = statsData.encounter_rate;
+        }
+        console.log(`[${bot.name}] Final encounter_rate value:`, finalEncounterRate, 'from encounterRateData:', encounterRateData);
+        
+        // Fetch current opponent/encounter to track encounters
         // Add a small delay to avoid conflicts with other concurrent requests
         await new Promise(resolve => setTimeout(resolve, 100));
-        const encountersData = await fetchBotEndpointWithRetry(
+        const currentEncounter = await fetchBotEndpoint(
             bot, 
             baseUrl, 
-            ['/encounter_log?limit=10&filter=none', '/encounter_log?limit=10', '/encounter_log?limit=100&filter=all', '/encounter_log', '/opponent', '/encounters'],
-            3, // max retries
-            500 // initial delay in ms
+            '/opponent', '/current_encounter', '/encounter'
         );
 
-        // Merge emulator data into status if available
+        // Merge all data into status
         const mergedStatus = {
             ...statusData,
-            ...(emulatorData || {})
+            ...(finalEmulatorData || {}),
+            ...(finalPlayerData || {}),
+            ...(finalGameStateData || {}),
+            // Also include as nested objects for easier access
+            emulator: finalEmulatorData,
+            player: finalPlayerData,
+            gameState: finalGameStateData
         };
 
+        // Track the current encounter BEFORE getting tracked list (so new encounters are included)
+        if (currentEncounter) {
+            console.log(`[${bot.name}] Tracking current encounter from fetchBotData:`, currentEncounter);
+            trackCurrentEncounter(bot.id, currentEncounter);
+        } else {
+            console.log(`[${bot.name}] No current encounter data from /opponent endpoint`);
+        }
+
+        // Get tracked encounters for this bot (most recent first)
+        const trackedEncountersForBot = (trackedEncounters[bot.id] || []).slice().reverse();
+        
         return {
             success: true,
             data: {
                 status: mergedStatus,
                 party: partyData,
-                encounters: encountersData,
+                encounters: trackedEncountersForBot,
+                currentEncounter: currentEncounter,
                 stats: statsData,
-                encounter_rate: encounterRateData?.encounter_rate,
+                encounter_rate: finalEncounterRate,
                 map: mapData,
-                emulator: emulatorData
+                emulator: finalEmulatorData,
+                player: finalPlayerData,
+                gameState: finalGameStateData
             }
         };
     } catch (error) {
@@ -665,6 +941,160 @@ async function fetchBotData(bot, testOnly = false) {
             success: false,
             error: error.message || 'Unknown error'
         };
+    }
+}
+
+// Fetch bot endpoint with retry logic for handling SQLite cursor errors
+async function fetchBotEndpointWithRetry(bot, baseUrl, endpoints, maxRetries = 3, initialDelay = 500) {
+    let lastError = null;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            const result = await fetchBotEndpoint(bot, baseUrl, ...endpoints);
+            if (result !== null) {
+                return result; // Success
+            }
+        } catch (error) {
+            lastError = error;
+            const errorMessage = error.message || String(error) || '';
+            const errorText = error.toString() || '';
+            
+            // Check if it's a SQLite cursor error or similar database error
+            if (errorMessage.includes('Recursive use of cursors') || 
+                errorMessage.includes('ProgrammingError') ||
+                errorMessage.includes('database is locked') ||
+                errorMessage.includes('SQLite') ||
+                errorText.includes('Recursive use of cursors') ||
+                errorText.includes('ProgrammingError')) {
+                
+                if (attempt < maxRetries - 1) {
+                    // Exponential backoff: wait longer between retries
+                    const delay = initialDelay * Math.pow(2, attempt);
+                    console.warn(`[${bot.name}] SQLite cursor error on attempt ${attempt + 1}/${maxRetries}, retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+            } else {
+                // Non-SQLite error, don't retry
+                console.error(`[${bot.name}] Non-SQLite error, not retrying:`, error);
+                throw error;
+            }
+        }
+    }
+    
+    // All retries failed
+    console.error(`[${bot.name}] Failed to fetch encounter_log after ${maxRetries} attempts:`, lastError);
+    return null;
+}
+
+// Track current encounter - add to tracked list when it changes
+function trackCurrentEncounter(botId, currentEncounter) {
+    if (!currentEncounter || !botId) {
+        console.log(`[trackCurrentEncounter] Skipping - botId: ${botId}, currentEncounter:`, currentEncounter ? 'exists' : 'null');
+        return;
+    }
+    
+    console.log(`[trackCurrentEncounter] Processing encounter for bot ${botId}:`, currentEncounter);
+    
+    // Initialize tracked encounters for this bot if needed
+    if (!trackedEncounters[botId]) {
+        trackedEncounters[botId] = [];
+    }
+    
+    // Extract encounter identifier to detect changes
+    let encounterId = null;
+    let encounterData = null;
+    
+    // Try to extract species ID and other identifying info
+    if (currentEncounter.species) {
+        const species = currentEncounter.species;
+        encounterId = species.id || species.national_dex_number || species.nationalDexNumber;
+        encounterData = {
+            ...currentEncounter,
+            timestamp: Date.now()
+        };
+    } else if (currentEncounter.pokemon) {
+        const pokemon = currentEncounter.pokemon;
+        const species = pokemon.species || {};
+        encounterId = species.id || species.national_dex_number || species.nationalDexNumber;
+        encounterData = {
+            ...currentEncounter,
+            timestamp: Date.now()
+        };
+    } else if (currentEncounter.id || currentEncounter.national_dex_number) {
+        encounterId = currentEncounter.id || currentEncounter.national_dex_number || currentEncounter.nationalDexNumber;
+        encounterData = {
+            ...currentEncounter,
+            timestamp: Date.now()
+        };
+    }
+    
+    // If we can't identify the encounter, skip tracking
+    if (!encounterId && !encounterData) return;
+    
+    // Check if this is a new encounter
+    // Track every encounter change, not just species changes
+    // Compare the full encounter data to detect any changes (level, stats, etc.)
+    const lastEncounter = trackedEncounters[botId][trackedEncounters[botId].length - 1];
+    let isNewEncounter = true;
+    
+    if (lastEncounter) {
+        // Get last encounter ID and timestamp
+        let lastId = null;
+        let lastTimestamp = lastEncounter.timestamp || 0;
+        
+        if (lastEncounter.species) {
+            lastId = lastEncounter.species.id || lastEncounter.species.national_dex_number || lastEncounter.species.nationalDexNumber;
+        } else if (lastEncounter.pokemon) {
+            lastId = lastEncounter.pokemon.species?.id || lastEncounter.pokemon.species?.national_dex_number || lastEncounter.pokemon.species?.nationalDexNumber;
+        } else if (lastEncounter.id || lastEncounter.national_dex_number) {
+            lastId = lastEncounter.id || lastEncounter.national_dex_number || lastEncounter.nationalDexNumber;
+        }
+        
+        // Get current encounter level and other distinguishing features
+        const currentLevel = currentEncounter.level || currentEncounter.pokemon?.level || 0;
+        const lastLevel = lastEncounter.level || lastEncounter.pokemon?.level || 0;
+        const currentHP = currentEncounter.hp || currentEncounter.current_hp || currentEncounter.pokemon?.hp || currentEncounter.pokemon?.current_hp || 0;
+        const lastHP = lastEncounter.hp || lastEncounter.current_hp || lastEncounter.pokemon?.hp || lastEncounter.pokemon?.current_hp || 0;
+        
+        // Consider it a new encounter if:
+        // 1. Different species ID, OR
+        // 2. Same species but different level (different Pokemon), OR
+        // 3. Same species and level but HP changed significantly (new encounter), OR
+        // 4. More than 1 second has passed since last encounter (new encounter - track all changes)
+        const timeSinceLastEncounter = Date.now() - lastTimestamp;
+        const isDifferentSpecies = lastId && encounterId && lastId !== encounterId;
+        const isDifferentLevel = currentLevel > 0 && lastLevel > 0 && currentLevel !== lastLevel;
+        const hpChanged = lastHP > 0 && currentHP > 0 && Math.abs(currentHP - lastHP) > 5; // HP changed by more than 5
+        const isTimeBasedNew = timeSinceLastEncounter > 1000; // 1 second - track every encounter change
+        
+        // Only skip if it's the exact same encounter (same species, level, HP, and very recent)
+        if (!isDifferentSpecies && !isDifferentLevel && !hpChanged && !isTimeBasedNew) {
+            // Same encounter, don't track again
+            isNewEncounter = false;
+        }
+    }
+    
+    // Only add if it's a new encounter
+    if (isNewEncounter && encounterData) {
+        trackedEncounters[botId].push(encounterData);
+        
+        // Hard limit to 50 encounters max to prevent memory leaks
+        // Delete oldest encounters when limit is exceeded
+        const MAX_ENCOUNTERS = 50;
+        if (trackedEncounters[botId].length > MAX_ENCOUNTERS) {
+            // Remove oldest encounters (from the beginning of the array)
+            trackedEncounters[botId] = trackedEncounters[botId].slice(-MAX_ENCOUNTERS);
+        }
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('botTrackedEncounters', JSON.stringify(trackedEncounters));
+        } catch (e) {
+            console.warn('Failed to save tracked encounters to localStorage:', e);
+        }
+        
+        console.log(`[Bot ${botId}] New encounter tracked:`, encounterId, 'Level:', encounterData.level || encounterData.pokemon?.level, `(${trackedEncounters[botId].length}/${MAX_ENCOUNTERS})`);
     }
 }
 
@@ -708,8 +1138,8 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                                     const data = await response.json();
                                     console.log(`[${bot.name}] Encounter endpoint '${endpoint}' (${urlToTry}) response:`, data);
                                     console.log(`[${bot.name}] Response keys:`, Object.keys(data || {}));
-                                    // Check if we got a good response with encounters
-                                    if (data && (Array.isArray(data) || data.encounter_log || data.encounters || data.data)) {
+                                    // Check if we got a good response - for /encounter_rate, accept encounter_rate property
+                                    if (data && (Array.isArray(data) || data.encounter_log || data.encounters || data.data || data.encounter_rate !== undefined)) {
                                         return data;
                                     }
                                 } catch (jsonErr) {
@@ -787,6 +1217,10 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                         console.log(`[${bot.name}] Encounter endpoint '${endpoint}' response:`, data);
                         console.log(`[${bot.name}] Response keys:`, Object.keys(data || {}));
                     }
+                    // For /encounter_rate endpoint, make sure we return the data
+                    if (endpoint.includes('encounter_rate') && data) {
+                        console.log(`[${bot.name}] Returning encounter_rate data:`, data);
+                    }
                     return data;
                 } catch (jsonErr) {
                     // Check if response contains SQLite error
@@ -834,27 +1268,57 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
 
 // Update dashboard summary
 function updateDashboardSummary() {
-    const totalBots = botInstances.length;
+    const visibleBots = getVisibleBots();
+    const totalBots = visibleBots.length;
     let onlineCount = 0;
     let offlineCount = 0;
     let totalEncounters = 0;
     
-    // Count online/offline bots
-    document.querySelectorAll('.status-indicator').forEach(indicator => {
-        if (indicator.classList.contains('online')) {
-            onlineCount++;
-        } else if (indicator.classList.contains('offline')) {
-            offlineCount++;
+    // Count online/offline bots (only visible ones)
+    visibleBots.forEach(bot => {
+        const card = document.getElementById(`bot-status-${bot.id}`);
+        if (card) {
+            const indicator = card.querySelector('.status-indicator');
+            if (indicator) {
+                if (indicator.classList.contains('online')) {
+                    onlineCount++;
+                } else if (indicator.classList.contains('offline')) {
+                    offlineCount++;
+                }
+            }
         }
     });
     
-    // Count total encounters from stats
-    document.querySelectorAll('.stat-item').forEach(statItem => {
-        const label = statItem.querySelector('.stat-label');
-        const value = statItem.querySelector('.stat-value');
-        if (label && value && label.textContent.includes('Total Encounters')) {
-            const count = parseInt(value.textContent) || 0;
-            totalEncounters += count;
+    // Calculate total encounters from cached bot data (only visible bots)
+    const visibleBotIds = new Set(visibleBots.map(b => b.id));
+    botDataCache.forEach((botData, botId) => {
+        // Only count visible bots
+        if (!visibleBotIds.has(botId)) {
+            return;
+        }
+        if (botData && botData.success && botData.data) {
+            const stats = botData.data.stats || {};
+            const totals = stats.totals || {};
+            
+            // Try to get total encounters from multiple sources
+            let encounters = 0;
+            
+            // First try totals.total_encounters (new API format)
+            if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
+                encounters = totals.total_encounters;
+            }
+            // Then try stats.total_encounters
+            else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
+                encounters = stats.total_encounters;
+            }
+            // Then try stats.totalEncounters (camelCase)
+            else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
+                encounters = stats.totalEncounters;
+            }
+            
+            if (typeof encounters === 'number' && encounters > 0) {
+                totalEncounters += encounters;
+            }
         }
     });
     
@@ -866,58 +1330,171 @@ function updateDashboardSummary() {
     if (summaryTotalBots) summaryTotalBots.textContent = totalBots;
     if (summaryOnline) summaryOnline.textContent = onlineCount;
     if (summaryOffline) summaryOffline.textContent = offlineCount;
-    if (summaryTotalEncounters) summaryTotalEncounters.textContent = totalEncounters;
+    if (summaryTotalEncounters) summaryTotalEncounters.textContent = totalEncounters.toLocaleString();
     
-    // Update encounter rate graph if enabled
-    if (dashboardSettings.showEncounterRateGraph) {
-        renderDashboardEncounterRateChart();
+    // Update graphs only every 5 seconds
+    const now = Date.now();
+    if (now - lastGraphUpdate >= GRAPH_UPDATE_INTERVAL) {
+        lastGraphUpdate = now;
+        
+        // Update combined encounter rate
+        updateCombinedEncounterRate();
+        
+        // Render mini graphs for bots if enabled
+        if (dashboardSettings.showEncounterRateAsGraph) {
+            botInstances.forEach(bot => {
+                renderBotEncounterRateGraph(bot.id);
+            });
+        }
     }
 }
 
+// Load bot order and visibility configuration
+function loadBotOrderConfig() {
+    const saved = localStorage.getItem('botOrderConfig');
+    if (saved) {
+        try {
+            botOrderConfig = JSON.parse(saved);
+        } catch (e) {
+            console.error('[loadBotOrderConfig] Failed to parse config:', e);
+            botOrderConfig = {};
+        }
+    } else {
+        botOrderConfig = {};
+    }
+}
+
+// Save bot order and visibility configuration
+function saveBotOrderConfig() {
+    localStorage.setItem('botOrderConfig', JSON.stringify(botOrderConfig));
+}
+
+// Get sorted and filtered bot instances (respecting order and visibility)
+function getVisibleBots() {
+    // Initialize order for bots that don't have one
+    botInstances.forEach((bot, index) => {
+        if (!botOrderConfig[bot.id]) {
+            botOrderConfig[bot.id] = { order: index, hidden: false };
+        }
+    });
+    
+    // Filter out hidden bots and sort by order
+    return botInstances
+        .filter(bot => {
+            const config = botOrderConfig[bot.id];
+            return !config || !config.hidden;
+        })
+        .sort((a, b) => {
+            const orderA = botOrderConfig[a.id]?.order ?? 0;
+            const orderB = botOrderConfig[b.id]?.order ?? 0;
+            return orderA - orderB;
+        });
+}
+
 // Update bot status display
-function updateBotStatus() {
+// showLoading: only show loading state on initial load, not on SSE updates
+function updateBotStatus(showLoading = false) {
+    console.log('[updateBotStatus] Called with', botInstances.length, 'bots, showLoading:', showLoading);
+    
     if (botInstances.length === 0) {
-        botStatusContainer.innerHTML = '';
+        if (botStatusContainer) {
+            botStatusContainer.innerHTML = '';
+        }
         updateDashboardSummary();
         return;
     }
 
-    botInstances.forEach(async (bot) => {
-        // Check if card already exists
-        let statusCard = document.getElementById(`bot-status-${bot.id}`);
-        
-        if (!statusCard) {
-            // Create new card if it doesn't exist
-            statusCard = createStatusCard(bot);
-            botStatusContainer.appendChild(statusCard);
-        } else {
-            // Update existing card - show loading state
-            const indicator = statusCard.querySelector('.status-indicator');
-            if (indicator) {
-                indicator.textContent = 'Updating...';
-                indicator.className = 'status-indicator loading';
+    // Get visible bots in correct order
+    const visibleBots = getVisibleBots();
+    console.log('[updateBotStatus] Processing', visibleBots.length, 'visible bots out of', botInstances.length, 'total');
+
+    // Process bots sequentially to avoid overwhelming the API
+    (async () => {
+        for (const bot of visibleBots) {
+            try {
+                // Check if card already exists
+                let statusCard = document.getElementById(`bot-status-${bot.id}`);
+                
+                if (!statusCard) {
+                    // Create new card if it doesn't exist
+                    statusCard = createStatusCard(bot);
+                    if (botStatusContainer) {
+                        botStatusContainer.appendChild(statusCard);
+                    }
+                } else if (showLoading) {
+                    // Only show loading state if explicitly requested (initial load)
+                    const indicator = statusCard.querySelector('.status-indicator');
+                    if (indicator) {
+                        indicator.textContent = 'Updating...';
+                        indicator.className = 'status-indicator loading';
+                    }
+                }
+
+                // Fetch and update data
+                console.log(`[updateBotStatus] Fetching data for ${bot.name}...`);
+                const result = await fetchBotData(bot);
+                console.log(`[updateBotStatus] Got result for ${bot.name}:`, result.success ? 'success' : 'failed', result.error || '');
+                if (result.success && result.data) {
+                    console.log(`[updateBotStatus] Result data for ${bot.name} - encounter_rate:`, result.data.encounter_rate, 'data keys:', Object.keys(result.data));
+                    // Cache bot data for summary calculations
+                    botDataCache.set(bot.id, result);
+                    
+                    // Update live encounter rate history (in-memory only)
+                    const encounterRate = result.data.encounter_rate;
+                    if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
+                        if (!liveEncounterRateHistory.has(bot.id)) {
+                            liveEncounterRateHistory.set(bot.id, []);
+                        }
+                        const history = liveEncounterRateHistory.get(bot.id);
+                        const now = Date.now();
+                        // Only add if rate changed or enough time has passed (1 second)
+                        const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+                        if (!lastEntry || lastEntry.rate !== encounterRate || (now - lastEntry.time) >= 1000) {
+                            history.push({ time: now, rate: encounterRate });
+                            // Keep only last N points
+                            if (history.length > MAX_LIVE_HISTORY_POINTS) {
+                                history.shift();
+                            }
+                        }
+                    }
+                } else {
+                    // Remove from cache if bot is offline
+                    botDataCache.delete(bot.id);
+                    liveEncounterRateHistory.delete(bot.id);
+                }
+                if (statusCard) {
+                    updateStatusCard(statusCard, bot, result);
+                }
+            } catch (err) {
+                console.error(`[updateBotStatus] Error updating bot ${bot.name}:`, err);
             }
         }
-
-        // Fetch and update data
-        const result = await fetchBotData(bot);
-        updateStatusCard(statusCard, bot, result);
-    });
-    
-    // Update summary after all bots are processed
-    setTimeout(() => {
-        updateDashboardSummary();
-    }, 1000);
+        
+        // Update summary after all bots are processed
+        setTimeout(() => {
+            updateDashboardSummary();
+        }, 1000);
+    })();
 }
 
 function createStatusCard(bot) {
     const card = document.createElement('div');
     card.className = 'bot-status-card';
     card.id = `bot-status-${bot.id}`;
+    const config = botOrderConfig[bot.id] || { order: 0, hidden: false };
     card.innerHTML = `
         <div class="status-card-header">
-            <h3>${bot.name}</h3>
-            <span class="status-indicator loading">Loading...</span>
+            <div class="status-card-header-left">
+                <h3>${bot.name}</h3>
+                <span class="status-indicator loading">Loading...</span>
+            </div>
+            <div class="status-card-header-controls">
+                <button class="btn-icon bot-move-up" data-bot-id="${bot.id}" title="Move Up">↑</button>
+                <button class="btn-icon bot-move-down" data-bot-id="${bot.id}" title="Move Down">↓</button>
+                <button class="btn-icon bot-toggle-visibility" data-bot-id="${bot.id}" title="${config.hidden ? 'Show Bot' : 'Hide Bot'}">
+                    ${config.hidden ? '👁️‍🗨️' : '👁️'}
+                </button>
+            </div>
         </div>
         <div class="bot-controls-section">
             <div class="bot-control-item">
@@ -958,7 +1535,7 @@ function createStatusCard(bot) {
             </div>
         </div>
         <div class="bot-video-section" id="bot-video-${bot.id}" style="display: none;">
-            <video id="bot-video-player-${bot.id}" class="bot-video-player" autoplay muted playsinline></video>
+            <img id="bot-video-player-${bot.id}" class="bot-video-player" alt="Bot video stream" />
         </div>
         <div class="status-card-content">
             <div class="loading-spinner"></div>
@@ -968,7 +1545,161 @@ function createStatusCard(bot) {
     // Setup event listeners for controls
     setupBotControls(card, bot);
     
+    // Setup reorder and visibility controls
+    setupBotCardControls(card, bot);
+    
+    // Hide card if bot is hidden
+    if (config.hidden) {
+        card.style.display = 'none';
+    }
+    
     return card;
+}
+
+// Setup reorder and visibility controls for bot card
+function setupBotCardControls(card, bot) {
+    const moveUpBtn = card.querySelector('.bot-move-up');
+    const moveDownBtn = card.querySelector('.bot-move-down');
+    const toggleVisibilityBtn = card.querySelector('.bot-toggle-visibility');
+    
+    if (moveUpBtn) {
+        moveUpBtn.addEventListener('click', () => moveBotUp(bot.id));
+    }
+    
+    if (moveDownBtn) {
+        moveDownBtn.addEventListener('click', () => moveBotDown(bot.id));
+    }
+    
+    if (toggleVisibilityBtn) {
+        toggleVisibilityBtn.addEventListener('click', () => toggleBotVisibility(bot.id));
+    }
+}
+
+// Move bot up in order
+function moveBotUp(botId) {
+    const config = botOrderConfig[botId];
+    if (!config) return;
+    
+    const currentOrder = config.order;
+    if (currentOrder <= 0) return; // Already at top
+    
+    // Find bot with order one less
+    const otherBotId = Object.keys(botOrderConfig).find(id => 
+        botOrderConfig[id].order === currentOrder - 1
+    );
+    
+    if (otherBotId) {
+        // Swap orders
+        botOrderConfig[otherBotId].order = currentOrder;
+        config.order = currentOrder - 1;
+    } else {
+        config.order = currentOrder - 1;
+    }
+    
+    saveBotOrderConfig();
+    reorderBotCards();
+}
+
+// Move bot down in order
+function moveBotDown(botId) {
+    const config = botOrderConfig[botId];
+    if (!config) return;
+    
+    const currentOrder = config.order;
+    const maxOrder = Math.max(...Object.values(botOrderConfig).map(c => c.order), 0);
+    if (currentOrder >= maxOrder) return; // Already at bottom
+    
+    // Find bot with order one more
+    const otherBotId = Object.keys(botOrderConfig).find(id => 
+        botOrderConfig[id].order === currentOrder + 1
+    );
+    
+    if (otherBotId) {
+        // Swap orders
+        botOrderConfig[otherBotId].order = currentOrder;
+        config.order = currentOrder + 1;
+    } else {
+        config.order = currentOrder + 1;
+    }
+    
+    saveBotOrderConfig();
+    reorderBotCards();
+}
+
+// Toggle bot visibility
+function toggleBotVisibility(botId) {
+    if (!botOrderConfig[botId]) {
+        botOrderConfig[botId] = { order: 0, hidden: false };
+    }
+    
+    botOrderConfig[botId].hidden = !botOrderConfig[botId].hidden;
+    saveBotOrderConfig();
+    
+    // Update button icon
+    const card = document.getElementById(`bot-status-${botId}`);
+    if (card) {
+        const toggleBtn = card.querySelector('.bot-toggle-visibility');
+        if (toggleBtn) {
+            const isHidden = botOrderConfig[botId].hidden;
+            toggleBtn.textContent = isHidden ? '👁️‍🗨️' : '👁️';
+            toggleBtn.title = isHidden ? 'Show Bot' : 'Hide Bot';
+        }
+        
+        // Hide or show the card
+        if (isHidden) {
+            card.style.display = 'none';
+        } else {
+            card.style.display = '';
+        }
+    }
+    
+    // Reorder to update display
+    reorderBotCards();
+    
+    // Stop updating hidden bots
+    if (botOrderConfig[botId].hidden) {
+        // Remove from cache and live history
+        botDataCache.delete(botId);
+        liveEncounterRateHistory.delete(botId);
+    }
+    
+    // Update summary
+    updateDashboardSummary();
+}
+
+// Reorder bot cards in DOM based on configuration
+function reorderBotCards() {
+    if (!botStatusContainer) return;
+    
+    const visibleBots = getVisibleBots();
+    const cards = Array.from(botStatusContainer.children).filter(card => 
+        card.classList.contains('bot-status-card')
+    );
+    
+    // Sort cards by bot order
+    cards.sort((a, b) => {
+        const botIdA = a.id.replace('bot-status-', '');
+        const botIdB = b.id.replace('bot-status-', '');
+        const orderA = botOrderConfig[botIdA]?.order ?? 999;
+        const orderB = botOrderConfig[botIdB]?.order ?? 999;
+        return orderA - orderB;
+    });
+    
+    // Re-append in correct order
+    cards.forEach(card => {
+        botStatusContainer.appendChild(card);
+    });
+    
+    // Hide cards for hidden bots
+    botInstances.forEach(bot => {
+        const config = botOrderConfig[bot.id];
+        if (config && config.hidden) {
+            const card = document.getElementById(`bot-status-${bot.id}`);
+            if (card) {
+                card.style.display = 'none';
+            }
+        }
+    });
 }
 
 // Setup event listeners for bot controls
@@ -1051,19 +1782,42 @@ async function setEmulationSpeed(bot, speed) {
         
         console.log(`[${bot.name}] Response status:`, response.status, response.statusText);
         
-        if (response.ok) {
-            const responseData = await response.json().catch(() => ({}));
-            console.log(`[${bot.name}] Emulation speed set successfully:`, responseData);
+        // Always try to read response first to avoid "body already read" errors
+        const responseText = await response.text().catch(() => '');
+        
+        // Check if response is successful (200-299) or 204 (No Content)
+        const isSuccess = (response.status >= 200 && response.status < 300) || response.status === 204;
+        
+        if (isSuccess) {
+            // Try to parse JSON, but don't fail if response is empty or non-JSON
+            let responseData = { success: true };
+            if (responseText) {
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    // Non-JSON response is OK for POST requests - command was accepted
+                    console.log(`[${bot.name}] Response is not JSON (this is OK):`, responseText.substring(0, 100));
+                }
+            }
+            console.log(`[${bot.name}] Emulation speed set successfully (status ${response.status})`);
+            // Refresh bot status to update UI
+            setTimeout(() => {
+                const card = document.getElementById(`bot-status-${bot.id}`);
+                if (card) {
+                    fetchBotData(bot).then(result => {
+                        updateStatusCard(card, bot, result);
+                    });
+                }
+            }, 500);
         } else {
-            const errorText = await response.text().catch(() => '');
+            // Only show error for actual failures
             let errorData;
             try {
-                errorData = JSON.parse(errorText);
+                errorData = JSON.parse(responseText);
             } catch {
-                errorData = { error: errorText || response.statusText };
+                errorData = { error: responseText || response.statusText };
             }
             console.error(`[${bot.name}] Failed to set emulation speed:`, errorData);
-            console.error(`[${bot.name}] Full error response:`, errorText);
             alert(`Failed to set emulation speed: ${errorData.error || response.statusText}\n\nCheck console for details.`);
         }
     } catch (error) {
@@ -1100,19 +1854,42 @@ async function setVideoEnabled(bot, enabled) {
         console.log(`[${bot.name}] Response status:`, response.status, response.statusText);
         console.log(`[${bot.name}] Response headers:`, Object.fromEntries(response.headers.entries()));
         
-        if (response.ok) {
-            const responseData = await response.json().catch(() => ({}));
-            console.log(`[${bot.name}] Video ${enabled ? 'enabled' : 'disabled'} successfully:`, responseData);
+        // Always try to read response first to avoid "body already read" errors
+        const responseText = await response.text().catch(() => '');
+        
+        // Check if response is successful (200-299) or 204 (No Content)
+        const isSuccess = (response.status >= 200 && response.status < 300) || response.status === 204;
+        
+        if (isSuccess) {
+            // Try to parse JSON, but don't fail if response is empty or non-JSON
+            let responseData = { success: true };
+            if (responseText) {
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    // Non-JSON response is OK for POST requests - command was accepted
+                    console.log(`[${bot.name}] Response is not JSON (this is OK):`, responseText.substring(0, 100));
+                }
+            }
+            console.log(`[${bot.name}] Video ${enabled ? 'enabled' : 'disabled'} successfully (status ${response.status})`);
+            // Refresh bot status to update UI
+            setTimeout(() => {
+                const card = document.getElementById(`bot-status-${bot.id}`);
+                if (card) {
+                    fetchBotData(bot).then(result => {
+                        updateStatusCard(card, bot, result);
+                    });
+                }
+            }, 500);
         } else {
-            const errorText = await response.text().catch(() => '');
+            // Only show error for actual failures
             let errorData;
             try {
-                errorData = JSON.parse(errorText);
+                errorData = JSON.parse(responseText);
             } catch {
-                errorData = { error: errorText || response.statusText };
+                errorData = { error: responseText || response.statusText };
             }
             console.error(`[${bot.name}] Failed to set video:`, errorData);
-            console.error(`[${bot.name}] Full error response:`, errorText);
             alert(`Failed to set video: ${errorData.error || response.statusText}\n\nCheck console for details.`);
         }
     } catch (error) {
@@ -1146,19 +1923,42 @@ async function setAudioEnabled(bot, enabled) {
         
         console.log(`[${bot.name}] Response status:`, response.status, response.statusText);
         
-        if (response.ok) {
-            const responseData = await response.json().catch(() => ({}));
-            console.log(`[${bot.name}] Audio ${enabled ? 'enabled' : 'disabled'} successfully:`, responseData);
+        // Always try to read response first to avoid "body already read" errors
+        const responseText = await response.text().catch(() => '');
+        
+        // Check if response is successful (200-299) or 204 (No Content)
+        const isSuccess = (response.status >= 200 && response.status < 300) || response.status === 204;
+        
+        if (isSuccess) {
+            // Try to parse JSON, but don't fail if response is empty or non-JSON
+            let responseData = { success: true };
+            if (responseText) {
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    // Non-JSON response is OK for POST requests - command was accepted
+                    console.log(`[${bot.name}] Response is not JSON (this is OK):`, responseText.substring(0, 100));
+                }
+            }
+            console.log(`[${bot.name}] Audio ${enabled ? 'enabled' : 'disabled'} successfully (status ${response.status})`);
+            // Refresh bot status to update UI
+            setTimeout(() => {
+                const card = document.getElementById(`bot-status-${bot.id}`);
+                if (card) {
+                    fetchBotData(bot).then(result => {
+                        updateStatusCard(card, bot, result);
+                    });
+                }
+            }, 500);
         } else {
-            const errorText = await response.text().catch(() => '');
+            // Only show error for actual failures
             let errorData;
             try {
-                errorData = JSON.parse(errorText);
+                errorData = JSON.parse(responseText);
             } catch {
-                errorData = { error: errorText || response.statusText };
+                errorData = { error: responseText || response.statusText };
             }
             console.error(`[${bot.name}] Failed to set audio:`, errorData);
-            console.error(`[${bot.name}] Full error response:`, errorText);
             alert(`Failed to set audio: ${errorData.error || response.statusText}\n\nCheck console for details.`);
         }
     } catch (error) {
@@ -1168,64 +1968,62 @@ async function setAudioEnabled(bot, enabled) {
 }
 
 // Start video stream
-function startVideoStream(bot, videoElement) {
-    // Based on the bot's integrated page, it uses /stream_video with fps and cache_buster
+function startVideoStream(bot, imgElement) {
+    // MJPEG streams work with <img> tags, not <video> tags
+    // The browser automatically updates the image as new frames arrive in the multipart stream
+    
+    // Clear previous stream
+    stopVideoStream(imgElement);
+    
+    // Set up the video stream URL (same as bot's built-in interface)
     const fps = 30;
     const cacheBuster = new Date().toString();
     const videoUrl = `${bot.url}/stream_video?fps=${fps}&cache_buster=${encodeURIComponent(cacheBuster)}`;
     const proxyUrl = `/api/bot-video-proxy?url=${encodeURIComponent(videoUrl)}`;
     
-    console.log(`[${bot.name}] Starting video stream`);
-    console.log(`[${bot.name}] Video URL: ${videoUrl}`);
-    console.log(`[${bot.name}] Proxy URL: ${proxyUrl}`);
+    console.log(`[${bot.name}] Starting video stream (MJPEG via img element)`);
+    console.log(`[${bot.name}] Stream URL: ${proxyUrl}`);
     
-    // Clear previous error handlers and stop any existing stream
-    videoElement.onerror = null;
-    videoElement.onloadedmetadata = null;
-    videoElement.onloadstart = null;
-    stopVideoStream(videoElement);
-    
-    // Set up success handler
-    const successHandler = () => {
-        console.log(`[${bot.name}] Video stream started successfully`);
-    };
-    
-    // Set up load start handler (fires when video starts loading)
-    videoElement.onloadstart = () => {
-        console.log(`[${bot.name}] Video stream loading started`);
-    };
+    // Clear any previous error handlers
+    imgElement.onerror = null;
+    imgElement.onload = null;
     
     // Set up error handler
-    const errorHandler = (e) => {
+    imgElement.onerror = (e) => {
         console.error(`[${bot.name}] Video stream error:`, e);
-        console.warn(`[${bot.name}] Video stream failed via proxy, trying direct connection...`);
         // Try direct connection as fallback
-        videoElement.src = videoUrl;
-        videoElement.onerror = (e2) => {
-            console.error(`[${bot.name}] Video stream failed on both proxy and direct connection:`, e2);
-            alert(`Video stream failed. Check console for details.`);
-        };
+        console.warn(`[${bot.name}] Trying direct connection...`);
+        imgElement.src = videoUrl;
     };
     
-    // Try proxy first (handles CORS)
-    videoElement.src = proxyUrl;
-    videoElement.onloadedmetadata = successHandler;
-    videoElement.onerror = errorHandler;
+    // Set up success handler
+    imgElement.onload = () => {
+        console.log(`[${bot.name}] Video stream frame loaded`);
+    };
     
-    // Also set a timeout to detect if stream never starts
-    setTimeout(() => {
-        if (!videoElement.readyState || videoElement.readyState === 0) {
-            console.warn(`[${bot.name}] Video stream timeout - no data received after 5 seconds`);
-        }
-    }, 5000);
+    // Set the image source - browser will handle the MJPEG stream automatically
+    // The multipart/x-mixed-replace content type tells the browser to continuously update the image
+    imgElement.src = proxyUrl;
+    
+    // Store cleanup function on element
+    imgElement._stopStream = () => {
+        // Cleanup is handled by stopVideoStream
+    };
 }
 
 // Stop video stream
-function stopVideoStream(videoElement) {
-    if (videoElement) {
-        videoElement.pause();
-        videoElement.src = '';
-        videoElement.load();
+function stopVideoStream(imgElement) {
+    if (imgElement) {
+        // Call cleanup function if it exists
+        if (imgElement._stopStream) {
+            imgElement._stopStream();
+        }
+        // Clear the image source to stop the stream
+        imgElement.src = '';
+        // Clear error handlers
+        imgElement.onerror = null;
+        imgElement.onload = null;
+        imgElement._stopStream = null;
     }
 }
 
@@ -1245,20 +2043,32 @@ function updateStatusCard(card, bot, result) {
         return;
     }
 
-    indicator.textContent = 'Online';
-    indicator.className = 'status-indicator online';
+    // Always set to online when we have successful data
+    if (indicator) {
+        indicator.textContent = 'Online';
+        indicator.className = 'status-indicator online';
+    }
 
     const data = result.data || {};
     const status = data.status || {};
-    const emulator = data.emulator || {};
+    const emulator = data.emulator || status.emulator || {};
+    const player = data.player || status.player || {};
+    const gameState = data.gameState || status.gameState || {};
     const party = data.party || [];
     const encounters = data.encounters || [];
     const stats = data.stats || {};
     const map = data.map || {};
-
-    // Debug: log map data structure
-    if (map && Object.keys(map).length > 0) {
-        console.log(`[${bot.name}] Map data:`, JSON.stringify(map, null, 2));
+    const currentEncounter = data.currentEncounter || {};
+    
+    // Debug: log data structures
+    if (emulator && Object.keys(emulator).length > 0) {
+        console.log(`[${bot.name}] Emulator data:`, JSON.stringify(emulator, null, 2));
+    }
+    if (player && Object.keys(player).length > 0) {
+        console.log(`[${bot.name}] Player data:`, JSON.stringify(player, null, 2));
+    }
+    if (status && Object.keys(status).length > 0) {
+        console.log(`[${bot.name}] Status data:`, JSON.stringify(status, null, 2));
     }
 
     // Merge emulator data into status for controls
@@ -1274,6 +2084,40 @@ function updateStatusCard(card, bot, result) {
 
     // Build status card content
     let html = '';
+
+    // Encounter Rate - display at the top
+    const statsData = stats || {};
+    const encounterRate = data.encounter_rate;
+    
+    // Save to history for graph
+    if (encounterRate !== undefined && encounterRate !== null) {
+        encounterRateHistory = JSON.parse(localStorage.getItem('botEncounterRateHistory') || '{}');
+        if (!encounterRateHistory[bot.id]) {
+            encounterRateHistory[bot.id] = [];
+        }
+        const history = encounterRateHistory[bot.id];
+        const now = Date.now();
+        const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+        if (!lastEntry || lastEntry.rate !== encounterRate || (now - lastEntry.time) >= 1000) {
+            history.push({ time: now, rate: encounterRate, botName: bot.name });
+            if (history.length > 100) history.shift();
+            localStorage.setItem('botEncounterRateHistory', JSON.stringify(encounterRateHistory));
+        }
+    }
+    
+    if (encounterRate !== undefined && encounterRate !== null) {
+        if (dashboardSettings.showEncounterRateAsGraph) {
+            html += `<div class="status-section encounter-rate-card">
+                <h4>Encounter Rate</h4>
+                <canvas id="encounter-rate-chart-${bot.id}" class="encounter-rate-mini-chart"></canvas>
+            </div>`;
+        } else {
+            html += `<div class="status-section encounter-rate-card">
+                <h4>Encounter Rate</h4>
+                <p>${encounterRate}/hr</p>
+            </div>`;
+        }
+    }
 
     // Current Location/Map
     if (dashboardSettings.showMap) {
@@ -1394,8 +2238,8 @@ function updateStatusCard(card, bot, result) {
         // Get the count from settings
         const recentFindsCount = dashboardSettings.recentFindsCount || 5;
         
-        // Show most recent encounters first (reverse the list, then take first N)
-        const recentEncounters = encounterList.slice().reverse().slice(0, recentFindsCount);
+        // Show most recent encounters first (already in reverse order from tracking)
+        const recentEncounters = encounterList.slice(0, recentFindsCount);
         recentEncounters.forEach(encounter => {
             // Handle different encounter data structures
             let speciesId = 0;
@@ -1451,41 +2295,98 @@ function updateStatusCard(card, bot, result) {
         html += `</div></div>`;
     }
 
-    // Stats
-    // Handle both /stats and /encounter_rate responses
-    const encounterRate = data.encounter_rate || (stats && stats.encounter_rate);
-    const statsData = stats || {};
-    
-    // Track encounter rate for graphing (always track, not just when graph is enabled)
-    if (encounterRate !== undefined) {
-        if (!encounterRateHistory[bot.id]) {
-            encounterRateHistory[bot.id] = [];
+    // Current Encounter/Opponent
+    if (dashboardSettings.showCurrentEncounter && currentEncounter && Object.keys(currentEncounter).length > 0) {
+        html += `<div class="status-section">
+            <h4>Current Encounter</h4>`;
+        
+        // Extract encounter data
+        let speciesId = 0;
+        let speciesName = 'Unknown';
+        let level = 0;
+        let isShiny = false;
+        let ivs = null;
+        let nature = null;
+        let ability = null;
+        
+        if (currentEncounter.species) {
+            const species = currentEncounter.species;
+            speciesId = species.id || species.national_dex_number || 0;
+            speciesName = species.name || `#${speciesId}`;
+        } else if (currentEncounter.id || currentEncounter.national_dex_number) {
+            speciesId = currentEncounter.id || currentEncounter.national_dex_number || 0;
+            speciesName = currentEncounter.name || currentEncounter.species_name || `#${speciesId}`;
         }
-        const history = encounterRateHistory[bot.id];
-        const now = Date.now();
-        history.push({ time: now, rate: encounterRate, botName: bot.name });
-        // Keep only last 100 data points
-        if (history.length > 100) {
-            history.shift();
+        
+        level = currentEncounter.level || 0;
+        isShiny = currentEncounter.is_shiny || currentEncounter.isShiny || false;
+        ivs = currentEncounter.ivs || currentEncounter.IVs;
+        nature = currentEncounter.nature || currentEncounter.nature_name;
+        ability = currentEncounter.ability || currentEncounter.ability_name;
+        
+        if (speciesId > 0 || speciesName !== 'Unknown') {
+            const spriteUrl = getSpriteUrl(speciesId, isShiny);
+            html += `<div class="current-encounter-display">`;
+            
+            if (dashboardSettings.showEncounterSprite !== false) {
+                html += `<img src="${spriteUrl}" alt="Pokemon" onerror="this.style.display='none'" class="encounter-sprite">`;
+            }
+            
+            html += `<div class="encounter-details">`;
+            
+            if (dashboardSettings.showEncounterName !== false) {
+                html += `<div class="encounter-name">
+                    <strong>${speciesName}</strong>
+                    ${(dashboardSettings.showEncounterShiny !== false && isShiny) ? '<span class="shiny-badge">⭐</span>' : ''}
+                </div>`;
+            } else if (dashboardSettings.showEncounterShiny !== false && isShiny) {
+                html += `<div class="encounter-name"><span class="shiny-badge">⭐</span></div>`;
+            }
+            
+            if (dashboardSettings.showEncounterLevel !== false && level > 0) {
+                html += `<div class="encounter-detail">Level: ${level}</div>`;
+            }
+            if (dashboardSettings.showEncounterNature !== false && nature) {
+                html += `<div class="encounter-detail">Nature: ${nature}</div>`;
+            }
+            if (dashboardSettings.showEncounterAbility !== false && ability) {
+                html += `<div class="encounter-detail">Ability: ${ability}</div>`;
+            }
+            
+            if (ivs && typeof ivs === 'object') {
+                const ivSum = Object.values(ivs).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
+                if (dashboardSettings.showEncounterIVSum !== false) {
+                    html += `<div class="encounter-detail">IV Sum: ${ivSum}</div>`;
+                }
+                if (dashboardSettings.showEncounterIVs !== false) {
+                    html += `<div class="encounter-ivs">`;
+                    const ivNames = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
+                    let ivIndex = 0;
+                    for (const [key, value] of Object.entries(ivs)) {
+                        if (ivIndex < ivNames.length) {
+                            html += `<span class="iv-item">${ivNames[ivIndex]}: ${value || 0}</span>`;
+                            ivIndex++;
+                        }
+                    }
+                    html += `</div>`;
+                }
+            }
+            
+            html += `</div></div>`;
         }
-        localStorage.setItem('botEncounterRateHistory', JSON.stringify(encounterRateHistory));
+        
+        html += `</div>`;
     }
-    
-    if (dashboardSettings.showStats && statsData && (Object.keys(statsData).length > 0 || encounterRate !== undefined)) {
+
+    // Stats
+    // Show stats section
+    if (dashboardSettings.showStats) {
         html += `<div class="status-section">
             <h4>Statistics</h4>
             <div class="stats-grid">`;
         
-        // Encounter rate
-        if (encounterRate !== undefined) {
-            html += `<div class="stat-item">
-                <span class="stat-label">Encounter Rate:</span>
-                <span class="stat-value">${encounterRate}/hr</span>
-            </div>`;
-        }
-        
         // Total encounters (from stats)
-        if (statsData.total_encounters !== undefined || statsData.totalEncounters !== undefined) {
+        if (dashboardSettings.showStatsTotalEncounters !== false && (statsData.total_encounters !== undefined || statsData.totalEncounters !== undefined)) {
             html += `<div class="stat-item">
                 <span class="stat-label">Total Encounters:</span>
                 <span class="stat-value">${statsData.total_encounters || statsData.totalEncounters}</span>
@@ -1493,7 +2394,7 @@ function updateStatusCard(card, bot, result) {
         }
         
         // Shiny encounters
-        if (statsData.shiny_encounters !== undefined || statsData.shinyEncounters !== undefined) {
+        if (dashboardSettings.showStatsShinyEncounters !== false && (statsData.shiny_encounters !== undefined || statsData.shinyEncounters !== undefined)) {
             html += `<div class="stat-item">
                 <span class="stat-label">Shiny Encounters:</span>
                 <span class="stat-value">${statsData.shiny_encounters || statsData.shinyEncounters}</span>
@@ -1501,7 +2402,7 @@ function updateStatusCard(card, bot, result) {
         }
         
         // Play time
-        if (statsData.play_time !== undefined || statsData.playTime !== undefined) {
+        if (dashboardSettings.showStatsPlayTime !== false && (statsData.play_time !== undefined || statsData.playTime !== undefined)) {
             const playTime = statsData.play_time || statsData.playTime;
             html += `<div class="stat-item">
                 <span class="stat-label">Play Time:</span>
@@ -1517,7 +2418,7 @@ function updateStatusCard(card, bot, result) {
                 const phaseInfo = [];
                 
                 // Current streak (most important)
-                if (phaseData.current_streak) {
+                if (dashboardSettings.showPhaseCurrentStreak !== false && phaseData.current_streak) {
                     const streak = phaseData.current_streak;
                     const species = streak.species_name || 'Unknown';
                     const value = streak.value || 0;
@@ -1525,12 +2426,12 @@ function updateStatusCard(card, bot, result) {
                 }
                 
                 // Total encounters in phase
-                if (phaseData.encounters !== undefined) {
+                if (dashboardSettings.showPhaseEncounters !== false && phaseData.encounters !== undefined) {
                     phaseInfo.push(`Encounters: ${phaseData.encounters.toLocaleString()}`);
                 }
                 
                 // Start time
-                if (phaseData.start_time) {
+                if (dashboardSettings.showPhaseDuration !== false && phaseData.start_time) {
                     try {
                         const startDate = new Date(phaseData.start_time);
                         const duration = Date.now() - startDate.getTime();
@@ -1543,19 +2444,19 @@ function updateStatusCard(card, bot, result) {
                 }
                 
                 // Highest IV sum
-                if (phaseData.highest_iv_sum) {
+                if (dashboardSettings.showPhaseBestIV !== false && phaseData.highest_iv_sum) {
                     const iv = phaseData.highest_iv_sum;
                     phaseInfo.push(`Best IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
                 }
                 
                 // Longest streak
-                if (phaseData.longest_streak) {
+                if (dashboardSettings.showPhaseLongest !== false && phaseData.longest_streak) {
                     const streak = phaseData.longest_streak;
                     phaseInfo.push(`Longest: ${streak.value} (${streak.species_name || 'Unknown'})`);
                 }
                 
                 // Pokenav calls
-                if (phaseData.pokenav_calls !== undefined) {
+                if (dashboardSettings.showPhasePokenav !== false && phaseData.pokenav_calls !== undefined) {
                     phaseInfo.push(`Pokenav: ${phaseData.pokenav_calls}`);
                 }
                 
@@ -1592,8 +2493,555 @@ function updateStatusCard(card, bot, result) {
         html += `</div></div>`;
     }
 
+    // Emulator Info - check both emulator object and status for emulator data
+    const emulatorData = emulator && Object.keys(emulator).length > 0 ? emulator : 
+                        (status.emulator && Object.keys(status.emulator).length > 0 ? status.emulator : 
+                        (status.frame_rate !== undefined || status.frameRate !== undefined ? status : null));
+    
+    if (dashboardSettings.showEmulator && emulatorData) {
+        html += `<div class="status-section">
+            <h4>Emulator Info</h4>
+            <div class="phase-info">`;
+        
+        // Build list of emulator info items (like Current Phase format)
+        const emulatorInfo = [];
+        
+        // Helper to get value from multiple possible locations
+        const getEmulatorValue = (...keys) => {
+            for (const key of keys) {
+                if (emulatorData[key] !== undefined && emulatorData[key] !== null) {
+                    return emulatorData[key];
+                }
+            }
+            return undefined;
+        };
+        
+        const frameRate = getEmulatorValue('frame_rate', 'frameRate', 'fps', 'FPS');
+        if (dashboardSettings.showEmulatorFrameRate !== false && frameRate !== undefined) {
+            emulatorInfo.push(`Frame Rate: ${frameRate} FPS`);
+        }
+        
+        const fastForward = getEmulatorValue('fast_forward', 'fastForward', 'fast_forward_enabled', 'fastForwardEnabled');
+        if (dashboardSettings.showEmulatorFastForward !== false && fastForward !== undefined) {
+            emulatorInfo.push(`Fast Forward: ${fastForward ? 'On' : 'Off'}`);
+        }
+        
+        const paused = getEmulatorValue('paused', 'is_paused', 'isPaused');
+        if (dashboardSettings.showEmulatorPaused !== false && paused !== undefined) {
+            emulatorInfo.push(`Paused: ${paused ? 'Yes' : 'No'}`);
+        }
+        
+        const uptime = getEmulatorValue('uptime', 'up_time', 'upTime', 'runtime', 'run_time', 'runTime');
+        if (dashboardSettings.showEmulatorUptime !== false && uptime !== undefined) {
+            emulatorInfo.push(`Uptime: ${typeof uptime === 'number' ? formatPlayTime(uptime) : uptime}`);
+        }
+        
+        // Display any other emulator fields (excluding excluded ones)
+        const excludedKeys = ['frame_rate', 'frameRate', 'fps', 'FPS', 'speed', 'speed_multiplier', 'speedMultiplier', 
+                              'emulation_speed', 'emulationSpeed', 'fast_forward', 'fastForward', 'paused', 
+                              'is_paused', 'isPaused', 'uptime', 'up_time', 'upTime', 'runtime', 'run_time', 
+                              'runTime', 'video_enabled', 'videoEnabled', 'video', 'audio_enabled', 'audioEnabled', 
+                              'audio', 'bot_mode', 'botMode', 'mode'];
+        for (const [key, value] of Object.entries(emulatorData)) {
+            if (excludedKeys.includes(key)) {
+                continue; // Skip excluded fields
+            }
+            if (value !== null && value !== undefined && typeof value !== 'object') {
+                const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')
+                    .split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                emulatorInfo.push(`${label}: ${value}`);
+            }
+        }
+        
+        // Display all emulator info items in phase-info format
+        if (emulatorInfo.length > 0) {
+            emulatorInfo.forEach(info => {
+                html += `<div class="phase-info-item">${info}</div>`;
+            });
+        } else {
+            html += `<div class="phase-info-item">No emulator data available</div>`;
+        }
+        
+        html += `</div></div>`;
+    }
+
+    // Game
+    if (dashboardSettings.showGameState && status && Object.keys(status).length > 0) {
+        // Debug: log status structure
+        console.log(`[${bot.name}] Game data:`, JSON.stringify(status, null, 2));
+        
+        html += `<div class="status-section">
+            <h4>Game</h4>
+            <div class="phase-info">`;
+        
+        // Build list of game info items (like Current Phase format)
+        const gameInfo = [];
+        
+        // Helper function to safely extract nested values
+        const getValue = (obj, ...paths) => {
+            for (const path of paths) {
+                const keys = path.split('.');
+                let value = obj;
+                for (const key of keys) {
+                    if (value && typeof value === 'object' && key in value) {
+                        value = value[key];
+                    } else {
+                        value = undefined;
+                        break;
+                    }
+                }
+                if (value !== undefined && value !== null) {
+                    return value;
+                }
+            }
+            return undefined;
+        };
+        
+        // Badges
+        const badges = getValue(status, 'badges', 'badge_count', 'badges.count');
+        if (dashboardSettings.showGameBadges !== false && badges !== undefined) {
+            const badgeCount = Array.isArray(badges) ? badges.length : (typeof badges === 'number' ? badges : (badges.count || badges));
+            gameInfo.push(`Badges: ${badgeCount}`);
+        }
+        
+        // Game name - handle object case
+        const game = status.game || getValue(status, 'game', 'game_name', 'game.name', 'version', 'version.name');
+        if (dashboardSettings.showGameName !== false && game !== undefined) {
+            let gameName = 'Unknown';
+            let gameLanguage = null;
+            let gameRevision = null;
+            
+            if (typeof game === 'string') {
+                gameName = game;
+            } else if (typeof game === 'object' && game !== null) {
+                // Extract name/title (prefer name over title for display)
+                gameName = game.name || game.title || game.version || game.game || 'Unknown';
+                // Extract language and revision
+                gameLanguage = game.language;
+                gameRevision = game.revision;
+            } else if (typeof game === 'number') {
+                gameName = String(game);
+            }
+            
+            gameInfo.push(`Game: ${gameName}`);
+            
+            // Add language if available
+            if (dashboardSettings.showGameLanguage !== false && gameLanguage !== undefined && gameLanguage !== null) {
+                gameInfo.push(`Language: ${gameLanguage}`);
+            }
+            
+            // Add revision if available
+            if (dashboardSettings.showGameRevision !== false && gameRevision !== undefined && gameRevision !== null) {
+                gameInfo.push(`Revision: ${gameRevision}`);
+            }
+        } else {
+            // Still show language and revision if game name is hidden
+            const game = status.game || getValue(status, 'game', 'game_name', 'game.name', 'version', 'version.name');
+            if (game && typeof game === 'object' && game !== null) {
+                const gameLanguage = game.language;
+                const gameRevision = game.revision;
+                if (dashboardSettings.showGameLanguage !== false && gameLanguage !== undefined && gameLanguage !== null) {
+                    gameInfo.push(`Language: ${gameLanguage}`);
+                }
+                if (dashboardSettings.showGameRevision !== false && gameRevision !== undefined && gameRevision !== null) {
+                    gameInfo.push(`Revision: ${gameRevision}`);
+                }
+            }
+        }
+        
+        // Map ID
+        const mapId = getValue(status, 'map_id', 'map.id', 'mapId', 'current_map_id');
+        if (dashboardSettings.showGameMapID !== false && mapId !== undefined) {
+            gameInfo.push(`Map ID: ${mapId}`);
+        }
+        
+        // Position
+        const x = getValue(status, 'x', 'position.x', 'player.x', 'coords.x');
+        const y = getValue(status, 'y', 'position.y', 'player.y', 'coords.y');
+        if (dashboardSettings.showGamePosition !== false && x !== undefined && y !== undefined) {
+            gameInfo.push(`Position: (${x}, ${y})`);
+        }
+        
+        // Additional common fields
+        const steps = getValue(status, 'steps', 'player.steps');
+        if (dashboardSettings.showGameSteps !== false && steps !== undefined && typeof steps === 'number') {
+            gameInfo.push(`Steps: ${steps.toLocaleString()}`);
+        }
+        
+        const timePlayed = getValue(status, 'time_played', 'timePlayed', 'play_time', 'playTime');
+        if (dashboardSettings.showGameTimePlayed !== false && timePlayed !== undefined && typeof timePlayed === 'number') {
+            gameInfo.push(`Time Played: ${formatPlayTime(timePlayed)}`);
+        }
+        
+        // Display all game info items in phase-info format
+        if (gameInfo.length > 0) {
+            gameInfo.forEach(info => {
+                html += `<div class="phase-info-item">${info}</div>`;
+            });
+        } else {
+            html += `<div class="phase-info-item">No game data available</div>`;
+        }
+        
+        html += `</div></div>`;
+    }
+
+    // Player Info - check both player object and status for player data
+    const playerData = player && Object.keys(player).length > 0 ? player : 
+                      (status.player && Object.keys(status.player).length > 0 ? status.player : 
+                      (status.name !== undefined || status.trainer_id !== undefined || status.trainer_name !== undefined ? status : null));
+    
+    if (dashboardSettings.showPlayerInfo && playerData) {
+        html += `<div class="status-section">
+            <h4>Player Info</h4>
+            <div class="phase-info">`;
+        
+        // Build list of player info items (like Current Phase format)
+        const playerInfo = [];
+        
+        // Helper function to safely extract nested values from multiple sources
+        const getPlayerValue = (...keys) => {
+            for (const key of keys) {
+                // Check direct key
+                if (playerData[key] !== undefined && playerData[key] !== null) {
+                    return playerData[key];
+                }
+                // Check nested paths
+                const pathParts = key.split('.');
+                let value = playerData;
+                for (const part of pathParts) {
+                    if (value && typeof value === 'object' && part in value) {
+                        value = value[part];
+                    } else {
+                        value = undefined;
+                        break;
+                    }
+                }
+                if (value !== undefined && value !== null) {
+                    return value;
+                }
+            }
+            // Also check status object
+            for (const key of keys) {
+                if (status[key] !== undefined && status[key] !== null) {
+                    return status[key];
+                }
+            }
+            return undefined;
+        };
+        
+        // Player name
+        const playerName = getPlayerValue('name', 'player_name', 'trainer_name', 'player.name', 'trainer.name', 'ot', 'OT', 'original_trainer', 'originalTrainer');
+        if (dashboardSettings.showPlayerName !== false && playerName !== undefined && typeof playerName === 'string' && playerName.trim() !== '') {
+            playerInfo.push(`Name: ${playerName}`);
+        }
+        
+        // Trainer ID
+        const tid = getPlayerValue('trainer_id', 'tid', 'TID', 'player.trainer_id', 'trainer.id', 'trainer.tid', 'trainerID', 'trainerId');
+        if (dashboardSettings.showPlayerTID !== false && tid !== undefined && (typeof tid === 'number' || typeof tid === 'string')) {
+            playerInfo.push(`Trainer ID: ${tid}`);
+        }
+        
+        // Secret ID
+        const sid = getPlayerValue('secret_id', 'sid', 'SID', 'player.secret_id', 'trainer.secret_id', 'trainer.sid', 'secretID', 'secretId');
+        if (dashboardSettings.showPlayerSID !== false && sid !== undefined && (typeof sid === 'number' || typeof sid === 'string')) {
+            playerInfo.push(`Secret ID: ${sid}`);
+        }
+        
+        // Gender
+        const gender = getPlayerValue('gender', 'player.gender', 'trainer.gender', 'is_male', 'isMale');
+        if (dashboardSettings.showPlayerGender !== false && gender !== undefined) {
+            let genderText = 'Unknown';
+            if (typeof gender === 'string') {
+                genderText = gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+            } else if (typeof gender === 'number') {
+                genderText = gender === 0 ? 'Male' : gender === 1 ? 'Female' : String(gender);
+            } else if (typeof gender === 'boolean') {
+                genderText = gender ? 'Female' : 'Male';
+            }
+            playerInfo.push(`Gender: ${genderText}`);
+        }
+        
+        // Play time
+        const playTime = getPlayerValue('play_time', 'playTime', 'player.play_time', 'time_played', 'timePlayed');
+        if (dashboardSettings.showPlayerPlayTime !== false && playTime !== undefined && typeof playTime === 'number') {
+            playerInfo.push(`Play Time: ${formatPlayTime(playTime)}`);
+        }
+        
+        // ID32 (combined TID/SID)
+        const id32 = getPlayerValue('id32', 'ID32', 'player.id32', 'trainer.id32', 'trainerID32', 'trainerId32');
+        if (dashboardSettings.showPlayerID32 !== false && id32 !== undefined && typeof id32 === 'number') {
+            playerInfo.push(`ID32: ${id32}`);
+        }
+        
+        // Display any other player fields
+        for (const [key, value] of Object.entries(playerData)) {
+            if (['name', 'player_name', 'trainer_name', 'ot', 'OT', 'trainer_id', 'tid', 'TID', 
+                 'secret_id', 'sid', 'SID', 'gender', 'play_time', 'playTime', 'id32', 'ID32'].includes(key)) {
+                continue; // Already displayed
+            }
+            if (value !== null && value !== undefined && typeof value !== 'object') {
+                const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')
+                    .split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                playerInfo.push(`${label}: ${value}`);
+            }
+        }
+        
+        // Display all player info items in phase-info format
+        if (playerInfo.length > 0) {
+            playerInfo.forEach(info => {
+                html += `<div class="phase-info-item">${info}</div>`;
+            });
+        } else {
+            html += `<div class="phase-info-item">No player data available</div>`;
+        }
+        
+        html += `</div></div>`;
+    }
+
+    // Total Stats - Display all available stats from the API (formatted like Current Phase)
+    if (dashboardSettings.showTotalStats && statsData && Object.keys(statsData).length > 0) {
+        html += `<div class="status-section">
+            <h4>Total Stats</h4>
+            <div class="phase-info">`;
+        
+        // Helper function to format stat values
+        const formatStatValue = (value) => {
+            if (value === null || value === undefined) return 'N/A';
+            if (typeof value === 'number') {
+                return value.toLocaleString();
+            }
+            if (typeof value === 'object') {
+                return JSON.stringify(value);
+            }
+            return String(value);
+        };
+        
+        // Build list of stat info items (like Current Phase format)
+        const statInfo = [];
+        
+        // Check for totals object and add those stats first
+        const totals = statsData.totals || {};
+        if (totals && Object.keys(totals).length > 0) {
+            // Total encounters
+            if (totals.total_encounters !== undefined) {
+                statInfo.push(`Total Encounters: ${totals.total_encounters.toLocaleString()}`);
+            }
+            
+            // Shiny encounters
+            if (totals.shiny_encounters !== undefined) {
+                statInfo.push(`Shiny Encounters: ${totals.shiny_encounters.toLocaleString()}`);
+            }
+            
+            // Catches
+            if (totals.catches !== undefined) {
+                statInfo.push(`Catches: ${totals.catches.toLocaleString()}`);
+            }
+            
+            // Total highest IV sum
+            if (totals.total_highest_iv_sum && typeof totals.total_highest_iv_sum === 'object') {
+                const iv = totals.total_highest_iv_sum;
+                statInfo.push(`Total Highest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
+            }
+            
+            // Total lowest IV sum
+            if (totals.total_lowest_iv_sum && typeof totals.total_lowest_iv_sum === 'object') {
+                const iv = totals.total_lowest_iv_sum;
+                statInfo.push(`Total Lowest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
+            }
+            
+            // Total highest SV
+            if (totals.total_highest_sv && typeof totals.total_highest_sv === 'object') {
+                const sv = totals.total_highest_sv;
+                statInfo.push(`Total Highest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
+            }
+            
+            // Total lowest SV
+            if (totals.total_lowest_sv && typeof totals.total_lowest_sv === 'object') {
+                const sv = totals.total_lowest_sv;
+                statInfo.push(`Total Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
+            }
+            
+            // Phase encounters
+            if (totals.phase_encounters !== undefined) {
+                statInfo.push(`Phase Encounters: ${totals.phase_encounters.toLocaleString()}`);
+            }
+            
+            // Phase highest IV sum
+            if (totals.phase_highest_iv_sum && typeof totals.phase_highest_iv_sum === 'object') {
+                const iv = totals.phase_highest_iv_sum;
+                statInfo.push(`Phase Highest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
+            }
+            
+            // Phase lowest IV sum
+            if (totals.phase_lowest_iv_sum && typeof totals.phase_lowest_iv_sum === 'object') {
+                const iv = totals.phase_lowest_iv_sum;
+                statInfo.push(`Phase Lowest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
+            }
+            
+            // Phase highest SV
+            if (totals.phase_highest_sv && typeof totals.phase_highest_sv === 'object') {
+                const sv = totals.phase_highest_sv;
+                statInfo.push(`Phase Highest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
+            }
+            
+            // Phase lowest SV
+            if (totals.phase_lowest_sv && typeof totals.phase_lowest_sv === 'object') {
+                const sv = totals.phase_lowest_sv;
+                statInfo.push(`Phase Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
+            }
+        }
+        
+        // Display all stats from the stats object
+        const statFields = [
+            { key: 'total_encounters', label: 'Total Encounters', aliases: ['totalEncounters', 'encounters'] },
+            { key: 'shiny_encounters', label: 'Shiny Encounters', aliases: ['shinyEncounters', 'shinies'] },
+            { key: 'play_time', label: 'Play Time', aliases: ['playTime', 'time_played', 'timePlayed'], formatter: (v) => typeof v === 'number' ? formatPlayTime(v) : v },
+            { key: 'total_runtime', label: 'Total Runtime', aliases: ['totalRuntime', 'runtime'], formatter: (v) => typeof v === 'number' ? formatPlayTime(v) : v },
+            { key: 'total_shinies', label: 'Total Shinies', aliases: ['totalShinies'] },
+            { key: 'total_caught', label: 'Total Caught', aliases: ['totalCaught', 'caught'] },
+            { key: 'total_fainted', label: 'Total Fainted', aliases: ['totalFainted', 'fainted'] },
+            { key: 'total_resets', label: 'Total Resets', aliases: ['totalResets', 'resets'] },
+            { key: 'encounters_per_hour', label: 'Encounters/Hour', aliases: ['encountersPerHour', 'encounter_rate'] },
+            { key: 'shiny_rate', label: 'Shiny Rate', aliases: ['shinyRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(4)}%` : v },
+            { key: 'average_iv_sum', label: 'Average IV Sum', aliases: ['averageIvSum', 'avg_iv_sum', 'avgIvSum'], formatter: (v) => typeof v === 'number' ? v.toFixed(2) : v },
+            { key: 'best_iv_sum', label: 'Best IV Sum', aliases: ['bestIvSum', 'highest_iv_sum', 'highestIvSum'] },
+            { key: 'total_phases', label: 'Total Phases', aliases: ['totalPhases', 'phases'] },
+            { key: 'current_phase_number', label: 'Current Phase #', aliases: ['currentPhaseNumber', 'phase_number', 'phaseNumber'] },
+            { key: 'longest_phase', label: 'Longest Phase', aliases: ['longestPhase'], formatter: (v) => {
+                if (typeof v === 'number') return formatPlayTime(v);
+                if (typeof v === 'object' && v !== null) {
+                    // Handle phase object - might have duration, encounters, value, species_name, etc.
+                    if (v.duration !== undefined) return formatPlayTime(v.duration);
+                    if (v.encounters !== undefined) return `${v.encounters.toLocaleString()} encounters`;
+                    if (v.value !== undefined && v.species_name !== undefined) {
+                        return `${v.value.toLocaleString()} (${v.species_name})`;
+                    }
+                    if (v.value !== undefined) return v.value.toLocaleString();
+                    return `${v.species_name || 'Unknown'}: ${v.encounters || v.duration || 'N/A'}`;
+                }
+                return String(v);
+            }},
+            { key: 'shortest_phase', label: 'Shortest Phase', aliases: ['shortestPhase'], formatter: (v) => {
+                if (typeof v === 'number') return formatPlayTime(v);
+                if (typeof v === 'object' && v !== null) {
+                    // Handle phase object - might have duration, encounters, value, species_name, etc.
+                    if (v.duration !== undefined) return formatPlayTime(v.duration);
+                    if (v.encounters !== undefined) return `${v.encounters.toLocaleString()} encounters`;
+                    if (v.value !== undefined && v.species_name !== undefined) {
+                        return `${v.value.toLocaleString()} (${v.species_name})`;
+                    }
+                    if (v.value !== undefined) return v.value.toLocaleString();
+                    return `${v.species_name || 'Unknown'}: ${v.encounters || v.duration || 'N/A'}`;
+                }
+                return String(v);
+            }},
+            { key: 'total_pokemon_caught', label: 'Pokemon Caught', aliases: ['totalPokemonCaught', 'pokemon_caught'] },
+            { key: 'total_pokemon_seen', label: 'Pokemon Seen', aliases: ['totalPokemonSeen', 'pokemon_seen'] },
+            { key: 'total_battles', label: 'Total Battles', aliases: ['totalBattles', 'battles'] },
+            { key: 'total_wins', label: 'Total Wins', aliases: ['totalWins', 'wins'] },
+            { key: 'total_losses', label: 'Total Losses', aliases: ['totalLosses', 'losses'] },
+            { key: 'win_rate', label: 'Win Rate', aliases: ['winRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(2)}%` : v },
+            { key: 'money_earned', label: 'Money Earned', aliases: ['moneyEarned'], formatter: (v) => typeof v === 'number' ? `₽${v.toLocaleString()}` : v },
+            { key: 'money_spent', label: 'Money Spent', aliases: ['moneySpent'], formatter: (v) => typeof v === 'number' ? `₽${v.toLocaleString()}` : v },
+            { key: 'items_found', label: 'Items Found', aliases: ['itemsFound'] },
+            { key: 'pokeballs_used', label: 'Pokeballs Used', aliases: ['pokeballsUsed'] },
+            { key: 'pokeballs_caught', label: 'Pokeballs Caught', aliases: ['pokeballsCaught'] },
+            { key: 'catch_rate', label: 'Catch Rate', aliases: ['catchRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(2)}%` : v }
+        ];
+        
+        // Track which fields we've displayed
+        const displayedKeys = new Set();
+        
+        // Add totals keys to displayedKeys so they don't show up again
+        if (totals && Object.keys(totals).length > 0) {
+            Object.keys(totals).forEach(key => displayedKeys.add(key));
+        }
+        displayedKeys.add('totals'); // Also skip the totals object itself
+        
+        // Display known stat fields
+        statFields.forEach(field => {
+            let value = statsData[field.key];
+            if (value === undefined || value === null) {
+                // Try aliases
+                for (const alias of field.aliases) {
+                    if (statsData[alias] !== undefined && statsData[alias] !== null) {
+                        value = statsData[alias];
+                        break;
+                    }
+                }
+            }
+            
+            if (value !== undefined && value !== null) {
+                displayedKeys.add(field.key);
+                field.aliases.forEach(alias => displayedKeys.add(alias));
+                
+                const formattedValue = field.formatter ? field.formatter(value) : formatStatValue(value);
+                statInfo.push(`${field.label}: ${formattedValue}`);
+            }
+        });
+        
+        // Display any remaining stats that weren't in our known list
+        for (const [key, value] of Object.entries(statsData)) {
+            // Skip if already displayed or if it's a complex object (we handle those separately)
+            if (displayedKeys.has(key) || 
+                key === 'current_phase' || key === 'currentPhase' ||
+                typeof value === 'object' && value !== null) {
+                continue;
+            }
+            
+            // Skip fields containing "fraction" or "time spent" (user requested removal)
+            if (key.toLowerCase().includes('fraction') || 
+                key.toLowerCase().includes('time_spent') ||
+                key.toLowerCase().includes('timespent')) {
+                continue;
+            }
+            
+            // Format the key name (convert snake_case to Title Case)
+            const label = key
+                .replace(/_/g, ' ')
+                .replace(/([A-Z])/g, ' $1')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+            
+            // Skip if label contains "time spent" or "fraction"
+            if (label.toLowerCase().includes('time spent') || 
+                label.toLowerCase().includes('fraction')) {
+                continue;
+            }
+            
+            statInfo.push(`${label}: ${formatStatValue(value)}`);
+        }
+        
+        // Display all stat info items in phase-info format
+        if (statInfo.length > 0) {
+            statInfo.forEach(info => {
+                html += `<div class="phase-info-item">${info}</div>`;
+            });
+        } else {
+            html += `<div class="phase-info-item">No stats available</div>`;
+        }
+        
+        html += `</div></div>`;
+    }
+
     if (!html) {
         html = '<p>No data available</p>';
+    }
+
+    // Preserve chart data before updating HTML (to prevent flashing)
+    let preservedChartData = null;
+    if (dashboardSettings.showEncounterRateAsGraph) {
+        const existingCanvas = document.getElementById(`encounter-rate-chart-${bot.id}`);
+        if (existingCanvas && existingCanvas.chart) {
+            // Save chart data before destroying
+            preservedChartData = {
+                labels: [...existingCanvas.chart.data.labels],
+                data: [...existingCanvas.chart.data.datasets[0].data]
+            };
+            existingCanvas.chart.destroy();
+            existingCanvas.chart = null;
+        }
     }
 
     // Only update the content, not the entire card
@@ -1604,11 +3052,27 @@ function updateStatusCard(card, bot, result) {
         content.innerHTML = html;
     }
     
-    // Update the dashboard summary chart after updating this bot
-    if (dashboardSettings.showEncounterRateGraph) {
+    // Restore or create mini graph for this bot if enabled
+    if (dashboardSettings.showEncounterRateAsGraph) {
         setTimeout(() => {
-            renderDashboardEncounterRateChart();
-        }, 100);
+            const canvas = document.getElementById(`encounter-rate-chart-${bot.id}`);
+            if (canvas) {
+                const now = Date.now();
+                const shouldUpdateData = now - lastGraphUpdate >= GRAPH_UPDATE_INTERVAL;
+                
+                if (shouldUpdateData) {
+                    lastGraphUpdate = now;
+                    // Create/update chart with fresh data
+                    renderBotEncounterRateGraph(bot.id);
+                } else if (preservedChartData) {
+                    // Recreate chart with preserved data (no data refresh, prevents flashing)
+                    recreateChartWithData(canvas, preservedChartData);
+                } else {
+                    // Create new chart
+                    renderBotEncounterRateGraph(bot.id);
+                }
+            }
+        }, 50);
     }
 }
 
@@ -1626,152 +3090,130 @@ const botColors = [
     { border: 'rgb(99, 255, 132)', background: 'rgba(99, 255, 132, 0.2)' }
 ];
 
-function renderDashboardEncounterRateChart() {
-    const canvas = document.getElementById('dashboardEncounterRateChart');
-    const container = document.getElementById('encounterRateGraphContainer');
-    if (!canvas || !container || typeof Chart === 'undefined') return;
+// Update combined encounter rate display and graph
+// Use live data only from in-memory liveEncounterRateHistory
+function updateCombinedEncounterRate() {
+    // Calculate current combined rate from live bot data
+    let combinedRate = 0;
     
-    // Collect all bot histories
-    const datasets = [];
-    let allTimestamps = new Set();
-    let hasData = false;
-    
-    // First pass: collect all timestamps from all bots
-    botInstances.forEach((bot) => {
-        const history = encounterRateHistory[bot.id];
-        if (history && history.length > 0) {
-            hasData = true;
-            history.forEach(point => {
-                allTimestamps.add(point.time);
-            });
+    // Collect current encounter rates from all bots
+    botInstances.forEach(bot => {
+        const botData = botDataCache.get(bot.id);
+        if (botData && botData.success && botData.data) {
+            const encounterRate = botData.data.encounter_rate;
+            if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
+                combinedRate += encounterRate;
+            }
         }
     });
     
-    if (!hasData) {
-        container.style.display = 'none';
-        if (canvas.chart) {
+    console.log('[Combined Rate] Calculated from live data:', combinedRate, 'from', botInstances.length, 'bots');
+    
+    // Update the display value
+    const valueElement = document.getElementById('combinedEncounterRateValue');
+    if (valueElement) {
+        valueElement.textContent = `${combinedRate}/hr`;
+        console.log('[Combined Rate] Updated display to:', combinedRate);
+    } else {
+        console.warn('[Combined Rate] Value element not found!');
+    }
+    
+    // Build combined history from live data only (in-memory)
+    const allTimestamps = new Set();
+    botInstances.forEach(bot => {
+        const history = liveEncounterRateHistory.get(bot.id);
+        if (history) {
+            history.forEach(point => allTimestamps.add(point.time));
+        }
+    });
+    
+    const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
+    
+    // If no live data, show empty graph
+    if (sortedTimestamps.length === 0) {
+        const canvas = document.getElementById('combinedEncounterRateChart');
+        if (canvas && canvas.chart) {
             canvas.chart.destroy();
             canvas.chart = null;
         }
         return;
     }
     
-    container.style.display = 'block';
+    // Build combined data by summing rates at each timestamp
+    const combinedData = sortedTimestamps.map(timestamp => {
+        let sum = 0;
+        botInstances.forEach(bot => {
+            const history = liveEncounterRateHistory.get(bot.id);
+            if (history) {
+                // Find closest point to this timestamp (within 2 seconds)
+                let closestPoint = null;
+                let minDiff = Infinity;
+                history.forEach(point => {
+                    const diff = Math.abs(point.time - timestamp);
+                    if (diff < minDiff && diff < 2000) { // Within 2 seconds
+                        minDiff = diff;
+                        closestPoint = point;
+                    }
+                });
+                if (closestPoint) {
+                    sum += closestPoint.rate;
+                }
+            }
+        });
+        return sum;
+    });
     
-    // Sort timestamps
-    const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
     const labels = sortedTimestamps.map(ts => {
         const date = new Date(ts);
         return date.toLocaleTimeString();
     });
     
-    // Create datasets for ALL bots (even if they don't have data yet)
-    botInstances.forEach((bot, index) => {
-        const history = encounterRateHistory[bot.id];
-        const color = botColors[index % botColors.length];
-        
-        if (history && history.length > 0) {
-            // Map data points to sorted timestamps
-            const data = sortedTimestamps.map(timestamp => {
-                // Find the closest data point to this timestamp
-                let closestPoint = null;
-                let minDiff = Infinity;
-                
-                history.forEach(point => {
-                    const diff = Math.abs(point.time - timestamp);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closestPoint = point;
-                    }
-                });
-                
-                // Only use if within 5 seconds (5000ms)
-                return (minDiff < 5000 && closestPoint) ? closestPoint.rate : null;
-            });
-            
-            datasets.push({
-                label: bot.name || `Bot ${index + 1}`,
-                data: data,
-                borderColor: color.border,
-                backgroundColor: color.background,
-                tension: 0.1,
-                fill: false,
-                pointRadius: 2,
-                pointHoverRadius: 4
-            });
-        } else {
-            // Include bot even if no data yet (with empty dataset, visible by default)
-            // Use a very small value instead of null so the line can be shown when enabled
-            datasets.push({
-                label: bot.name || `Bot ${index + 1}`,
-                data: sortedTimestamps.map(() => 0), // Use 0 instead of null so Chart.js doesn't auto-hide
-                borderColor: color.border,
-                backgroundColor: color.background,
-                tension: 0.1,
-                fill: false,
-                pointRadius: 0, // No points for empty data
-                pointHoverRadius: 0,
-                borderWidth: 1,
-                spanGaps: true, // Allow gaps in the line
-                showLine: true // Show the line even with 0 data
-            });
-        }
-    });
+    // Render the combined graph
+    const canvas = document.getElementById('combinedEncounterRateChart');
+    if (!canvas) {
+        console.warn('[Combined Rate] Canvas element not found!');
+        return;
+    }
+    if (typeof Chart === 'undefined') {
+        console.warn('[Combined Rate] Chart.js not loaded!');
+        return;
+    }
     
-    console.log(`[Chart] Rendering ${datasets.length} bot datasets (${botInstances.length} total bots)`);
+    console.log('[Combined Rate] Rendering graph with', sortedTimestamps.length, 'live data points');
     
     // Destroy existing chart if it exists
     if (canvas.chart) {
         canvas.chart.destroy();
     }
     
-    // Create chart with all bots
+    // Create combined chart with live data only
     canvas.chart = new Chart(canvas, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: datasets
+            datasets: [{
+                label: 'Combined Encounter Rate (Live)',
+                data: combinedData,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                fill: true,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'top',
-                    onClick: function(e, legendItem, legend) {
-                        // Prevent default behavior
-                        e.stopPropagation();
-                        
-                        // Get the chart instance
-                        const chart = legend.chart;
-                        const index = legendItem.datasetIndex;
-                        const meta = chart.getDatasetMeta(index);
-                        
-                        // Toggle visibility - Chart.js uses null for visible, true for hidden
-                        if (meta.hidden === null || meta.hidden === false) {
-                            meta.hidden = true;
-                        } else {
-                            meta.hidden = null; // null means visible in Chart.js
-                        }
-                        
-                        // Update the chart without animation to prevent flickering
-                        chart.update('none');
-                        
-                        // Return false to prevent default Chart.js behavior
-                        return false;
-                    }
+                    display: false
                 },
                 tooltip: {
-                    filter: function(tooltipItem) {
-                        // Only show tooltips for data points that have actual data (not 0 from empty datasets)
-                        // Check if this is a real data point by looking at the dataset
-                        const dataset = tooltipItem.dataset;
-                        // If all values are 0, it's likely an empty dataset - don't show tooltip
-                        const hasRealData = dataset.data.some(val => val !== null && val !== 0 && val !== undefined);
-                        if (!hasRealData) return false;
-                        // For datasets with real data, only show if value is not 0
-                        return tooltipItem.parsed.y !== null && tooltipItem.parsed.y !== 0;
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y}/hr`;
+                        }
                     }
                 }
             },
@@ -1789,13 +3231,420 @@ function renderDashboardEncounterRateChart() {
                         text: 'Time'
                     }
                 }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
             }
         }
     });
+}
+
+// Recreate chart with preserved data (for smooth updates without flashing)
+function recreateChartWithData(canvas, chartData) {
+    if (!canvas || typeof Chart === 'undefined') return;
+    
+    if (canvas.chart) {
+        canvas.chart.destroy();
+    }
+    
+    canvas.chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Encounter Rate',
+                data: chartData.data,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false, // No animation for smooth updates
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y}/hr`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Render mini encounter rate graph for a single bot
+function renderBotEncounterRateGraph(botId) {
+    const canvas = document.getElementById(`encounter-rate-chart-${botId}`);
+    if (!canvas || typeof Chart === 'undefined') return;
+    
+    // Reload history
+    encounterRateHistory = JSON.parse(localStorage.getItem('botEncounterRateHistory') || '{}');
+    const history = encounterRateHistory[botId] || [];
+    
+    if (history.length === 0) {
+        // No data yet, destroy chart if exists
+        if (canvas.chart) {
+            canvas.chart.destroy();
+            canvas.chart = null;
+        }
+        return;
+    }
+    
+    // Use all historical data points
+    const labels = history.map(point => {
+        const date = new Date(point.time);
+        return date.toLocaleTimeString();
+    });
+    const data = history.map(point => point.rate);
+    
+    // Destroy existing chart if it exists
+    if (canvas.chart) {
+        canvas.chart.destroy();
+    }
+    
+    // Create mini chart
+    canvas.chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Encounter Rate',
+                data: data,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1,
+                fill: true,
+                pointRadius: 2,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y}/hr`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxTicksLimit: 5
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Setup Options Modal
+function setupOptionsModal() {
+    if (!optionsBtn || !optionsModal) return;
+    
+    // Open options modal
+    optionsBtn.addEventListener('click', () => {
+        // Sync checkboxes with current settings
+        updateOptionsModalCheckboxes();
+        optionsModal.classList.remove('hidden');
+    });
+    
+    // Close options modal
+    if (closeOptionsModal) {
+        closeOptionsModal.addEventListener('click', () => {
+            optionsModal.classList.add('hidden');
+        });
+    }
+    
+    if (cancelOptionsBtn) {
+        cancelOptionsBtn.addEventListener('click', () => {
+            optionsModal.classList.add('hidden');
+        });
+    }
+    
+    // Save options
+    if (saveOptionsBtn) {
+        saveOptionsBtn.addEventListener('click', () => {
+            saveOptionsFromModal();
+            optionsModal.classList.add('hidden');
+        });
+    }
+    
+    // Close on outside click
+    optionsModal.addEventListener('click', (e) => {
+        if (e.target === optionsModal) {
+            optionsModal.classList.add('hidden');
+        }
+    });
+}
+
+// Update options modal checkboxes to match current settings
+function updateOptionsModalCheckboxes() {
+    const optShowMap = document.getElementById('optShowMap');
+    const optShowParty = document.getElementById('optShowParty');
+    const optShowCurrentEncounter = document.getElementById('optShowCurrentEncounter');
+    const optShowEncounters = document.getElementById('optShowEncounters');
+    const optShowStats = document.getElementById('optShowStats');
+    const optShowEmulator = document.getElementById('optShowEmulator');
+    const optShowGameState = document.getElementById('optShowGameState');
+    const optShowPlayerInfo = document.getElementById('optShowPlayerInfo');
+    const optShowTotalStats = document.getElementById('optShowTotalStats');
+    const optShowEncounterRateAsGraph = document.getElementById('optShowEncounterRateAsGraph');
+    
+    // Statistics toggles
+    const optShowStatsTotalEncounters = document.getElementById('optShowStatsTotalEncounters');
+    const optShowStatsShinyEncounters = document.getElementById('optShowStatsShinyEncounters');
+    const optShowStatsPlayTime = document.getElementById('optShowStatsPlayTime');
+    // Current Phase toggles
+    const optShowPhaseCurrentStreak = document.getElementById('optShowPhaseCurrentStreak');
+    const optShowPhaseEncounters = document.getElementById('optShowPhaseEncounters');
+    const optShowPhaseDuration = document.getElementById('optShowPhaseDuration');
+    const optShowPhaseBestIV = document.getElementById('optShowPhaseBestIV');
+    const optShowPhaseLongest = document.getElementById('optShowPhaseLongest');
+    const optShowPhasePokenav = document.getElementById('optShowPhasePokenav');
+    // Current Encounter toggles
+    const optShowEncounterSprite = document.getElementById('optShowEncounterSprite');
+    const optShowEncounterName = document.getElementById('optShowEncounterName');
+    const optShowEncounterLevel = document.getElementById('optShowEncounterLevel');
+    const optShowEncounterShiny = document.getElementById('optShowEncounterShiny');
+    const optShowEncounterNature = document.getElementById('optShowEncounterNature');
+    const optShowEncounterAbility = document.getElementById('optShowEncounterAbility');
+    const optShowEncounterIVSum = document.getElementById('optShowEncounterIVSum');
+    const optShowEncounterIVs = document.getElementById('optShowEncounterIVs');
+    // Emulator Info toggles
+    const optShowEmulatorFrameRate = document.getElementById('optShowEmulatorFrameRate');
+    const optShowEmulatorFastForward = document.getElementById('optShowEmulatorFastForward');
+    const optShowEmulatorPaused = document.getElementById('optShowEmulatorPaused');
+    const optShowEmulatorUptime = document.getElementById('optShowEmulatorUptime');
+    // Game toggles
+    const optShowGameBadges = document.getElementById('optShowGameBadges');
+    const optShowGameName = document.getElementById('optShowGameName');
+    const optShowGameLanguage = document.getElementById('optShowGameLanguage');
+    const optShowGameRevision = document.getElementById('optShowGameRevision');
+    const optShowGameMapID = document.getElementById('optShowGameMapID');
+    const optShowGamePosition = document.getElementById('optShowGamePosition');
+    const optShowGameSteps = document.getElementById('optShowGameSteps');
+    const optShowGameTimePlayed = document.getElementById('optShowGameTimePlayed');
+    // Player Info toggles
+    const optShowPlayerName = document.getElementById('optShowPlayerName');
+    const optShowPlayerTID = document.getElementById('optShowPlayerTID');
+    const optShowPlayerSID = document.getElementById('optShowPlayerSID');
+    const optShowPlayerGender = document.getElementById('optShowPlayerGender');
+    const optShowPlayerPlayTime = document.getElementById('optShowPlayerPlayTime');
+    const optShowPlayerID32 = document.getElementById('optShowPlayerID32');
+    
+    if (optShowMap) optShowMap.checked = dashboardSettings.showMap !== false;
+    if (optShowParty) optShowParty.checked = dashboardSettings.showParty !== false;
+    if (optShowCurrentEncounter) optShowCurrentEncounter.checked = dashboardSettings.showCurrentEncounter !== false;
+    if (optShowEncounters) optShowEncounters.checked = dashboardSettings.showEncounters !== false;
+    if (optShowStats) optShowStats.checked = dashboardSettings.showStats !== false;
+    if (optShowEmulator) optShowEmulator.checked = dashboardSettings.showEmulator || false;
+    if (optShowGameState) optShowGameState.checked = dashboardSettings.showGameState || false;
+    if (optShowPlayerInfo) optShowPlayerInfo.checked = dashboardSettings.showPlayerInfo || false;
+    if (optShowTotalStats) optShowTotalStats.checked = dashboardSettings.showTotalStats || false;
+    if (optShowEncounterRateAsGraph) optShowEncounterRateAsGraph.checked = dashboardSettings.showEncounterRateAsGraph || false;
+    
+    // Statistics toggles
+    if (optShowStatsTotalEncounters) optShowStatsTotalEncounters.checked = dashboardSettings.showStatsTotalEncounters !== false;
+    if (optShowStatsShinyEncounters) optShowStatsShinyEncounters.checked = dashboardSettings.showStatsShinyEncounters !== false;
+    if (optShowStatsPlayTime) optShowStatsPlayTime.checked = dashboardSettings.showStatsPlayTime !== false;
+    // Current Phase toggles
+    if (optShowPhaseCurrentStreak) optShowPhaseCurrentStreak.checked = dashboardSettings.showPhaseCurrentStreak !== false;
+    if (optShowPhaseEncounters) optShowPhaseEncounters.checked = dashboardSettings.showPhaseEncounters !== false;
+    if (optShowPhaseDuration) optShowPhaseDuration.checked = dashboardSettings.showPhaseDuration !== false;
+    if (optShowPhaseBestIV) optShowPhaseBestIV.checked = dashboardSettings.showPhaseBestIV !== false;
+    if (optShowPhaseLongest) optShowPhaseLongest.checked = dashboardSettings.showPhaseLongest !== false;
+    if (optShowPhasePokenav) optShowPhasePokenav.checked = dashboardSettings.showPhasePokenav !== false;
+    // Current Encounter toggles
+    if (optShowEncounterSprite) optShowEncounterSprite.checked = dashboardSettings.showEncounterSprite !== false;
+    if (optShowEncounterName) optShowEncounterName.checked = dashboardSettings.showEncounterName !== false;
+    if (optShowEncounterLevel) optShowEncounterLevel.checked = dashboardSettings.showEncounterLevel !== false;
+    if (optShowEncounterShiny) optShowEncounterShiny.checked = dashboardSettings.showEncounterShiny !== false;
+    if (optShowEncounterNature) optShowEncounterNature.checked = dashboardSettings.showEncounterNature !== false;
+    if (optShowEncounterAbility) optShowEncounterAbility.checked = dashboardSettings.showEncounterAbility !== false;
+    if (optShowEncounterIVSum) optShowEncounterIVSum.checked = dashboardSettings.showEncounterIVSum !== false;
+    if (optShowEncounterIVs) optShowEncounterIVs.checked = dashboardSettings.showEncounterIVs !== false;
+    // Emulator Info toggles
+    if (optShowEmulatorFrameRate) optShowEmulatorFrameRate.checked = dashboardSettings.showEmulatorFrameRate !== false;
+    if (optShowEmulatorFastForward) optShowEmulatorFastForward.checked = dashboardSettings.showEmulatorFastForward !== false;
+    if (optShowEmulatorPaused) optShowEmulatorPaused.checked = dashboardSettings.showEmulatorPaused !== false;
+    if (optShowEmulatorUptime) optShowEmulatorUptime.checked = dashboardSettings.showEmulatorUptime !== false;
+    // Game toggles
+    if (optShowGameBadges) optShowGameBadges.checked = dashboardSettings.showGameBadges !== false;
+    if (optShowGameName) optShowGameName.checked = dashboardSettings.showGameName !== false;
+    if (optShowGameLanguage) optShowGameLanguage.checked = dashboardSettings.showGameLanguage !== false;
+    if (optShowGameRevision) optShowGameRevision.checked = dashboardSettings.showGameRevision !== false;
+    if (optShowGameMapID) optShowGameMapID.checked = dashboardSettings.showGameMapID !== false;
+    if (optShowGamePosition) optShowGamePosition.checked = dashboardSettings.showGamePosition !== false;
+    if (optShowGameSteps) optShowGameSteps.checked = dashboardSettings.showGameSteps !== false;
+    if (optShowGameTimePlayed) optShowGameTimePlayed.checked = dashboardSettings.showGameTimePlayed !== false;
+    // Player Info toggles
+    if (optShowPlayerName) optShowPlayerName.checked = dashboardSettings.showPlayerName !== false;
+    if (optShowPlayerTID) optShowPlayerTID.checked = dashboardSettings.showPlayerTID !== false;
+    if (optShowPlayerSID) optShowPlayerSID.checked = dashboardSettings.showPlayerSID !== false;
+    if (optShowPlayerGender) optShowPlayerGender.checked = dashboardSettings.showPlayerGender !== false;
+    if (optShowPlayerPlayTime) optShowPlayerPlayTime.checked = dashboardSettings.showPlayerPlayTime !== false;
+    if (optShowPlayerID32) optShowPlayerID32.checked = dashboardSettings.showPlayerID32 !== false;
+}
+
+// Save options from modal to dashboard settings
+function saveOptionsFromModal() {
+    const optShowMap = document.getElementById('optShowMap');
+    const optShowParty = document.getElementById('optShowParty');
+    const optShowCurrentEncounter = document.getElementById('optShowCurrentEncounter');
+    const optShowEncounters = document.getElementById('optShowEncounters');
+    const optShowStats = document.getElementById('optShowStats');
+    const optShowEmulator = document.getElementById('optShowEmulator');
+    const optShowGameState = document.getElementById('optShowGameState');
+    const optShowPlayerInfo = document.getElementById('optShowPlayerInfo');
+    const optShowTotalStats = document.getElementById('optShowTotalStats');
+    const optShowEncounterRateAsGraph = document.getElementById('optShowEncounterRateAsGraph');
+    
+    // Statistics toggles
+    const optShowStatsTotalEncounters = document.getElementById('optShowStatsTotalEncounters');
+    const optShowStatsShinyEncounters = document.getElementById('optShowStatsShinyEncounters');
+    const optShowStatsPlayTime = document.getElementById('optShowStatsPlayTime');
+    // Current Phase toggles
+    const optShowPhaseCurrentStreak = document.getElementById('optShowPhaseCurrentStreak');
+    const optShowPhaseEncounters = document.getElementById('optShowPhaseEncounters');
+    const optShowPhaseDuration = document.getElementById('optShowPhaseDuration');
+    const optShowPhaseBestIV = document.getElementById('optShowPhaseBestIV');
+    const optShowPhaseLongest = document.getElementById('optShowPhaseLongest');
+    const optShowPhasePokenav = document.getElementById('optShowPhasePokenav');
+    // Current Encounter toggles
+    const optShowEncounterSprite = document.getElementById('optShowEncounterSprite');
+    const optShowEncounterName = document.getElementById('optShowEncounterName');
+    const optShowEncounterLevel = document.getElementById('optShowEncounterLevel');
+    const optShowEncounterShiny = document.getElementById('optShowEncounterShiny');
+    const optShowEncounterNature = document.getElementById('optShowEncounterNature');
+    const optShowEncounterAbility = document.getElementById('optShowEncounterAbility');
+    const optShowEncounterIVSum = document.getElementById('optShowEncounterIVSum');
+    const optShowEncounterIVs = document.getElementById('optShowEncounterIVs');
+    // Emulator Info toggles
+    const optShowEmulatorFrameRate = document.getElementById('optShowEmulatorFrameRate');
+    const optShowEmulatorFastForward = document.getElementById('optShowEmulatorFastForward');
+    const optShowEmulatorPaused = document.getElementById('optShowEmulatorPaused');
+    const optShowEmulatorUptime = document.getElementById('optShowEmulatorUptime');
+    // Game toggles
+    const optShowGameBadges = document.getElementById('optShowGameBadges');
+    const optShowGameName = document.getElementById('optShowGameName');
+    const optShowGameLanguage = document.getElementById('optShowGameLanguage');
+    const optShowGameRevision = document.getElementById('optShowGameRevision');
+    const optShowGameMapID = document.getElementById('optShowGameMapID');
+    const optShowGamePosition = document.getElementById('optShowGamePosition');
+    const optShowGameSteps = document.getElementById('optShowGameSteps');
+    const optShowGameTimePlayed = document.getElementById('optShowGameTimePlayed');
+    // Player Info toggles
+    const optShowPlayerName = document.getElementById('optShowPlayerName');
+    const optShowPlayerTID = document.getElementById('optShowPlayerTID');
+    const optShowPlayerSID = document.getElementById('optShowPlayerSID');
+    const optShowPlayerGender = document.getElementById('optShowPlayerGender');
+    const optShowPlayerPlayTime = document.getElementById('optShowPlayerPlayTime');
+    const optShowPlayerID32 = document.getElementById('optShowPlayerID32');
+    
+    // Update dashboard settings
+    if (optShowMap) dashboardSettings.showMap = optShowMap.checked;
+    if (optShowParty) dashboardSettings.showParty = optShowParty.checked;
+    if (optShowCurrentEncounter) dashboardSettings.showCurrentEncounter = optShowCurrentEncounter.checked;
+    if (optShowEncounters) dashboardSettings.showEncounters = optShowEncounters.checked;
+    if (optShowStats) dashboardSettings.showStats = optShowStats.checked;
+    if (optShowEmulator) dashboardSettings.showEmulator = optShowEmulator.checked;
+    if (optShowGameState) dashboardSettings.showGameState = optShowGameState.checked;
+    if (optShowPlayerInfo) dashboardSettings.showPlayerInfo = optShowPlayerInfo.checked;
+    if (optShowTotalStats) dashboardSettings.showTotalStats = optShowTotalStats.checked;
+    if (optShowEncounterRateAsGraph) dashboardSettings.showEncounterRateAsGraph = optShowEncounterRateAsGraph.checked;
+    
+    // Statistics toggles
+    if (optShowStatsTotalEncounters) dashboardSettings.showStatsTotalEncounters = optShowStatsTotalEncounters.checked;
+    if (optShowStatsShinyEncounters) dashboardSettings.showStatsShinyEncounters = optShowStatsShinyEncounters.checked;
+    if (optShowStatsPlayTime) dashboardSettings.showStatsPlayTime = optShowStatsPlayTime.checked;
+    // Current Phase toggles
+    if (optShowPhaseCurrentStreak) dashboardSettings.showPhaseCurrentStreak = optShowPhaseCurrentStreak.checked;
+    if (optShowPhaseEncounters) dashboardSettings.showPhaseEncounters = optShowPhaseEncounters.checked;
+    if (optShowPhaseDuration) dashboardSettings.showPhaseDuration = optShowPhaseDuration.checked;
+    if (optShowPhaseBestIV) dashboardSettings.showPhaseBestIV = optShowPhaseBestIV.checked;
+    if (optShowPhaseLongest) dashboardSettings.showPhaseLongest = optShowPhaseLongest.checked;
+    if (optShowPhasePokenav) dashboardSettings.showPhasePokenav = optShowPhasePokenav.checked;
+    // Current Encounter toggles
+    if (optShowEncounterSprite) dashboardSettings.showEncounterSprite = optShowEncounterSprite.checked;
+    if (optShowEncounterName) dashboardSettings.showEncounterName = optShowEncounterName.checked;
+    if (optShowEncounterLevel) dashboardSettings.showEncounterLevel = optShowEncounterLevel.checked;
+    if (optShowEncounterShiny) dashboardSettings.showEncounterShiny = optShowEncounterShiny.checked;
+    if (optShowEncounterNature) dashboardSettings.showEncounterNature = optShowEncounterNature.checked;
+    if (optShowEncounterAbility) dashboardSettings.showEncounterAbility = optShowEncounterAbility.checked;
+    if (optShowEncounterIVSum) dashboardSettings.showEncounterIVSum = optShowEncounterIVSum.checked;
+    if (optShowEncounterIVs) dashboardSettings.showEncounterIVs = optShowEncounterIVs.checked;
+    // Emulator Info toggles
+    if (optShowEmulatorFrameRate) dashboardSettings.showEmulatorFrameRate = optShowEmulatorFrameRate.checked;
+    if (optShowEmulatorFastForward) dashboardSettings.showEmulatorFastForward = optShowEmulatorFastForward.checked;
+    if (optShowEmulatorPaused) dashboardSettings.showEmulatorPaused = optShowEmulatorPaused.checked;
+    if (optShowEmulatorUptime) dashboardSettings.showEmulatorUptime = optShowEmulatorUptime.checked;
+    // Game toggles
+    if (optShowGameBadges) dashboardSettings.showGameBadges = optShowGameBadges.checked;
+    if (optShowGameName) dashboardSettings.showGameName = optShowGameName.checked;
+    if (optShowGameLanguage) dashboardSettings.showGameLanguage = optShowGameLanguage.checked;
+    if (optShowGameRevision) dashboardSettings.showGameRevision = optShowGameRevision.checked;
+    if (optShowGameMapID) dashboardSettings.showGameMapID = optShowGameMapID.checked;
+    if (optShowGamePosition) dashboardSettings.showGamePosition = optShowGamePosition.checked;
+    if (optShowGameSteps) dashboardSettings.showGameSteps = optShowGameSteps.checked;
+    if (optShowGameTimePlayed) dashboardSettings.showGameTimePlayed = optShowGameTimePlayed.checked;
+    // Player Info toggles
+    if (optShowPlayerName) dashboardSettings.showPlayerName = optShowPlayerName.checked;
+    if (optShowPlayerTID) dashboardSettings.showPlayerTID = optShowPlayerTID.checked;
+    if (optShowPlayerSID) dashboardSettings.showPlayerSID = optShowPlayerSID.checked;
+    if (optShowPlayerGender) dashboardSettings.showPlayerGender = optShowPlayerGender.checked;
+    if (optShowPlayerPlayTime) dashboardSettings.showPlayerPlayTime = optShowPlayerPlayTime.checked;
+    if (optShowPlayerID32) dashboardSettings.showPlayerID32 = optShowPlayerID32.checked;
+    
+    // Save to localStorage
+    saveDashboardSettings();
+    
+    // Update main dashboard checkboxes to match
+    if (showMap) showMap.checked = dashboardSettings.showMap;
+    if (showParty) showParty.checked = dashboardSettings.showParty;
+    if (showCurrentEncounter) showCurrentEncounter.checked = dashboardSettings.showCurrentEncounter;
+    if (showEncounters) showEncounters.checked = dashboardSettings.showEncounters;
+    if (showStats) showStats.checked = dashboardSettings.showStats;
+    if (showEmulator) showEmulator.checked = dashboardSettings.showEmulator;
+    if (showGameState) showGameState.checked = dashboardSettings.showGameState;
+    if (showPlayerInfo) showPlayerInfo.checked = dashboardSettings.showPlayerInfo;
+    if (showTotalStats) showTotalStats.checked = dashboardSettings.showTotalStats;
+    if (showEncounterRateAsGraph) showEncounterRateAsGraph.checked = dashboardSettings.showEncounterRateAsGraph;
+    
+    // Refresh all bot cards
+    refreshAllBotCards();
 }
 
 // Setup Pokemon info modal
@@ -2670,31 +4519,253 @@ function updateBotControls(card, bot, status) {
     }
 }
 
-// Polling
-let pollingInterval = null;
+// SSE (Server-Sent Events) for real-time updates - connect directly to bot's /stream_events
+const botEventSources = new Map(); // botId -> EventSource
 
 function startPolling() {
-    // Stop existing polling if any
+    // Stop existing connections
     stopPolling();
     
-    // Update immediately
-    updateBotStatus();
+    const visibleBots = getVisibleBots();
+    console.log('Starting polling for', visibleBots.length, 'visible bots out of', botInstances.length, 'total');
     
+    // Update immediately with current data (only on initial load)
+    updateBotStatus(true);
+    
+    // Use faster polling for real-time updates
+    const intervalSeconds = Math.min(dashboardSettings.updateInterval || 2, 2); // Max 2 seconds for real-time feel
+    const intervalMs = intervalSeconds * 1000;
+    
+    console.log('Setting up polling interval:', intervalMs, 'ms');
+    
+    // Use server-side polling (most reliable)
+    const pollingInterval = setInterval(() => {
+        console.log('Polling update triggered');
+        updateBotStatus(false);
+    }, intervalMs);
+    
+    // Store the main polling interval
+    botPollingIntervals.set('main', pollingInterval);
+    
+    // Don't try bot streams for now - they're not working reliably
+    // botInstances.forEach(bot => {
+    //     connectToBotStream(bot);
+    // });
+}
+
+function connectToBotStream(bot) {
+    // Don't connect to hidden bots
+    const config = botOrderConfig[bot.id];
+    if (config && config.hidden) {
+        console.log(`[${bot.name}] Skipping stream connection - bot is hidden`);
+        return;
+    }
+    
+    // Try stream first, but fallback quickly if it doesn't work
+    let streamTimeout = null;
+    let hasReceivedData = false;
+    
+    try {
+        // Connect directly to bot's stream_events endpoint via stream proxy
+        const streamUrl = `/api/bot-stream-proxy?url=${encodeURIComponent(bot.url + '/stream_events')}`;
+        const eventSource = new EventSource(streamUrl);
+        
+        botEventSources.set(bot.id, eventSource);
+        
+        // Set a timeout - if no data received in 10 seconds, fallback to polling
+        streamTimeout = setTimeout(() => {
+            if (!hasReceivedData) {
+                console.warn(`[${bot.name}] Stream timeout - no data received, falling back to polling`);
+                eventSource.close();
+                botEventSources.delete(bot.id);
+                fallbackToPollingForBot(bot);
+            }
+        }, 10000);
+        
+        eventSource.onmessage = (event) => {
+            try {
+                // Skip ping/comment messages
+                if (event.data.startsWith(':')) {
+                    return;
+                }
+                
+                hasReceivedData = true;
+                if (streamTimeout) {
+                    clearTimeout(streamTimeout);
+                    streamTimeout = null;
+                }
+                
+                // Parse the event data from bot
+                const botData = JSON.parse(event.data);
+                console.log(`[${bot.name}] Received stream data:`, Object.keys(botData));
+                
+                // Track current encounter if available - check all possible fields
+                const currentEncounter = botData.opponent || botData.currentEncounter || botData.encounter;
+                if (currentEncounter) {
+                    console.log(`[${bot.name}] Tracking encounter:`, currentEncounter);
+                    trackCurrentEncounter(bot.id, currentEncounter);
+                } else {
+                    console.log(`[${bot.name}] No encounter data in stream:`, Object.keys(botData));
+                }
+                
+                // Get tracked encounters and add them to the data
+                const trackedEncountersForBot = (trackedEncounters[bot.id] || []).slice().reverse();
+                
+                // Build result object similar to fetchBotData format
+                const result = {
+                    success: true,
+                    data: {
+                        status: botData.game_state || botData.emulator || {},
+                        party: botData.party || [],
+                        encounters: trackedEncountersForBot,
+                        currentEncounter: botData.opponent || botData.currentEncounter,
+                        stats: botData.stats || {},
+                        encounter_rate: botData.encounter_rate,
+                        map: botData.map || {},
+                        emulator: botData.emulator || {}
+                    }
+                };
+                
+                // Cache bot data for summary calculations
+                botDataCache.set(bot.id, result);
+                
+                // Update live encounter rate history (in-memory only)
+                const encounterRate = result.data.encounter_rate;
+                if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
+                    if (!liveEncounterRateHistory.has(bot.id)) {
+                        liveEncounterRateHistory.set(bot.id, []);
+                    }
+                    const history = liveEncounterRateHistory.get(bot.id);
+                    const now = Date.now();
+                    // Only add if rate changed or enough time has passed (1 second)
+                    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+                    if (!lastEntry || lastEntry.rate !== encounterRate || (now - lastEntry.time) >= 1000) {
+                        history.push({ time: now, rate: encounterRate });
+                        // Keep only last N points
+                        if (history.length > MAX_LIVE_HISTORY_POINTS) {
+                            history.shift();
+                        }
+                    }
+                }
+                
+                // Update the card
+                const card = document.getElementById(`bot-status-${bot.id}`);
+                if (card) {
+                    // Update card without showing loading state
+                    const indicator = card.querySelector('.status-indicator');
+                    const wasOnline = indicator && indicator.textContent === 'Online';
+                    
+                    updateStatusCard(card, bot, result);
+                    
+                    // Ensure indicator stays online after update
+                    if (indicator && wasOnline) {
+                        indicator.textContent = 'Online';
+                        indicator.className = 'status-indicator online';
+                    }
+                } else {
+                    // Card doesn't exist yet, create it
+                    updateBotStatus(true);
+                }
+            } catch (err) {
+                console.error(`[${bot.name}] Error parsing stream event:`, err, event.data);
+            }
+        };
+        
+        eventSource.onerror = (error) => {
+            console.error(`[${bot.name}] SSE stream error:`, error, 'ReadyState:', eventSource.readyState);
+            
+            if (streamTimeout) {
+                clearTimeout(streamTimeout);
+                streamTimeout = null;
+            }
+            
+            // If connection failed immediately, fallback to polling
+            if (eventSource.readyState === EventSource.CLOSED && !hasReceivedData) {
+                console.warn(`[${bot.name}] Stream connection failed, falling back to polling`);
+                botEventSources.delete(bot.id);
+                fallbackToPollingForBot(bot);
+                return;
+            }
+            
+            // Try to reconnect after a delay (only if we had a working connection)
+            if (hasReceivedData) {
+                setTimeout(() => {
+                    const currentSource = botEventSources.get(bot.id);
+                    if (currentSource && currentSource.readyState === EventSource.CLOSED) {
+                        console.log(`[${bot.name}] Reconnecting to stream...`);
+                        connectToBotStream(bot);
+                    }
+                }, 5000);
+            } else {
+                // Never got data, fallback immediately
+                botEventSources.delete(bot.id);
+                fallbackToPollingForBot(bot);
+            }
+        };
+        
+        eventSource.onopen = () => {
+            console.log(`[${bot.name}] Connected to bot stream_events`);
+        };
+    } catch (err) {
+        console.error(`[${bot.name}] Failed to establish stream connection:`, err);
+        if (streamTimeout) {
+            clearTimeout(streamTimeout);
+        }
+        // Fallback to polling for this bot
+        fallbackToPollingForBot(bot);
+    }
+}
+
+// Store polling intervals per bot
+const botPollingIntervals = new Map(); // botId -> intervalId
+
+function fallbackToPollingForBot(bot) {
+    // Don't create multiple polling intervals for the same bot
+    if (botPollingIntervals.has(bot.id)) {
+        return;
+    }
+    
+    console.warn(`[${bot.name}] Falling back to polling mode`);
     // Get update interval from settings
     const intervalSeconds = dashboardSettings.updateInterval || 5;
     const intervalMs = intervalSeconds * 1000;
     
-    // Then update at the specified interval
-    pollingInterval = setInterval(() => {
-        updateBotStatus();
+    // Poll this specific bot
+    const intervalId = setInterval(async () => {
+        const card = document.getElementById(`bot-status-${bot.id}`);
+        if (card) {
+            const result = await fetchBotData(bot);
+            updateStatusCard(card, bot, result);
+        }
+    }, intervalMs);
+    
+    botPollingIntervals.set(bot.id, intervalId);
+}
+
+function fallbackToPolling() {
+    console.warn('Falling back to polling mode');
+    // Get update interval from settings
+    const intervalSeconds = dashboardSettings.updateInterval || 5;
+    const intervalMs = intervalSeconds * 1000;
+    
+    // Update at the specified interval (don't show loading on each update)
+    setInterval(() => {
+        updateBotStatus(false);
     }, intervalMs);
 }
 
 function stopPolling() {
-    if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-    }
+    // Close all bot event sources
+    botEventSources.forEach((eventSource, botId) => {
+        eventSource.close();
+    });
+    botEventSources.clear();
+    
+    // Clear all polling intervals
+    botPollingIntervals.forEach((intervalId, botId) => {
+        clearInterval(intervalId);
+    });
+    botPollingIntervals.clear();
 }
 
 // Cleanup on page unload

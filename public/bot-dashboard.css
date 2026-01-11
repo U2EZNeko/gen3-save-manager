@@ -72,6 +72,56 @@
     font-size: 1.2em;
 }
 
+.bot-instances-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Hidden Bots Modal */
+.hidden-bots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.hidden-bot-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    gap: 12px;
+}
+
+.hidden-bot-info {
+    flex: 1;
+}
+
+.hidden-bot-info h4 {
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
+    font-size: 1em;
+}
+
+.hidden-bot-info .bot-url {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.85em;
+}
+
+.no-hidden-bots {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+    font-style: italic;
+}
+
 .bot-instances {
     display: flex;
     flex-direction: column;
@@ -388,6 +438,44 @@
     border-bottom: 1px solid var(--border-color);
 }
 
+.status-card-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+}
+
+.status-card-header-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.btn-icon {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--text-secondary);
+}
+
+.btn-icon:active {
+    transform: scale(0.95);
+}
+
 .status-card-header h3 {
     margin: 0;
     color: var(--text-primary);
@@ -461,6 +549,29 @@
 .status-section p {
     margin: 0;
     color: var(--text-secondary);
+}
+
+/* Encounter Rate Card - styled as its own little card */
+.encounter-rate-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+.encounter-rate-card h4 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.encounter-rate-card p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.1em;
+    font-weight: 500;
 }
 
 /* Party Display */
@@ -628,14 +739,14 @@
     font-size: 0.9em;
 }
 
-.dashboard-encounter-rate-chart {
-    max-height: 200px;
-    min-height: 200px;
+.encounter-rate-mini-chart {
+    max-height: 100px;
+    min-height: 100px;
     width: 100%;
 }
 
-.encounter-rate-graph-container {
-    overflow: visible; /* Allow chart to expand */
+.stat-item-graph {
+    grid-column: 1 / -1; /* Span full width */
 }
 
 /* Dashboard Summary */
@@ -644,6 +755,42 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 10px;
+}
+
+/* Combined Encounter Rate */
+.combined-encounter-rate {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.combined-rate-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.combined-rate-label {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.combined-rate-value {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.combined-encounter-rate-chart {
+    max-height: 200px;
+    min-height: 200px;
+    width: 100%;
 }
 
 .summary-item {
@@ -668,6 +815,42 @@
     color: var(--text-primary);
     font-weight: bold;
     font-size: 1em;
+}
+
+/* Combined Encounter Rate */
+.combined-encounter-rate {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.combined-rate-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.combined-rate-label {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.combined-rate-value {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+.combined-encounter-rate-chart {
+    max-height: 200px;
+    min-height: 200px;
+    width: 100%;
 }
 
 /* Phase Info */
@@ -750,6 +933,90 @@
     background: #000;
     border-radius: 4px;
     display: block;
+    image-rendering: crisp-edges; /* For crisp pixel art (same as bot's interface) */
+}
+
+/* Options Modal Styles */
+.options-section {
+    margin-bottom: 25px;
+}
+
+.options-section:last-child {
+    margin-bottom: 0;
+}
+
+.options-section h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.options-description {
+    margin: 0 0 15px 0;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+.options-checkbox-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.option-checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.option-checkbox-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-color);
+}
+
+.option-checkbox-item input[type="checkbox"] {
+    margin-top: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.option-label-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.option-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.95em;
+}
+
+.option-description {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.modal-body {
+    padding: 20px 30px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 20px 30px;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Responsive */

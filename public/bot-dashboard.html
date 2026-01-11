@@ -17,6 +17,7 @@
                     <p class="subtitle">Monitor your PokeBotGen-3 instances</p>
                 </div>
                 <div class="header-actions">
+                    <button id="optionsBtn" class="btn btn-secondary" title="Display Options">⚙️ Options</button>
                     <a href="index.html" class="btn btn-secondary">Back to Main</a>
                     <button id="themeToggle" class="btn btn-secondary theme-toggle" title="Toggle light/dark mode">
                         <span id="themeIcon">🌙</span>
@@ -60,24 +61,44 @@
                         <label>Display Options:</label>
                         <div class="checkbox-group">
                             <label>
+                                <input type="checkbox" id="showMap" class="checkbox" checked>
+                                Map/Location
+                            </label>
+                            <label>
                                 <input type="checkbox" id="showParty" class="checkbox" checked>
                                 Party
                             </label>
                             <label>
+                                <input type="checkbox" id="showCurrentEncounter" class="checkbox" checked>
+                                Current Encounter
+                            </label>
+                            <label>
                                 <input type="checkbox" id="showEncounters" class="checkbox" checked>
-                                Encounters
+                                Recent Finds
                             </label>
                             <label>
                                 <input type="checkbox" id="showStats" class="checkbox" checked>
-                                Stats
+                                Statistics
                             </label>
                             <label>
-                                <input type="checkbox" id="showMap" class="checkbox" checked>
-                                Map
+                                <input type="checkbox" id="showEmulator" class="checkbox">
+                                Emulator Info
                             </label>
                             <label>
-                                <input type="checkbox" id="showEncounterRateGraph" class="checkbox">
-                                Encounter Rate Graph
+                                <input type="checkbox" id="showGameState" class="checkbox">
+                                Game
+                            </label>
+                            <label>
+                                <input type="checkbox" id="showPlayerInfo" class="checkbox">
+                                Player Info
+                            </label>
+                            <label>
+                                <input type="checkbox" id="showTotalStats" class="checkbox">
+                                Total Stats
+                            </label>
+                            <label>
+                                <input type="checkbox" id="showEncounterRateAsGraph" class="checkbox">
+                                Show Encounter Rate as Graph
                             </label>
                         </div>
                     </div>
@@ -87,7 +108,10 @@
                 <div class="controls-section-2">
                     <div class="section-header">
                         <h3>Bot Instances</h3>
-                        <button id="addBotBtn" class="btn btn-primary">Add Bot</button>
+                        <div class="bot-instances-actions">
+                            <button id="addBotBtn" class="btn btn-primary">Add Bot</button>
+                            <button id="showHiddenBotsBtn" class="btn btn-secondary">Show Hidden Bots</button>
+                        </div>
                     </div>
                     <div id="botInstances" class="bot-instances">
                         <!-- Bot instances will be added here -->
@@ -115,9 +139,12 @@
                             <span id="summaryTotalEncounters" class="summary-value">0</span>
                         </div>
                     </div>
-                    <div id="encounterRateGraphContainer" class="encounter-rate-graph-container" style="display: none;">
-                        <h4>Encounter Rate Over Time</h4>
-                        <canvas id="dashboardEncounterRateChart" class="dashboard-encounter-rate-chart"></canvas>
+                    <div class="combined-encounter-rate">
+                        <div class="combined-rate-display">
+                            <span class="combined-rate-label">Combined Encounter Rate:</span>
+                            <span id="combinedEncounterRateValue" class="combined-rate-value">0/hr</span>
+                        </div>
+                        <canvas id="combinedEncounterRateChart" class="combined-encounter-rate-chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -152,9 +179,423 @@
                 </div>
             </div>
 
+            <!-- Hidden Bots Modal -->
+            <div id="hiddenBotsModal" class="modal hidden">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2>Hidden Bots</h2>
+                        <span class="modal-close" id="closeHiddenBotsModal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="hiddenBotsList" class="hidden-bots-list">
+                            <!-- Hidden bots will be listed here -->
+                        </div>
+                        <div class="form-actions">
+                            <button id="closeHiddenBotsBtn" class="btn btn-secondary">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden Bots Modal -->
+            <div id="hiddenBotsModal" class="modal hidden">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2>Hidden Bots</h2>
+                        <span class="modal-close" id="closeHiddenBotsModal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="hiddenBotsList" class="hidden-bots-list">
+                            <!-- Hidden bots will be listed here -->
+                        </div>
+                        <div class="form-actions">
+                            <button id="closeHiddenBotsBtn" class="btn btn-secondary">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Bot Status Display -->
             <div id="botStatusContainer" class="bot-status-container">
                 <!-- Bot status cards will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Options Modal -->
+    <div id="optionsModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Display Options</h2>
+                <span class="modal-close" id="closeOptionsModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="options-section">
+                    <h3>Bot Card Sections</h3>
+                    <p class="options-description">Enable or disable sections displayed on each bot card:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowMap" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Map/Location</span>
+                                <span class="option-description">Current location and map information</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowParty" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Party</span>
+                                <span class="option-description">Current party Pokemon (up to 6)</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowCurrentEncounter" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Current Encounter</span>
+                                <span class="option-description">Currently encountered Pokemon with IVs and details</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounters" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Recent Finds</span>
+                                <span class="option-description">Recently encountered Pokemon list</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowStats" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Statistics</span>
+                                <span class="option-description">Encounter rate, total encounters, shiny count, play time, current phase</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEmulator" class="checkbox">
+                            <div class="option-label-group">
+                                <span class="option-label">Emulator Info</span>
+                                <span class="option-description">Frame rate, fast forward status, paused state, uptime</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameState" class="checkbox">
+                            <div class="option-label-group">
+                                <span class="option-label">Game</span>
+                                <span class="option-description">Badges, game name, language, revision, map ID, position, steps</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerInfo" class="checkbox">
+                            <div class="option-label-group">
+                                <span class="option-label">Player Info</span>
+                                <span class="option-description">Player name, Trainer ID, Secret ID, gender, play time</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStats" class="checkbox">
+                            <div class="option-label-group">
+                                <span class="option-label">Total Stats</span>
+                                <span class="option-description">Comprehensive lifetime statistics and totals</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Statistics</h3>
+                    <p class="options-description">Enable or disable individual items in the Statistics section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowStatsTotalEncounters" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Total Encounters</span>
+                                <span class="option-description">Total number of encounters</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowStatsShinyEncounters" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Shiny Encounters</span>
+                                <span class="option-description">Total number of shiny encounters</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowStatsPlayTime" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Play Time</span>
+                                <span class="option-description">Total play time</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Statistics - Current Phase</h3>
+                    <p class="options-description">Enable or disable individual items in the Current Phase section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPhaseCurrentStreak" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Current Streak</span>
+                                <span class="option-description">Current streak count with species name</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPhaseEncounters" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Encounters</span>
+                                <span class="option-description">Total encounters in current phase</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPhaseDuration" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Duration</span>
+                                <span class="option-description">Time spent in current phase</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPhaseBestIV" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Best IV</span>
+                                <span class="option-description">Highest IV sum found in current phase</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPhaseLongest" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Longest</span>
+                                <span class="option-description">Longest streak in current phase</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPhasePokenav" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Pokenav</span>
+                                <span class="option-description">Pokenav calls count in current phase</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Current Encounter</h3>
+                    <p class="options-description">Enable or disable individual items in the Current Encounter section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterSprite" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Sprite</span>
+                                <span class="option-description">Pokemon sprite image</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterName" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Name</span>
+                                <span class="option-description">Pokemon species name</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterLevel" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Level</span>
+                                <span class="option-description">Pokemon level</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterShiny" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Shiny Badge</span>
+                                <span class="option-description">Shiny indicator badge</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterNature" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Nature</span>
+                                <span class="option-description">Pokemon nature</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterAbility" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Ability</span>
+                                <span class="option-description">Pokemon ability</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterIVSum" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">IV Sum</span>
+                                <span class="option-description">Total IV sum</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterIVs" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Individual IVs</span>
+                                <span class="option-description">Individual IV values (HP, Atk, Def, etc.)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Emulator Info</h3>
+                    <p class="options-description">Enable or disable individual items in the Emulator Info section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEmulatorFrameRate" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Frame Rate</span>
+                                <span class="option-description">Current frame rate in FPS</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEmulatorFastForward" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Fast Forward</span>
+                                <span class="option-description">Fast forward status</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEmulatorPaused" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Paused</span>
+                                <span class="option-description">Paused state</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEmulatorUptime" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Uptime</span>
+                                <span class="option-description">Emulator uptime</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Game</h3>
+                    <p class="options-description">Enable or disable individual items in the Game section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameBadges" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Badges</span>
+                                <span class="option-description">Number of badges obtained</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameName" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Game Name</span>
+                                <span class="option-description">Game version name</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameLanguage" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Language</span>
+                                <span class="option-description">Game language code</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameRevision" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Revision</span>
+                                <span class="option-description">Game revision number</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameMapID" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Map ID</span>
+                                <span class="option-description">Current map ID</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGamePosition" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Position</span>
+                                <span class="option-description">Player coordinates (X, Y)</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameSteps" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Steps</span>
+                                <span class="option-description">Total steps taken</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowGameTimePlayed" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Time Played</span>
+                                <span class="option-description">Time played in game</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Player Info</h3>
+                    <p class="options-description">Enable or disable individual items in the Player Info section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerName" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Name</span>
+                                <span class="option-description">Player/trainer name</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerTID" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Trainer ID</span>
+                                <span class="option-description">Trainer ID (TID)</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerSID" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Secret ID</span>
+                                <span class="option-description">Secret ID (SID)</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerGender" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Gender</span>
+                                <span class="option-description">Player gender</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerPlayTime" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Play Time</span>
+                                <span class="option-description">Player play time</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowPlayerID32" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">ID32</span>
+                                <span class="option-description">Combined TID/SID (32-bit ID)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Display Preferences</h3>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterRateAsGraph" class="checkbox">
+                            <div class="option-label-group">
+                                <span class="option-label">Show Encounter Rate as Graph</span>
+                                <span class="option-description">Display encounter rate as a chart instead of a number</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveOptionsBtn" class="btn btn-primary">Save Options</button>
+                <button id="cancelOptionsBtn" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
