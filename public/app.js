@@ -1130,26 +1130,43 @@ function filterNeedsEvolution(data) {
     });
     
     // Known non-evolving Pokemon - exclude them from this filter
-    const nonEvolvingPokemon = [234, 267, 323, 334, 335, 336, 337, 338, 340];
+    // This list includes final forms and Pokemon that don't evolve
+    const nonEvolvingPokemon = new Set([
+        // Final evolutions Gen 1
+        3, 6, 9, 12, 15, 18, 20, 22, 24, 26, 28, 31, 34, 36, 38, 40, 42, 45, 47, 49, 51, 53, 55, 57, 59,
+        62, 65, 68, 71, 73, 76, 78, 80, 82, 85, 87, 89, 91, 94, 97, 99, 101, 103, 105, 110, 112, 119, 121,
+        125, 126, 130, 134, 135, 136, 139, 141, 149,
+        // Final evolutions Gen 2
+        154, 157, 160, 162, 164, 166, 168, 171, 176, 178, 181, 184, 189, 195, 199, 201, 205, 210, 214, 217,
+        219, 224, 226, 229, 232, 235, 237, 239, 240, 248,
+        // Final evolutions Gen 3
+        254, 257, 260, 262, 264, 267, 269, 272, 275, 277, 279, 282, 284, 286, 289, 291, 295, 297, 301, 306,
+        308, 310, 316, 318, 320, 322, 330, 332, 334, 340, 342, 344, 346, 348, 350, 354, 356, 362, 365, 367, 368, 373, 376,
+        // Non-evolving Pokemon
+        234, 323, 335, 336, 337, 338
+    ]);
     
     // Filter to only Pokemon that:
-    // 1. Can evolve (have an evolution)
-    // 2. The evolved form is NOT in the database
+    // 1. Can evolve (have at least one evolution)
+    // 2. At least one evolved form is NOT in the database
     return data.filter(pokemon => {
         if (pokemon.error || !pokemon.species) return false;
         
-        // Exclude non-evolving Pokemon
-        if (nonEvolvingPokemon.includes(pokemon.species)) {
+        // Exclude non-evolving Pokemon (final forms)
+        if (nonEvolvingPokemon.has(pokemon.species)) {
             return false;
         }
         
-        const evolvedSpecies = getEvolutionSpecies(pokemon.species);
-        if (!evolvedSpecies) {
+        const evolvedSpeciesList = getAllEvolutionSpecies(pokemon.species);
+        if (!evolvedSpeciesList || evolvedSpeciesList.length === 0) {
             return false; // Can't evolve
         }
         
-        // Check if evolved form exists in database
-        return !allSpecies.has(evolvedSpecies);
+        // Check if ANY evolved form is missing from database
+        // If all evolved forms exist, don't show this Pokemon
+        const hasMissingEvolution = evolvedSpeciesList.some(evoSpecies => !allSpecies.has(evoSpecies));
+        
+        return hasMissingEvolution;
     });
 }
 
@@ -1374,6 +1391,24 @@ function getOriginGameName(gameCode) {
     return games[gameCode] || `Game ${gameCode}`;
 }
 
+// Format file date and time for display
+function formatFileDateTime(pokemon) {
+    if (!pokemon) return '';
+    
+    const fileDate = pokemon.fileCreated ? new Date(pokemon.fileCreated) : (pokemon.fileModified ? new Date(pokemon.fileModified) : null);
+    if (!fileDate || isNaN(fileDate.getTime())) return '';
+    
+    // Format as: MM/DD/YYYY HH:MM:SS
+    const month = String(fileDate.getMonth() + 1).padStart(2, '0');
+    const day = String(fileDate.getDate()).padStart(2, '0');
+    const year = fileDate.getFullYear();
+    const hours = String(fileDate.getHours()).padStart(2, '0');
+    const minutes = String(fileDate.getMinutes()).padStart(2, '0');
+    const seconds = String(fileDate.getSeconds()).padStart(2, '0');
+    
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
 // Create Pokemon card element
 async function createPokemonCard(pokemon) {
     const card = document.createElement('div');
@@ -1424,6 +1459,10 @@ async function createPokemonCard(pokemon) {
             </div>
             <div class="iv-sum compact-iv-sum" data-iv-sum="${pokemon.ivSum || 0}">
                 IV Sum: ${pokemon.ivSum || 0}
+            </div>
+            <div style="margin-top: 8px; font-size: 0.75em; color: #999;">
+                ${pokemon.filename}
+                ${formatFileDateTime(pokemon) ? `<div style="margin-top: 2px; font-size: 0.85em; color: #888;">${formatFileDateTime(pokemon)}</div>` : ''}
             </div>
         `;
         card.classList.add('compact');
@@ -1500,6 +1539,7 @@ async function createPokemonCard(pokemon) {
             
             <div style="margin-top: 10px; font-size: 0.8em; color: #999;">
                 ${pokemon.filename}
+                ${formatFileDateTime(pokemon) ? `<div style="margin-top: 2px; font-size: 0.85em; color: #888;">${formatFileDateTime(pokemon)}</div>` : ''}
             </div>
         `;
         
@@ -2709,33 +2749,42 @@ async function executeBatchEvolve() {
     }
 }
 
-// Helper to get evolution species (client-side lookup)
-function getEvolutionSpecies(speciesId) {
+// Helper to get all possible evolution species (client-side lookup)
+// Returns an array of all species this Pokemon can evolve into
+function getAllEvolutionSpecies(speciesId) {
+    // Map each species to ALL possible evolutions (including multi-stage and branching)
     const evolutionMap = {
-        1: 2, 2: 3, 4: 5, 5: 6, 7: 8, 8: 9, 10: 11, 11: 12, 13: 14, 14: 15,
-        16: 17, 17: 18, 19: 20, 21: 22, 23: 24, 25: 26, 27: 28, 29: 30, 30: 31,
-        32: 33, 33: 34, 35: 36, 37: 38, 39: 40, 41: 42, 43: 44, 44: 45, 46: 47,
-        48: 49, 50: 51, 52: 53, 54: 55, 56: 57, 58: 59, 60: 61, 61: 62, 63: 64,
-        64: 65, 66: 67, 67: 68, 69: 70, 70: 71, 72: 73, 74: 75, 75: 76, 77: 78,
-        79: 80, 81: 82, 84: 85, 86: 87, 88: 89, 90: 91, 92: 93, 93: 94, 96: 97,
-        98: 99, 100: 101, 102: 103, 104: 105, 109: 110, 111: 112, 116: 117, 118: 119,
-        120: 121, 129: 130, 133: 134, 138: 139, 140: 141, 147: 148, 148: 149,
+        // Gen 1
+        1: [2], 2: [3], 4: [5], 5: [6], 7: [8], 8: [9], 10: [11], 11: [12], 13: [14], 14: [15],
+        16: [17], 17: [18], 19: [20], 21: [22], 23: [24], 25: [26], 27: [28], 29: [30], 30: [31],
+        32: [33], 33: [34], 35: [36], 37: [38], 39: [40], 41: [42], 43: [44], 44: [45, 182], 46: [47],
+        48: [49], 50: [51], 52: [53], 54: [55], 56: [57], 58: [59], 60: [61], 61: [62, 186], 63: [64],
+        64: [65], 66: [67], 67: [68], 69: [70], 70: [71], 72: [73], 74: [75], 75: [76], 77: [78],
+        79: [80, 199], 81: [82], 84: [85], 86: [87], 88: [89], 90: [91], 92: [93], 93: [94], 96: [97],
+        98: [99], 100: [101], 102: [103], 104: [105], 109: [110], 111: [112], 116: [117], 117: [230], 118: [119],
+        120: [121], 129: [130], 133: [134, 135, 136, 196, 197], 137: [233], 138: [139], 140: [141], 147: [148], 148: [149],
         // Gen 2
-        152: 153, 153: 154, 155: 156, 156: 157, 158: 159, 159: 160, 161: 162, 163: 164,
-        165: 166, 167: 168, 170: 171, 172: 25, 173: 35, 174: 39, 175: 176, 177: 178,
-        179: 180, 180: 181, 183: 184, 187: 188, 188: 189, 194: 195, 198: 199, 200: 201,
-        204: 205, 209: 210, 213: 214, 215: 216, 216: 217, 218: 219, 220: 221, 223: 224,
-        225: 226, 228: 229, 231: 232, 233: 234, 234: 235, 236: 125, 238: 126, 239: 240,
+        152: [153], 153: [154], 155: [156], 156: [157], 158: [159], 159: [160], 161: [162], 163: [164],
+        165: [166], 167: [168], 170: [171], 172: [25], 173: [35], 174: [39], 175: [176], 177: [178],
+        179: [180], 180: [181], 183: [184], 187: [188], 188: [189], 194: [195], 198: [430], 200: [429],
+        204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 223: [224], 225: [226],
+        228: [229], 231: [106, 107, 237], 233: [474], 236: [125, 239], 238: [126, 240], 246: [247], 247: [248],
         // Gen 3
-        252: 253, 253: 254, 255: 256, 256: 257, 258: 259, 259: 260, 261: 262, 263: 264,
-        265: 266, 266: 267, 268: 269, 269: 270, 270: 271, 273: 274, 274: 275, 276: 277,
-        278: 279, 280: 281, 281: 282, 283: 284, 285: 286, 287: 288, 288: 289, 290: 291,
-        293: 294, 294: 295, 296: 297, 298: 183, 300: 301, 304: 305, 305: 306, 307: 308,
-        309: 310, 315: 316, 316: 317, 317: 318, 318: 319, 321: 322, 328: 329, 329: 330,
-        331: 332, 333: 334, 339: 340, 341: 342, 343: 344, 345: 346, 347: 348, 349: 350, 353: 354,
-        354: 355, 355: 356
+        252: [253], 253: [254], 255: [256], 256: [257], 258: [259], 259: [260], 261: [262], 263: [264],
+        265: [266, 268], 266: [267], 268: [269], 270: [271], 271: [272], 273: [274], 274: [275], 276: [277],
+        278: [279], 280: [281], 281: [282], 283: [284], 285: [286], 287: [288], 288: [289], 290: [291, 292],
+        293: [294], 294: [295], 296: [297], 298: [183], 300: [301], 304: [305], 305: [306], 307: [308],
+        309: [310], 315: [316], 317: [318], 319: [320], 321: [322], 328: [329], 329: [330],
+        331: [332], 333: [334], 339: [340], 341: [342], 343: [344], 345: [346], 347: [348], 349: [350], 353: [354],
+        355: [356], 360: [202], 361: [362], 363: [364], 364: [365], 366: [367, 368], 371: [372], 372: [373], 374: [375], 375: [376]
     };
     return evolutionMap[speciesId] || null;
+}
+
+// Helper to get evolution species (backward compatibility - returns first evolution)
+function getEvolutionSpecies(speciesId) {
+    const evolutions = getAllEvolutionSpecies(speciesId);
+    return evolutions && evolutions.length > 0 ? evolutions[0] : null;
 }
 
 // Delete Pokemon file with confirmation
@@ -8277,15 +8326,15 @@ async function generatePlanner() {
         // Sort locations by priority:
         // 1. Routes with multiple encounters (highest count first)
         // 2. High probability encounters (rate >= 10%)
-        // 3. 1% encounters
-        // 4. 1-time encounters
+        // 3. Other encounters sorted by rate (descending)
+        // 4. 1-time encounters (alphabetical)
         const sortedLocations = Array.from(locationEncounters.entries()).sort((a, b) => {
             const [locationA, encountersA] = a;
             const [locationB, encountersB] = b;
             const countA = locationCounts.get(locationA);
             const countB = locationCounts.get(locationB);
 
-            // First priority: locations with multiple Pokemon
+            // First priority: locations with multiple Pokemon (count > 1)
             if (countA > 1 && countB <= 1) return -1;
             if (countA <= 1 && countB > 1) return 1;
             if (countA > 1 && countB > 1) {
@@ -8296,17 +8345,22 @@ async function generatePlanner() {
             // Second priority: highest encounter rate
             const maxRateA = Math.max(...encountersA.map(e => e.rate || 0));
             const maxRateB = Math.max(...encountersB.map(e => e.rate || 0));
+            
+            // Prioritize high rate encounters (>= 10%)
             if (maxRateA >= 10 && maxRateB < 10) return -1;
             if (maxRateA < 10 && maxRateB >= 10) return 1;
+            
+            // If both are high rate, sort by rate descending
             if (maxRateA >= 10 && maxRateB >= 10) {
                 return maxRateB - maxRateA;
             }
+            
+            // If both are low rate, sort by rate descending (higher rates first)
+            if (maxRateA !== maxRateB) {
+                return maxRateB - maxRateA;
+            }
 
-            // Third priority: 1% encounters
-            if (maxRateA === 1 && maxRateB !== 1) return -1;
-            if (maxRateA !== 1 && maxRateB === 1) return 1;
-
-            // Fourth priority: 1-time encounters (alphabetical)
+            // Same rate or both have no rate, sort alphabetically
             return locationA.localeCompare(locationB);
         });
 
