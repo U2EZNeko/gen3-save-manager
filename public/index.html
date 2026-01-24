@@ -724,6 +724,10 @@
                         Show Missing
                     </label>
                     <label>
+                        <input type="checkbox" id="pokedexShowStats" checked>
+                        Show Stats on Cards
+                    </label>
+                    <label>
                         <select id="pokedexGenFilter">
                             <option value="all">All Generations</option>
                             <option value="1">Generation 1</option>
@@ -746,6 +750,19 @@
             </div>
             <div class="pokemon-info-content" id="pokemonInfoContent">
                 <div class="loading">Loading Pokemon information...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unown Dex Modal -->
+    <div id="unownDexModal" class="modal hidden">
+        <div class="modal-content unown-dex-modal">
+            <div class="modal-header">
+                <h2>Unown Dex</h2>
+                <span class="modal-close" id="closeUnownDexModal">&times;</span>
+            </div>
+            <div class="unown-dex-content" id="unownDexContent">
+                <div class="loading">Loading Unown forms...</div>
             </div>
         </div>
     </div>

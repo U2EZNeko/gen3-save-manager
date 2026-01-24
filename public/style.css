@@ -3083,6 +3083,36 @@ header h1 {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+.pokedex-stats {
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+    font-size: 10px;
+}
+
+.pokedex-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 2px 0;
+}
+
+.pokedex-stat-item:last-child {
+    margin-bottom: 0;
+}
+
+.pokedex-stat-item .stat-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.pokedex-stat-item .stat-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
 /* Pokedex Statistics in Statistics Modal */
 .pokedex-stats-grid {
     display: grid;
@@ -3225,6 +3255,16 @@ header h1 {
     font-weight: normal;
 }
 
+.planner-location .total-needed-badge {
+    background: #FF9800;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: normal;
+    margin-left: 8px;
+}
+
 .planner-encounter-list {
     list-style: none;
     padding: 0;
@@ -3251,6 +3291,18 @@ header h1 {
     font-weight: normal;
     font-style: italic;
     margin-left: 5px;
+}
+
+.planner-encounter-item .pokemon-count-badge {
+    display: inline-block;
+    background: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.85em;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
 }
 
 .map-content {
@@ -3755,6 +3807,229 @@ header h1 {
     color: var(--text-primary);
     font-size: 14px;
     cursor: pointer;
+}
+
+/* Unown Dex Modal */
+.unown-dex-modal {
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.unown-dex-content {
+    padding: 20px;
+}
+
+.unown-dex-info-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.unown-dex-info-section h3 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+    font-size: 1.3em;
+}
+
+.unown-dex-info-section p {
+    margin: 8px 0;
+    color: var(--text-primary);
+}
+
+.unown-dex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.unown-form-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    transition: all 0.2s;
+    min-height: 140px;
+}
+
+.unown-form-card.owned {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.unown-form-card.missing {
+    border-color: var(--border-color);
+    opacity: 0.6;
+}
+
+.unown-form-card.shiny {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border-color: #FFD700;
+}
+
+.unown-form-card.owned.shiny {
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.unown-form-sprite {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.unown-form-sprite img {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.unown-form-sprite .shiny-sprite {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.unown-form-card.shiny .unown-form-sprite .shiny-sprite {
+    opacity: 1;
+}
+
+.unown-form-card.shiny .unown-form-sprite img:not(.shiny-sprite) {
+    opacity: 0;
+}
+
+.unown-form-letter {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-family: 'Arial', sans-serif;
+}
+
+.unown-form-card.missing .unown-form-letter {
+    opacity: 0.4;
+}
+
+.unown-form-status {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.unown-form-status .shiny-indicator {
+    color: #FFD700;
+    font-size: 1.2em;
+}
+
+.unown-form-status .owned-indicator {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.unown-form-status .missing-indicator {
+    color: var(--text-secondary);
+}
+
+.unown-form-count {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 5px;
+}
+
+.unown-dex-summary {
+    display: flex;
+    gap: 20px;
+    padding: 15px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.unown-dex-summary .summary-stat {
+    flex: 1;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.unown-dex-summary .summary-stat strong {
+    color: var(--accent-color);
+}
+
+/* Unown Forms Section in Pokemon Info Modal */
+.unown-forms-section {
+    margin-top: 20px;
+}
+
+.unown-forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.unown-forms-grid .unown-form-card {
+    min-height: 120px;
+    padding: 12px;
+}
+
+.unown-forms-grid .unown-form-sprite {
+    width: 56px;
+    height: 56px;
+}
+
+.unown-forms-grid .unown-form-sprite img {
+    width: 56px;
+    height: 56px;
+}
+
+.unown-forms-grid .unown-form-letter {
+    font-size: 1.8em;
+    margin-bottom: 6px;
+}
+
+.unown-forms-grid .unown-form-count {
+    font-size: 0.75em;
+    margin-top: 4px;
+}
+
+.unown-forms-summary {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 20px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-top: 10px;
+}
+
+.unown-forms-summary .summary-stat {
+    flex: 1;
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 0.9em;
+}
+
+.unown-forms-summary .summary-stat strong {
+    color: var(--accent-color);
 }
 
 .location-gen-selector:hover {

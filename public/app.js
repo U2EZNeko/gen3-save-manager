@@ -1125,7 +1125,7 @@ function filterNeedsEvolution(data) {
     const allSpecies = new Set();
     pokemonData.forEach(p => {
         if (!p.error && p.species) {
-            allSpecies.add(p.species);
+            allSpecies.add(Number(p.species));
         }
     });
     
@@ -1137,11 +1137,11 @@ function filterNeedsEvolution(data) {
         62, 65, 68, 71, 73, 76, 78, 80, 82, 85, 87, 89, 91, 94, 97, 99, 101, 103, 105, 110, 112, 119, 121,
         125, 126, 130, 134, 135, 136, 139, 141, 149,
         // Final evolutions Gen 2
-        154, 157, 160, 162, 164, 166, 168, 171, 176, 178, 181, 184, 189, 195, 199, 201, 205, 210, 214, 217,
-        219, 224, 226, 229, 232, 235, 237, 239, 240, 248,
+        154, 157, 160, 162, 164, 166, 168, 169, 171, 176, 178, 181, 184, 189, 192, 195, 199, 201, 205, 210, 212, 214, 217,
+        219, 224, 226, 229, 232, 235, 237, 239, 240, 242, 248,
         // Final evolutions Gen 3
         254, 257, 260, 262, 264, 267, 269, 272, 275, 277, 279, 282, 284, 286, 289, 291, 295, 297, 301, 306,
-        308, 310, 316, 318, 320, 322, 330, 332, 334, 340, 342, 344, 346, 348, 350, 354, 356, 362, 365, 367, 368, 373, 376,
+        308, 310, 317, 318, 320, 322, 330, 332, 334, 340, 342, 344, 346, 348, 350, 354, 356, 362, 365, 367, 368, 373, 376,
         // Non-evolving Pokemon
         234, 323, 335, 336, 337, 338
     ]);
@@ -1149,6 +1149,7 @@ function filterNeedsEvolution(data) {
     // Filter to only Pokemon that:
     // 1. Can evolve (have at least one evolution)
     // 2. At least one evolved form is NOT in the database
+    // 3. Don't show middle-stage evolutions if you already have a lower-stage form
     return data.filter(pokemon => {
         if (pokemon.error || !pokemon.species) return false;
         
@@ -1157,16 +1158,31 @@ function filterNeedsEvolution(data) {
             return false;
         }
         
-        const evolvedSpeciesList = getAllEvolutionSpecies(pokemon.species);
+        // Get only Gen 3-available evolutions (species IDs 1-386)
+        const evolvedSpeciesList = getAllEvolutionSpecies(pokemon.species, true);
         if (!evolvedSpeciesList || evolvedSpeciesList.length === 0) {
-            return false; // Can't evolve
+            return false; // Can't evolve (or no Gen 3 evolutions available)
         }
         
         // Check if ANY evolved form is missing from database
         // If all evolved forms exist, don't show this Pokemon
-        const hasMissingEvolution = evolvedSpeciesList.some(evoSpecies => !allSpecies.has(evoSpecies));
+        const hasMissingEvolution = evolvedSpeciesList.some(evoSpecies => !allSpecies.has(Number(evoSpecies)));
+        if (!hasMissingEvolution) {
+            return false;
+        }
         
-        return hasMissingEvolution;
+        // Don't show middle-stage evolutions if you already have a lower-stage form
+        // Example: If you have Lotad, don't show Lombre (you can evolve Lotad instead)
+        const preEvolutions = getPreEvolution(pokemon.species);
+        if (preEvolutions && preEvolutions.length > 0) {
+            // Check if any pre-evolution is already in the database
+            const hasPreEvolutionInDb = preEvolutions.some(preId => allSpecies.has(Number(preId)));
+            if (hasPreEvolutionInDb) {
+                return false; // Don't show this middle-stage Pokemon
+            }
+        }
+        
+        return true;
     });
 }
 
@@ -2064,7 +2080,7 @@ async function updatePokemonNames(pokemonData) {
 
 // Get sprite URL from PokeAPI for all generations
 // Uses cached URLs to reduce API calls
-function getSpriteUrl(speciesId, isShiny = false) {
+function getSpriteUrl(speciesId, isShiny = false, form = null) {
     // Validate and convert to number
     const id = parseInt(speciesId);
     if (!isValidSpeciesId(id)) {
@@ -2072,14 +2088,20 @@ function getSpriteUrl(speciesId, isShiny = false) {
         return null;
     }
     
-    // Check cache first
-    const cacheKey = `${id}_${isShiny ? 'shiny' : 'normal'}`;
+    // Build cache key including form for Unown
+    const cacheKey = form && id === 201 
+        ? `${id}_${form}_${isShiny ? 'shiny' : 'normal'}`
+        : `${id}_${isShiny ? 'shiny' : 'normal'}`;
+    
     if (spriteCache.has(cacheKey)) {
         return spriteCache.get(cacheKey);
     }
     
     // Use server-side sprite endpoint (proxies PokeAPI)
-    const url = `/api/pokemon/sprite/${id}${isShiny ? '?shiny=true' : ''}`;
+    let url = `/api/pokemon/sprite/${id}${isShiny ? '?shiny=true' : ''}`;
+    if (form && id === 201) {
+        url += (isShiny ? '&' : '?') + `form=${form}`;
+    }
     
     // Cache the URL
     spriteCache.set(cacheKey, url);
@@ -2750,35 +2772,104 @@ async function executeBatchEvolve() {
 }
 
 // Helper to get all possible evolution species (client-side lookup)
-// Returns an array of all species this Pokemon can evolve into
-function getAllEvolutionSpecies(speciesId) {
+// Returns an array of all species this Pokemon can evolve into (including full chain)
+// Optionally filters to only include evolutions available in Gen 3 (species IDs 1-386)
+function getAllEvolutionSpecies(speciesId, gen3Only = false) {
     // Map each species to ALL possible evolutions (including multi-stage and branching)
+    const evolutionMap = {
+        // Gen 1
+        1: [2], 2: [3], 4: [5], 5: [6], 7: [8], 8: [9], 10: [11], 11: [12], 13: [14], 14: [15],
+        16: [17], 17: [18], 19: [20], 21: [22], 23: [24], 25: [26], 27: [28], 29: [30], 30: [31],
+        32: [33], 33: [34], 35: [36], 37: [38], 39: [40], 41: [42], 42: [169], 43: [44], 44: [45, 182], 46: [47],
+        48: [49], 50: [51], 52: [53], 54: [55], 56: [57], 58: [59], 60: [61], 61: [62, 186], 63: [64],
+        64: [65], 66: [67], 67: [68], 69: [70], 70: [71],         72: [73], 74: [75], 75: [76], 77: [78],
+        79: [80, 199], 81: [82], 84: [85], 86: [87], 88: [89], 90: [91], 92: [93], 93: [94], 95: [208], 96: [97],
+        98: [99], 100: [101], 102: [103], 104: [105], 109: [110], 111: [112], 113: [242], 116: [117], 117: [230], 118: [119],
+        120: [121], 123: [212], 129: [130], 133: [134, 135, 136, 196, 197], 137: [233], 138: [139], 140: [141], 147: [148], 148: [149],
+        // Gen 2
+        152: [153], 153: [154], 155: [156], 156: [157], 158: [159], 159: [160], 161: [162], 163: [164],
+        165: [166], 167: [168], 170: [171], 172: [25], 173: [35], 174: [39], 175: [176], 177: [178],
+        179: [180], 180: [181], 183: [184], 187: [188], 188: [189], 191: [192], 194: [195], 198: [430], 200: [429],
+        204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 223: [224], 225: [226],
+        228: [229], 231: [232], 233: [474], 236: [106, 107, 237], 238: [124], 239: [125], 240: [126], 246: [247], 247: [248],
+        // Gen 3
+        252: [253], 253: [254], 255: [256], 256: [257], 258: [259], 259: [260], 261: [262], 263: [264],
+        265: [266, 268], 266: [267], 268: [269], 270: [271], 271: [272], 273: [274], 274: [275], 276: [277],
+        278: [279], 280: [281], 281: [282], 283: [284], 285: [286], 287: [288], 288: [289], 290: [291, 292],
+        293: [294], 294: [295], 296: [297], 298: [183], 300: [301], 304: [305], 305: [306], 307: [308],
+        309: [310], 315: [316], 316: [317], 317: [318], 319: [320], 321: [322], 325: [326], 328: [329], 329: [330],
+        331: [332], 333: [334], 339: [340], 341: [342], 343: [344], 345: [346], 347: [348], 349: [350], 353: [354],
+        355: [356], 360: [202], 361: [362], 363: [364], 364: [365], 366: [367, 368], 371: [372], 372: [373], 374: [375], 375: [376]
+    };
+    
+    const directEvolutions = evolutionMap[speciesId];
+    if (!directEvolutions) return null;
+    
+    // Recursively get all evolutions in the chain
+    const allEvolutions = new Set(directEvolutions);
+    for (const evoId of directEvolutions) {
+        const nextEvolutions = getAllEvolutionSpecies(evoId, gen3Only);
+        if (nextEvolutions) {
+            nextEvolutions.forEach(e => allEvolutions.add(e));
+        }
+    }
+    
+    let result = Array.from(allEvolutions);
+    
+    // Filter to only Gen 3-available evolutions if requested
+    if (gen3Only) {
+        result = result.filter(evoId => isGen3OrBelow(evoId));
+    }
+    
+    return result.length > 0 ? result : null;
+}
+
+// Helper to get pre-evolution(s) - what evolves into this species
+function getPreEvolution(speciesId) {
     const evolutionMap = {
         // Gen 1
         1: [2], 2: [3], 4: [5], 5: [6], 7: [8], 8: [9], 10: [11], 11: [12], 13: [14], 14: [15],
         16: [17], 17: [18], 19: [20], 21: [22], 23: [24], 25: [26], 27: [28], 29: [30], 30: [31],
         32: [33], 33: [34], 35: [36], 37: [38], 39: [40], 41: [42], 43: [44], 44: [45, 182], 46: [47],
         48: [49], 50: [51], 52: [53], 54: [55], 56: [57], 58: [59], 60: [61], 61: [62, 186], 63: [64],
-        64: [65], 66: [67], 67: [68], 69: [70], 70: [71], 72: [73], 74: [75], 75: [76], 77: [78],
-        79: [80, 199], 81: [82], 84: [85], 86: [87], 88: [89], 90: [91], 92: [93], 93: [94], 96: [97],
+        64: [65], 66: [67], 67: [68], 69: [70], 70: [71],         72: [73], 74: [75], 75: [76], 77: [78],
+        79: [80, 199], 81: [82], 84: [85], 86: [87], 88: [89], 90: [91], 92: [93], 93: [94], 95: [208], 96: [97],
         98: [99], 100: [101], 102: [103], 104: [105], 109: [110], 111: [112], 116: [117], 117: [230], 118: [119],
         120: [121], 129: [130], 133: [134, 135, 136, 196, 197], 137: [233], 138: [139], 140: [141], 147: [148], 148: [149],
         // Gen 2
         152: [153], 153: [154], 155: [156], 156: [157], 158: [159], 159: [160], 161: [162], 163: [164],
         165: [166], 167: [168], 170: [171], 172: [25], 173: [35], 174: [39], 175: [176], 177: [178],
-        179: [180], 180: [181], 183: [184], 187: [188], 188: [189], 194: [195], 198: [430], 200: [429],
+        179: [180], 180: [181], 183: [184], 187: [188], 188: [189], 191: [192], 194: [195], 198: [430], 200: [429],
         204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 223: [224], 225: [226],
-        228: [229], 231: [106, 107, 237], 233: [474], 236: [125, 239], 238: [126, 240], 246: [247], 247: [248],
+        228: [229], 231: [232], 233: [474], 236: [106, 107, 237], 238: [124], 239: [125], 240: [126], 246: [247], 247: [248],
         // Gen 3
         252: [253], 253: [254], 255: [256], 256: [257], 258: [259], 259: [260], 261: [262], 263: [264],
         265: [266, 268], 266: [267], 268: [269], 270: [271], 271: [272], 273: [274], 274: [275], 276: [277],
         278: [279], 280: [281], 281: [282], 283: [284], 285: [286], 287: [288], 288: [289], 290: [291, 292],
         293: [294], 294: [295], 296: [297], 298: [183], 300: [301], 304: [305], 305: [306], 307: [308],
-        309: [310], 315: [316], 317: [318], 319: [320], 321: [322], 328: [329], 329: [330],
+        309: [310], 315: [316], 316: [317], 317: [318], 319: [320], 321: [322], 325: [326], 328: [329], 329: [330],
         331: [332], 333: [334], 339: [340], 341: [342], 343: [344], 345: [346], 347: [348], 349: [350], 353: [354],
         355: [356], 360: [202], 361: [362], 363: [364], 364: [365], 366: [367, 368], 371: [372], 372: [373], 374: [375], 375: [376]
     };
-    return evolutionMap[speciesId] || null;
+    
+    // Build reverse map: find all species that evolve into this one
+    const preEvolutions = [];
+    for (const [preId, evolutions] of Object.entries(evolutionMap)) {
+        if (evolutions.includes(speciesId)) {
+            preEvolutions.push(parseInt(preId));
+        }
+    }
+    
+    // Also check recursively - if a pre-evolution has its own pre-evolution
+    const allPreEvolutions = new Set(preEvolutions);
+    for (const preId of preEvolutions) {
+        const deeperPre = getPreEvolution(preId);
+        if (deeperPre && deeperPre.length > 0) {
+            deeperPre.forEach(p => allPreEvolutions.add(p));
+        }
+    }
+    
+    return Array.from(allPreEvolutions);
 }
 
 // Helper to get evolution species (backward compatibility - returns first evolution)
@@ -7033,6 +7124,73 @@ async function loadPokedexData() {
     }
 }
 
+// Calculate statistics for a specific species
+function calculateSpeciesStatistics(speciesId) {
+    if (!pokemonData || pokemonData.length === 0) {
+        return null;
+    }
+    
+    // Filter Pokemon by species
+    const speciesPokemon = pokemonData.filter(p => 
+        !p.error && 
+        p.species && 
+        Number(p.species) === Number(speciesId)
+    );
+    
+    if (speciesPokemon.length === 0) {
+        return null;
+    }
+    
+    // Calculate statistics
+    const stats = {
+        count: speciesPokemon.length,
+        shinyCount: speciesPokemon.filter(p => p.isShiny).length,
+        ivSums: [],
+        avgIVSum: 0,
+        maxIVSum: 0,
+        minIVSum: 186,
+        avgLevel: 0,
+        maxLevel: 0,
+        minLevel: 100
+    };
+    
+    let ivSumTotal = 0;
+    let ivSumCount = 0;
+    let levelTotal = 0;
+    let levelCount = 0;
+    
+    speciesPokemon.forEach(p => {
+        // IV Sum statistics
+        if (p.ivSum !== undefined && p.ivSum !== null) {
+            const ivSum = Number(p.ivSum);
+            stats.ivSums.push(ivSum);
+            ivSumTotal += ivSum;
+            ivSumCount++;
+            stats.maxIVSum = Math.max(stats.maxIVSum, ivSum);
+            stats.minIVSum = Math.min(stats.minIVSum, ivSum);
+        }
+        
+        // Level statistics
+        if (p.level !== undefined && p.level !== null) {
+            const level = Number(p.level);
+            levelTotal += level;
+            levelCount++;
+            stats.maxLevel = Math.max(stats.maxLevel, level);
+            stats.minLevel = Math.min(stats.minLevel, level);
+        }
+    });
+    
+    stats.avgIVSum = ivSumCount > 0 ? (ivSumTotal / ivSumCount) : 0;
+    stats.avgLevel = levelCount > 0 ? (levelTotal / levelCount) : 0;
+    
+    // If no IV data, set min to 0
+    if (stats.minIVSum === 186) {
+        stats.minIVSum = 0;
+    }
+    
+    return stats;
+}
+
 // Display Pokedex
 async function displayPokedex(data) {
     const { pokedex, completionStats, availableGenerations: gens } = data;
@@ -7222,12 +7380,51 @@ async function displayPokedex(data) {
             statusClass = 'owned';
         }
         
+        // Calculate statistics for this species (only if checkbox is checked)
+        const showStatsOnCard = document.getElementById('pokedexShowStats')?.checked ?? true;
+        const speciesStats = showStatsOnCard ? calculateSpeciesStatistics(speciesId) : null;
+        let statsHTML = '';
+        if (showStatsOnCard && speciesStats && speciesStats.count > 0) {
+            const hasIVData = speciesStats.avgIVSum > 0 || speciesStats.maxIVSum > 0;
+            statsHTML = `
+                <div class="pokedex-stats">
+                    <div class="pokedex-stat-item">
+                        <span class="stat-label">Count:</span>
+                        <span class="stat-value">${speciesStats.count}</span>
+                    </div>
+                    ${speciesStats.shinyCount > 0 ? `
+                    <div class="pokedex-stat-item">
+                        <span class="stat-label">Shiny:</span>
+                        <span class="stat-value">${speciesStats.shinyCount}</span>
+                    </div>
+                    ` : ''}
+                    ${hasIVData ? `
+                    <div class="pokedex-stat-item">
+                        <span class="stat-label">Avg IV:</span>
+                        <span class="stat-value">${speciesStats.avgIVSum > 0 ? speciesStats.avgIVSum.toFixed(1) : '0.0'}</span>
+                    </div>
+                    <div class="pokedex-stat-item">
+                        <span class="stat-label">Max IV:</span>
+                        <span class="stat-value">${speciesStats.maxIVSum}</span>
+                    </div>
+                    ${speciesStats.count > 1 && speciesStats.minIVSum < speciesStats.maxIVSum ? `
+                    <div class="pokedex-stat-item">
+                        <span class="stat-label">Min IV:</span>
+                        <span class="stat-value">${speciesStats.minIVSum}</span>
+                    </div>
+                    ` : ''}
+                    ` : ''}
+                </div>
+            `;
+        }
+        
         gridHTML += `
             <div class="pokedex-entry ${statusClass}" data-species="${speciesId}">
                 <div class="pokedex-number">#${speciesId}</div>
                 <img src="${spriteUrl}" alt="${speciesName}" class="pokedex-sprite" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png'">
                 <div class="pokedex-name">${speciesName}</div>
                 ${entry.shiny ? '<span class="shiny-indicator">★</span>' : ''}
+                ${statsHTML}
             </div>
         `;
     }
@@ -7262,7 +7459,211 @@ async function displayPokedex(data) {
         genFilterSelect.addEventListener('change', () => loadPokedexData());
         genFilterSelect.dataset.listenerAdded = 'true';
     }
+    
+    // Add stats toggle event listener
+    const showStatsCheckbox = document.getElementById('pokedexShowStats');
+    if (showStatsCheckbox && !showStatsCheckbox.dataset.listenerAdded) {
+        showStatsCheckbox.addEventListener('change', () => loadPokedexData());
+        showStatsCheckbox.dataset.listenerAdded = 'true';
+    }
 }
+
+// Calculate Unown form from IVs (Gen 3 formula)
+// Form is determined by: ((ATK & 0x6) << 5) | ((DEF & 0x6) << 3) | ((SPE & 0x6) << 1) | ((SPC & 0x6) >> 1)) / 10
+function calculateUnownForm(attackIV, defenseIV, speedIV, spAttackIV) {
+    const atkBits = (attackIV & 0x6) << 5;
+    const defBits = (defenseIV & 0x6) << 3;
+    const speBits = (speedIV & 0x6) << 1;
+    const spcBits = (spAttackIV & 0x6) >> 1;
+    const formValue = (atkBits | defBits | speBits | spcBits) / 10;
+    return Math.min(27, Math.max(0, Math.floor(formValue))); // Forms 0-27 (A-Z, !, ?)
+}
+
+// Get Unown form letter/character
+function getUnownFormName(form) {
+    if (form >= 0 && form <= 25) {
+        return String.fromCharCode(65 + form); // A-Z
+    } else if (form === 26) {
+        return '!';
+    } else if (form === 27) {
+        return '?';
+    }
+    return '?';
+}
+
+// Show Unown Dex modal
+async function showUnownDex() {
+    const modal = document.getElementById('unownDexModal');
+    const content = document.getElementById('unownDexContent');
+    
+    if (!modal || !content) {
+        console.error('Unown Dex modal elements not found');
+        return;
+    }
+    
+    modal.classList.remove('hidden');
+    content.innerHTML = '<div class="loading">Loading Unown forms...</div>';
+    
+    try {
+        // Fetch all Pokemon files to find Unown
+        const dbId = currentDatabase || 'db1';
+        const response = await fetch(`/api/pokemon?db=${dbId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch Pokemon data');
+        }
+        
+        const pokemonData = await response.json();
+        
+        // Track which forms are owned (shiny and non-shiny) and store Pokemon data
+        const unownForms = {};
+        const unownPokemonByForm = {}; // Store actual Pokemon data for each form
+        for (let i = 0; i <= 27; i++) {
+            unownForms[i] = { owned: false, shiny: false, pokemon: [] };
+            unownPokemonByForm[i] = [];
+        }
+        
+        // Process all Pokemon to find Unown
+        for (const pokemon of pokemonData) {
+            if (pokemon.species === 201 && !pokemon.error) {
+                // Calculate form from IVs
+                const form = calculateUnownForm(
+                    pokemon.ivs?.attack || 0,
+                    pokemon.ivs?.defense || 0,
+                    pokemon.ivs?.speed || 0,
+                    pokemon.ivs?.spAttack || 0
+                );
+                
+                if (form >= 0 && form <= 27) {
+                    unownForms[form].owned = true;
+                    unownPokemonByForm[form].push(pokemon);
+                    if (pokemon.isShiny) {
+                        unownForms[form].shiny = true;
+                    }
+                }
+            }
+        }
+        
+        // Fetch Unown Pokemon data from PokeAPI
+        let unownPokemonData = null;
+        try {
+            const pokemonResponse = await fetch('https://pokeapi.co/api/v2/pokemon/201');
+            if (pokemonResponse.ok) {
+                unownPokemonData = await pokemonResponse.json();
+            }
+        } catch (e) {
+            console.warn('Failed to fetch Unown data from PokeAPI:', e);
+        }
+        
+        // Display Unown Dex
+        let html = '';
+        
+        // Add basic Unown information section
+        if (unownPokemonData) {
+            html += '<div class="unown-dex-info-section">';
+            html += '<h3>Unown Information</h3>';
+            html += `<p><strong>Name:</strong> Unown</p>`;
+            html += `<p><strong>ID:</strong> #201</p>`;
+            if (unownPokemonData.height) {
+                html += `<p><strong>Height:</strong> ${(unownPokemonData.height / 10).toFixed(1)} m</p>`;
+            }
+            if (unownPokemonData.weight) {
+                html += `<p><strong>Weight:</strong> ${(unownPokemonData.weight / 10).toFixed(1)} kg</p>`;
+            }
+            if (unownPokemonData.types && unownPokemonData.types.length > 0) {
+                html += '<p><strong>Types:</strong> ';
+                html += unownPokemonData.types.map(t => t.type.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ');
+                html += '</p>';
+            }
+            if (unownPokemonData.abilities && unownPokemonData.abilities.length > 0) {
+                html += '<p><strong>Abilities:</strong> ';
+                html += unownPokemonData.abilities.map(a => a.ability.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ');
+                html += '</p>';
+            }
+            html += '</div>';
+        }
+        
+        // Add summary
+        const ownedCount = Object.values(unownForms).filter(f => f.owned).length;
+        const shinyCount = Object.values(unownForms).filter(f => f.shiny).length;
+        html += `
+            <div class="unown-dex-summary">
+                <div class="summary-stat">
+                    <strong>Owned:</strong> ${ownedCount}/28
+                </div>
+                <div class="summary-stat">
+                    <strong>Shiny:</strong> ${shinyCount}/28
+                </div>
+            </div>
+        `;
+        
+        // Display Unown forms grid
+        html += '<div class="unown-dex-grid">';
+        for (let form = 0; form <= 27; form++) {
+            const formData = unownForms[form];
+            const formName = getUnownFormName(form);
+            const ownedClass = formData.owned ? 'owned' : 'missing';
+            const shinyClass = formData.shiny ? 'shiny' : '';
+            
+            // Get sprite URL for this form
+            const formLower = formName.toLowerCase();
+            const spriteUrl = getSpriteUrl(201, false, formLower);
+            const shinySpriteUrl = getSpriteUrl(201, true, formLower);
+            
+            // Get Pokemon count for this form
+            const pokemonCount = unownPokemonByForm[form].length;
+            const shinyCount = unownPokemonByForm[form].filter(p => p.isShiny).length;
+            
+            html += `
+                <div class="unown-form-card ${ownedClass} ${shinyClass}" data-form="${form}">
+                    <div class="unown-form-sprite">
+                        <img src="${spriteUrl}" alt="Unown ${formName}" 
+                             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-${formLower}.png'">
+                        ${formData.shiny ? `<img src="${shinySpriteUrl}" alt="Unown ${formName} Shiny" class="shiny-sprite"
+                             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/201-${formLower}.png'">` : ''}
+                    </div>
+                    <div class="unown-form-letter">${formName}</div>
+                    <div class="unown-form-status">
+                        ${formData.shiny ? '<span class="shiny-indicator">★</span>' : ''}
+                        ${formData.owned ? '<span class="owned-indicator">✓</span>' : '<span class="missing-indicator">✗</span>'}
+                    </div>
+                    ${pokemonCount > 0 ? `<div class="unown-form-count">${pokemonCount} ${pokemonCount === 1 ? 'Pokemon' : 'Pokemon'}${shinyCount > 0 ? ` (${shinyCount} shiny)` : ''}</div>` : ''}
+                </div>
+            `;
+        }
+        html += '</div>';
+        
+        content.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading Unown Dex:', error);
+        content.innerHTML = `<div class="error">Error loading Unown forms: ${error.message}</div>`;
+    }
+}
+
+// Close Unown Dex modal
+function closeUnownDexModal() {
+    const modal = document.getElementById('unownDexModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Setup Unown Dex modal close handler
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('closeUnownDexModal');
+    const modal = document.getElementById('unownDexModal');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeUnownDexModal);
+    }
+    
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeUnownDexModal();
+            }
+        });
+    }
+});
 
 // Show Pokemon information modal
 async function showPokemonInfo(speciesId) {
@@ -7286,9 +7687,119 @@ async function showPokemonInfo(speciesId) {
         
         // Display the information
         content.innerHTML = formatPokemonInfo(pokemonData, speciesId, speciesName);
+        
+        // If this is Unown, load and display all forms
+        if (speciesId === 201) {
+            loadUnownForms();
+        }
     } catch (error) {
         console.error('Error loading Pokemon info:', error);
         content.innerHTML = `<div class="error">Error loading Pokemon information: ${error.message}</div>`;
+    }
+}
+
+// Load and display Unown forms in the Pokemon info modal
+async function loadUnownForms() {
+    const formsGrid = document.getElementById('unownFormsGrid');
+    if (!formsGrid) return;
+    
+    try {
+        // Fetch all Pokemon files to find Unown
+        const dbId = currentDatabase || 'db1';
+        const response = await fetch(`/api/pokemon?db=${dbId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch Pokemon data');
+        }
+        
+        const pokemonData = await response.json();
+        
+        // Track which forms are owned (shiny and non-shiny)
+        const unownForms = {};
+        const unownPokemonByForm = {};
+        for (let i = 0; i <= 27; i++) {
+            unownForms[i] = { owned: false, shiny: false };
+            unownPokemonByForm[i] = [];
+        }
+        
+        // Process all Pokemon to find Unown
+        for (const pokemon of pokemonData) {
+            if (pokemon.species === 201 && !pokemon.error) {
+                // Calculate form from IVs
+                const form = calculateUnownForm(
+                    pokemon.ivs?.attack || 0,
+                    pokemon.ivs?.defense || 0,
+                    pokemon.ivs?.speed || 0,
+                    pokemon.ivs?.spAttack || 0
+                );
+                
+                if (form >= 0 && form <= 27) {
+                    unownForms[form].owned = true;
+                    unownPokemonByForm[form].push(pokemon);
+                    if (pokemon.isShiny) {
+                        unownForms[form].shiny = true;
+                    }
+                }
+            }
+        }
+        
+        // Display Unown forms grid
+        let html = '';
+        for (let form = 0; form <= 27; form++) {
+            const formData = unownForms[form];
+            const formName = getUnownFormName(form);
+            const ownedClass = formData.owned ? 'owned' : 'missing';
+            const shinyClass = formData.shiny ? 'shiny' : '';
+            
+            // Get sprite URL for this form
+            // PokeAPI uses lowercase letters for A-Z, and special characters need URL encoding
+            let formLower = formName.toLowerCase();
+            if (formName === '!') formLower = 'exclamation';
+            if (formName === '?') formLower = 'question';
+            
+            // Use direct PokeAPI sprite URL for Unown forms
+            const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-${formLower}.png`;
+            const shinySpriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/201-${formLower}.png`;
+            
+            // Get Pokemon count for this form
+            const pokemonCount = unownPokemonByForm[form].length;
+            const shinyCount = unownPokemonByForm[form].filter(p => p.isShiny).length;
+            
+            html += `
+                <div class="unown-form-card ${ownedClass} ${shinyClass}" data-form="${form}">
+                    <div class="unown-form-sprite">
+                        <img src="${spriteUrl}" alt="Unown ${formName}" 
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201.png'">
+                        ${formData.shiny ? `<img src="${shinySpriteUrl}" alt="Unown ${formName} Shiny" class="shiny-sprite"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/201.png'">` : ''}
+                    </div>
+                    <div class="unown-form-letter">${formName}</div>
+                    <div class="unown-form-status">
+                        ${formData.shiny ? '<span class="shiny-indicator">★</span>' : ''}
+                        ${formData.owned ? '<span class="owned-indicator">✓</span>' : '<span class="missing-indicator">✗</span>'}
+                    </div>
+                    ${pokemonCount > 0 ? `<div class="unown-form-count">${pokemonCount}${shinyCount > 0 ? ` (${shinyCount}★)` : ''}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        // Add summary
+        const ownedCount = Object.values(unownForms).filter(f => f.owned).length;
+        const shinyCount = Object.values(unownForms).filter(f => f.shiny).length;
+        html += `
+            <div class="unown-forms-summary">
+                <div class="summary-stat">
+                    <strong>Owned:</strong> ${ownedCount}/28
+                </div>
+                <div class="summary-stat">
+                    <strong>Shiny:</strong> ${shinyCount}/28
+                </div>
+            </div>
+        `;
+        
+        formsGrid.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading Unown forms:', error);
+        formsGrid.innerHTML = `<div class="error">Error loading Unown forms: ${error.message}</div>`;
     }
 }
 
@@ -7376,6 +7887,11 @@ async function fetchPokemonData(speciesId) {
 function getGenerationFromVersion(versionName) {
     const version = versionName.toLowerCase();
     
+    // Generation 3 (check before Gen 1 to catch firered/leafgreen before they match 'red'/'green')
+    if (version.includes('ruby') || version.includes('sapphire') || version.includes('emerald') ||
+        version.includes('firered') || version.includes('leafgreen') || version.includes('fire-red') || version.includes('leaf-green')) {
+        return 3;
+    }
     // Generation 1
     if (version.includes('red') || version.includes('blue') || version.includes('yellow')) {
         return 1;
@@ -7383,11 +7899,6 @@ function getGenerationFromVersion(versionName) {
     // Generation 2
     if (version.includes('gold') || version.includes('silver') || version.includes('crystal')) {
         return 2;
-    }
-    // Generation 3
-    if (version.includes('ruby') || version.includes('sapphire') || version.includes('emerald') ||
-        version.includes('firered') || version.includes('leafgreen') || version.includes('fire-red') || version.includes('leaf-green')) {
-        return 3;
     }
     // Generation 4
     if (version.includes('diamond') || version.includes('pearl') || version.includes('platinum') ||
@@ -7656,14 +8167,49 @@ function formatPokemonInfo(data, speciesId, speciesName) {
     
     html += '</div>';
     
+    // Unown Forms section (only for Unown - species 201)
+    if (speciesId === 201) {
+        html += '<div class="pokemon-info-section unown-forms-section">';
+        html += '<h3>Unown Forms</h3>';
+        html += '<div class="unown-forms-grid" id="unownFormsGrid">';
+        html += '<div class="loading">Loading Unown forms...</div>';
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // Statistics section - show collection stats for this species
+    const speciesStats = calculateSpeciesStatistics(speciesId);
+    if (speciesStats && speciesStats.count > 0) {
+        html += '<div class="pokemon-info-section statistics-section">';
+        html += '<h3>Collection Statistics</h3>';
+        html += `<p><strong>Total in Database:</strong> ${speciesStats.count}</p>`;
+        if (speciesStats.shinyCount > 0) {
+            html += `<p><strong>Shiny Count:</strong> ${speciesStats.shinyCount}</p>`;
+        }
+        if (speciesStats.avgIVSum > 0 || speciesStats.maxIVSum > 0) {
+            html += `<p><strong>Average IV Sum:</strong> ${speciesStats.avgIVSum > 0 ? speciesStats.avgIVSum.toFixed(1) : '0.0'}</p>`;
+            html += `<p><strong>Maximum IV Sum:</strong> ${speciesStats.maxIVSum}</p>`;
+            if (speciesStats.count > 1 && speciesStats.minIVSum < speciesStats.maxIVSum) {
+                html += `<p><strong>Minimum IV Sum:</strong> ${speciesStats.minIVSum}</p>`;
+            }
+        }
+        if (speciesStats.avgLevel > 0) {
+            html += `<p><strong>Average Level:</strong> ${speciesStats.avgLevel.toFixed(1)}</p>`;
+            if (speciesStats.count > 1) {
+                html += `<p><strong>Level Range:</strong> ${speciesStats.minLevel} - ${speciesStats.maxLevel}</p>`;
+            }
+        }
+        html += '</div>';
+    }
+    
     // Evolution section
     html += '<div class="pokemon-info-section evolution-section">';
     html += '<h3>Evolution</h3>';
     
     // Validate evolution data - reject obviously incorrect relationships
     // Known non-evolving Pokemon in Gen 3: Seviper (336), Zangoose (335), Lunatone (337), Solrock (338),
-    // Altaria (334), Whiscash (340), Camerupt (323), Beautifly (267), Stantler (234)
-    const nonEvolvingPokemon = [234, 267, 323, 334, 335, 336, 337, 338, 340];
+    // Altaria (334), Whiscash (340), Camerupt (323), Beautifly (267), Stantler (234), Unown (201)
+    const nonEvolvingPokemon = [201, 234, 267, 323, 334, 335, 336, 337, 338, 340];
     const hasInvalidEvolutionData = nonEvolvingPokemon.includes(speciesId);
     
     // Check if there's actual evolution data (not just empty objects)
@@ -8131,6 +8677,29 @@ function formatEncounterMethod(method) {
     ).join(' ');
 }
 
+// Helper function to check if a Pokemon is legendary or mythical (Gen 3: 1-386)
+function isLegendaryOrMythical(speciesId) {
+    // Gen 1 legendaries
+    if (speciesId === 144 || speciesId === 145 || speciesId === 146 || // Articuno, Zapdos, Moltres
+        speciesId === 150 || // Mewtwo
+        speciesId === 151) { // Mew
+        return true;
+    }
+    // Gen 2 legendaries
+    if (speciesId === 243 || speciesId === 244 || speciesId === 245 || // Raikou, Entei, Suicune
+        speciesId === 249 || speciesId === 250) { // Lugia, Ho-Oh
+        return true;
+    }
+    // Gen 3 legendaries
+    if (speciesId === 377 || speciesId === 378 || speciesId === 379 || // Regirock, Regice, Registeel
+        speciesId === 380 || speciesId === 381 || // Latias, Latios
+        speciesId === 382 || speciesId === 383 || speciesId === 384 || // Kyogre, Groudon, Rayquaza
+        speciesId === 385 || speciesId === 386) { // Jirachi, Deoxys
+        return true;
+    }
+    return false;
+}
+
 // Pokedex Completion Planner
 async function generatePlanner() {
     const game = plannerGameSelect.value;
@@ -8177,15 +8746,75 @@ async function generatePlanner() {
             }
         }
 
+        // Calculate how many of each Pokemon are needed (accounting for evolutions)
+        // Map: speciesId -> count needed
+        const pokemonNeededCounts = new Map();
+        
+        // Helper to find the base form (lowest in evolution chain) for a given species
+        function findBaseForm(speciesId) {
+            const preEvolutions = getPreEvolution(speciesId);
+            if (!preEvolutions || preEvolutions.length === 0) {
+                return speciesId; // This is already the base form
+            }
+            // Recursively find the base form - get the minimum species ID in the chain
+            let baseForm = speciesId;
+            for (const preId of preEvolutions) {
+                const deeperBase = findBaseForm(preId);
+                // Base form is the one with the lowest species ID (earliest in the chain)
+                if (deeperBase < baseForm) {
+                    baseForm = deeperBase;
+                }
+            }
+            return baseForm;
+        }
+        
+        // Helper to check if we have any evolution in the chain (including the species itself)
+        function hasAnyInChain(speciesId) {
+            const entry = pokedexData.pokedex?.[speciesId] || pokedexData.pokedex?.[String(speciesId)] || { owned: false, shiny: false };
+            if (shinyOnly ? entry.shiny : entry.owned) {
+                return true;
+            }
+            // Check all evolutions
+            const evolutions = getAllEvolutionSpecies(speciesId, true);
+            if (evolutions) {
+                for (const evoId of evolutions) {
+                    const evoEntry = pokedexData.pokedex?.[evoId] || pokedexData.pokedex?.[String(evoId)] || { owned: false, shiny: false };
+                    if (shinyOnly ? evoEntry.shiny : evoEntry.owned) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        for (const speciesId of missingSpecies) {
+            // Find the base form we need to catch
+            const baseForm = findBaseForm(speciesId);
+            
+            // Check if we have any Pokemon in this evolution chain
+            const hasInChain = hasAnyInChain(baseForm);
+            
+            if (hasInChain) {
+                // We have something in the chain, so we need +1 of the base form to evolve
+                const currentCount = pokemonNeededCounts.get(baseForm) || 0;
+                pokemonNeededCounts.set(baseForm, currentCount + 1);
+            } else {
+                // We don't have anything in the chain, need to catch the base form
+                const currentCount = pokemonNeededCounts.get(baseForm) || 0;
+                pokemonNeededCounts.set(baseForm, currentCount + 1);
+            }
+        }
+
         // Map game to PokeAPI version name
         const pokeAPIVersion = getPokeAPIVersionName(game);
 
         // Build encounter map for missing Pokemon using PokeAPI location data
-        const locationEncounters = new Map(); // location -> [{ speciesId, name, encounter, priority }]
+        // Only include Pokemon that we actually need to catch (from pokemonNeededCounts)
+        const locationEncounters = new Map(); // location -> [{ speciesId, name, encounter, priority, count }]
         const pokemonEncounters = new Map(); // speciesId -> [encounters]
 
-        // Fetch location data for each missing Pokemon
-        for (const speciesId of missingSpecies) {
+        // Fetch location data for each Pokemon we need to catch
+        for (const [speciesId, count] of pokemonNeededCounts.entries()) {
             try {
                 // Get Pokemon name
                 const pokemonName = await getSpeciesName(speciesId);
@@ -8241,6 +8870,7 @@ async function generatePlanner() {
                         const encounterInfo = {
                             speciesId,
                             name: pokemonName,
+                            count: count, // How many of this Pokemon are needed
                             encounter: {
                                 method: enc.method,
                                 formattedMethod: formattedMethod,
@@ -8316,6 +8946,49 @@ async function generatePlanner() {
             }
         }
 
+        // Deduplicate encounters within each location - keep only highest probability encounter per Pokemon
+        for (const [location, encounters] of locationEncounters.entries()) {
+            // Group encounters by speciesId
+            const encountersBySpecies = new Map(); // speciesId -> [encounters]
+            for (const enc of encounters) {
+                if (!encountersBySpecies.has(enc.speciesId)) {
+                    encountersBySpecies.set(enc.speciesId, []);
+                }
+                encountersBySpecies.get(enc.speciesId).push(enc);
+            }
+            
+            // For each species, keep only the encounter with highest rate
+            const deduplicatedEncounters = [];
+            for (const [speciesId, speciesEncounters] of encountersBySpecies.entries()) {
+                if (speciesEncounters.length === 1) {
+                    // Only one encounter, keep it
+                    deduplicatedEncounters.push(speciesEncounters[0]);
+                } else {
+                    // Multiple encounters for same species, keep the one with highest rate
+                    // If rates are equal, prefer higher priority, then better method
+                    const bestEncounter = speciesEncounters.reduce((best, current) => {
+                        const currentRate = current.rate || 0;
+                        const bestRate = best.rate || 0;
+                        
+                        // First compare by rate
+                        if (currentRate > bestRate) return current;
+                        if (currentRate < bestRate) return best;
+                        
+                        // Rates are equal, compare by priority (lower number = higher priority)
+                        if (current.priority < best.priority) return current;
+                        if (current.priority > best.priority) return best;
+                        
+                        // Same priority, keep the first one (or could compare by method)
+                        return best;
+                    });
+                    deduplicatedEncounters.push(bestEncounter);
+                }
+            }
+            
+            // Update the location with deduplicated encounters
+            locationEncounters.set(location, deduplicatedEncounters);
+        }
+
         // Count Pokemon per location for prioritization
         const locationCounts = new Map();
         for (const [location, encounters] of locationEncounters.entries()) {
@@ -8324,17 +8997,45 @@ async function generatePlanner() {
         }
 
         // Sort locations by priority:
-        // 1. Routes with multiple encounters (highest count first)
-        // 2. High probability encounters (rate >= 10%)
-        // 3. Other encounters sorted by rate (descending)
-        // 4. 1-time encounters (alphabetical)
+        // 1. Total Pokemon needed (highest first - most efficient locations)
+        // 2. Routes with multiple encounters (highest count first)
+        // 3. High probability encounters (rate >= 10%)
+        // 4. Other encounters sorted by rate (descending)
+        // 5. 1-time encounters (alphabetical)
+        // 6. Legendary encounters (near bottom, but above empty locations)
+        // 7. Empty locations (very bottom)
         const sortedLocations = Array.from(locationEncounters.entries()).sort((a, b) => {
             const [locationA, encountersA] = a;
             const [locationB, encountersB] = b;
             const countA = locationCounts.get(locationA);
             const countB = locationCounts.get(locationB);
 
-            // First priority: locations with multiple Pokemon (count > 1)
+            // Check if locations are empty (no encounters)
+            const isEmptyA = countA === 0 || encountersA.length === 0;
+            const isEmptyB = countB === 0 || encountersB.length === 0;
+
+            // Highest priority: push empty locations to the very bottom
+            if (isEmptyA && !isEmptyB) return 1;
+            if (!isEmptyA && isEmptyB) return -1;
+
+            // Check if locations contain legendaries (only if not empty)
+            const hasLegendaryA = !isEmptyA && encountersA.some(e => isLegendaryOrMythical(e.speciesId));
+            const hasLegendaryB = !isEmptyB && encountersB.some(e => isLegendaryOrMythical(e.speciesId));
+
+            // Second priority: push legendary locations near the bottom (but above empty)
+            if (hasLegendaryA && !hasLegendaryB) return 1;
+            if (!hasLegendaryA && hasLegendaryB) return -1;
+
+            // Calculate total Pokemon needed for each location
+            const totalNeededA = encountersA.reduce((sum, enc) => sum + (enc.count || 1), 0);
+            const totalNeededB = encountersB.reduce((sum, enc) => sum + (enc.count || 1), 0);
+
+            // First priority: sort by total needed (descending - most needed first)
+            if (totalNeededA !== totalNeededB) {
+                return totalNeededB - totalNeededA;
+            }
+
+            // If totals are equal, prioritize locations with multiple Pokemon (count > 1)
             if (countA > 1 && countB <= 1) return -1;
             if (countA <= 1 && countB > 1) return 1;
             if (countA > 1 && countB > 1) {
@@ -8392,12 +9093,28 @@ async function generatePlanner() {
             const count = locationCounts.get(location);
             const isMultiEncounter = count > 1;
             
+            // Calculate total count needed for this location
+            const totalNeeded = encounters.reduce((sum, enc) => sum + (enc.count || 1), 0);
+            const hasMultipleNeeded = encounters.some(enc => (enc.count || 1) > 1);
+            
             html += `<div class="planner-location ${isMultiEncounter ? 'multi-encounter' : ''}">`;
-            html += `<h4>${location} ${isMultiEncounter ? `<span class="badge">${count} Pokemon</span>` : ''}</h4>`;
+            html += `<h4>${location} ${isMultiEncounter ? `<span class="badge">${count} Pokemon</span>` : ''}`;
+            if (totalNeeded > count || hasMultipleNeeded) {
+                html += ` <span class="badge total-needed-badge">${totalNeeded} needed</span>`;
+            }
+            html += `</h4>`;
             html += '<ul class="planner-encounter-list">';
             
             // Sort encounters within location by priority and rate
+            // Legendaries go to the bottom
             const sortedEncounters = encounters.sort((a, b) => {
+                // First, check if either is legendary - push legendaries to bottom
+                const isLegendaryA = isLegendaryOrMythical(a.speciesId);
+                const isLegendaryB = isLegendaryOrMythical(b.speciesId);
+                if (isLegendaryA && !isLegendaryB) return 1;
+                if (!isLegendaryA && isLegendaryB) return -1;
+                
+                // Then sort by priority and rate
                 if (a.priority !== b.priority) return a.priority - b.priority;
                 return (b.rate || 0) - (a.rate || 0);
             });
@@ -8405,6 +9122,11 @@ async function generatePlanner() {
             for (const enc of sortedEncounters) {
                 html += '<li class="planner-encounter-item">';
                 html += `<strong>#${enc.speciesId} ${enc.name}</strong>`;
+                
+                // Show count for how many are needed (always show, including 1)
+                if (enc.count && enc.count > 0) {
+                    html += ` <span class="pokemon-count-badge">${enc.count > 1 ? '+' : ''}${enc.count}</span>`;
+                }
                 
                 // Show encounter method (Grass, Water, Fishing, etc.)
                 const methodDisplay = enc.formattedMethod || formatEncounterMethod(enc.method || 'Unknown');

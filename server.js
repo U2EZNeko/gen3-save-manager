@@ -1202,11 +1202,12 @@ const EVOLUTION_CHAIN = {
   120: 121, // Staryu -> Starmie
   129: 130, // Magikarp -> Gyarados
   133: 134, // Eevee -> Vaporeon (and others, but we'll use first evolution)
-  134: 135, // Vaporeon (no further evolution)
-  136: 137, // Jolteon (no further evolution)
-  137: 138, // Flareon (no further evolution)
-  138: 139, // Porygon -> Porygon2
-  140: 141, // Omanyte -> Omastar
+  // 134: Vaporeon (no further evolution)
+  // 135: Jolteon (no further evolution)
+  // 136: Flareon (no further evolution)
+  137: 233, // Porygon -> Porygon2
+  138: 139, // Omanyte -> Omastar
+  140: 141, // Kabuto -> Kabutops
   147: 148, // Dratini -> Dragonair
   148: 149, // Dragonair -> Dragonite
   
@@ -1619,15 +1620,26 @@ app.get('/api/pokemon/sprite/:speciesId', (req, res) => {
   try {
     const speciesId = parseInt(req.params.speciesId);
     const isShiny = req.query.shiny === 'true';
+    const form = req.query.form; // For Unown forms (a-z, !, ?)
     
     if (!speciesId || isNaN(speciesId)) {
       return res.status(400).json({ error: 'Invalid species ID' });
     }
     
+    // Handle Unown forms (species 201)
+    let spriteId = speciesId;
+    if (speciesId === 201 && form) {
+      // Unown forms use format: 201-{form} where form is lowercase letter or ! or ?
+      const formLower = form.toLowerCase();
+      if (formLower.length === 1 && ((formLower >= 'a' && formLower <= 'z') || formLower === '!' || formLower === '?')) {
+        spriteId = `201-${formLower}`;
+      }
+    }
+    
     // Redirect to PokeAPI sprite
     const spriteUrl = isShiny
-      ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${speciesId}.png`
-      : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png`;
+      ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${spriteId}.png`
+      : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spriteId}.png`;
     
     res.redirect(spriteUrl);
   } catch (error) {

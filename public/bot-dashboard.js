@@ -77,12 +77,38 @@ let trackedEncounters = JSON.parse(localStorage.getItem('botTrackedEncounters') 
 // Bot data cache - stores latest data for each bot (for summary calculations)
 let botDataCache = new Map(); // botId -> { stats, success, etc. }
 
+// Maximum total encounters cache - tracks the highest total encounters seen per bot
+// This prevents the total from going down when a bot disconnects
+let maxTotalEncountersCache = new Map(); // botId -> maxEncounters (number)
+
+// Bot connection tracking - tracks last successful update and first failure time
+let botConnectionTracking = new Map(); // botId -> { lastSuccess: timestamp, firstFailure: timestamp | null }
+const BOT_OFFLINE_TIMEOUT = 10000; // 10 seconds before considering bot offline
+
 // Live encounter rate history - only in-memory, not persisted (for combined graph)
 let liveEncounterRateHistory = new Map(); // botId -> [{ time, rate }, ...]
 const MAX_LIVE_HISTORY_POINTS = 50; // Keep last 50 points per bot
 
 // Bot order and visibility configuration
 let botOrderConfig = {}; // botId -> { order: number, hidden: boolean }
+
+// Bot target Pokemon configuration
+let botTargetPokemon = JSON.parse(localStorage.getItem('botTargetPokemon') || '{}'); // botId -> { speciesId: number, speciesName: string }
+
+// Get target Pokemon for a bot
+function getBotTargetPokemon(botId) {
+    return botTargetPokemon[botId] || null;
+}
+
+// Set target Pokemon for a bot
+function setBotTargetPokemon(botId, speciesId, speciesName) {
+    if (speciesId && speciesName) {
+        botTargetPokemon[botId] = { speciesId, speciesName };
+    } else {
+        delete botTargetPokemon[botId];
+    }
+    localStorage.setItem('botTargetPokemon', JSON.stringify(botTargetPokemon));
+}
 
 // DOM elements
 const addBotBtn = document.getElementById('addBotBtn');
@@ -859,6 +885,9 @@ async function fetchBotData(bot, testOnly = false) {
         
         const [partyData, statsData, encounterRateData, mapData, emulatorData, playerData, gameStateData] = await Promise.all(fetchPromises);
         
+        // Ensure partyData is always an array (handle null/undefined/errors)
+        const finalPartyData = Array.isArray(partyData) ? partyData : [];
+        
         // Use statusData as emulatorData if we got it from /emulator endpoint
         const finalEmulatorData = needsEmulatorData ? (emulatorData || null) : (workingEndpoint === '/emulator' ? statusData : null);
         // Use statusData as playerData if we got it from /player endpoint
@@ -917,15 +946,27 @@ async function fetchBotData(bot, testOnly = false) {
             console.log(`[${bot.name}] No current encounter data from /opponent endpoint`);
         }
 
-        // Get tracked encounters for this bot (most recent first)
-        const trackedEncountersForBot = (trackedEncounters[bot.id] || []).slice().reverse();
+        // Fetch WildEncounter events from API (preferred over tracked encounters)
+        const recentFindsCount = dashboardSettings.recentFindsCount || 5;
+        const wildEncounterEvents = await fetchWildEncounterEvents(bot, recentFindsCount);
+        
+        // Use WildEncounter events if available, otherwise fall back to tracked encounters
+        let encounterList = [];
+        if (wildEncounterEvents && wildEncounterEvents.length > 0) {
+            encounterList = wildEncounterEvents;
+            console.log(`[${bot.name}] Using ${wildEncounterEvents.length} WildEncounter events for Recent Finds`);
+        } else {
+            // Fallback to tracked encounters (most recent first)
+            encounterList = (trackedEncounters[bot.id] || []).slice().reverse();
+            console.log(`[${bot.name}] Using ${encounterList.length} tracked encounters for Recent Finds (WildEncounter events not available)`);
+        }
         
         return {
             success: true,
             data: {
                 status: mergedStatus,
-                party: partyData,
-                encounters: trackedEncountersForBot,
+                party: finalPartyData,
+                encounters: encounterList,
                 currentEncounter: currentEncounter,
                 stats: statsData,
                 encounter_rate: finalEncounterRate,
@@ -985,6 +1026,162 @@ async function fetchBotEndpointWithRetry(bot, baseUrl, endpoints, maxRetries = 3
     // All retries failed
     console.error(`[${bot.name}] Failed to fetch encounter_log after ${maxRetries} attempts:`, lastError);
     return null;
+}
+
+// Fetch species-specific encounter count from bot API
+async function fetchSpeciesEncounterCount(bot, speciesId) {
+    try {
+        const baseUrl = bot.url;
+        const endpoints = [
+            `/stats/species/${speciesId}`,
+            `/stats/by_species/${speciesId}`,
+            `/species/${speciesId}/stats`,
+            `/encounters/${speciesId}`
+        ];
+        
+        for (const endpoint of endpoints) {
+            try {
+                const fullUrl = baseUrl.endsWith('/') 
+                    ? baseUrl.slice(0, -1) + endpoint 
+                    : baseUrl + endpoint;
+                
+                // Try proxy first
+                let response = null;
+                try {
+                    response = await fetch(`/api/bot-proxy?url=${encodeURIComponent(fullUrl)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        signal: AbortSignal.timeout(3000)
+                    });
+                } catch (proxyErr) {
+                    // Try direct
+                    try {
+                        response = await fetch(fullUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            signal: AbortSignal.timeout(3000)
+                        });
+                    } catch (directErr) {
+                        continue;
+                    }
+                }
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    // Try to extract encounter count from various formats
+                    const count = data.encounters || 
+                                data.total_encounters || 
+                                data.count ||
+                                data.total ||
+                                data.encounter_count;
+                    if (count !== undefined && count !== null) {
+                        return count;
+                    }
+                }
+            } catch (err) {
+                console.warn(`[${bot.name}] Failed to fetch from ${endpoint}:`, err);
+                continue;
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error(`[${bot.name}] Error fetching species encounter count:`, error);
+        return null;
+    }
+}
+
+// Fetch WildEncounter events from bot API
+async function fetchWildEncounterEvents(bot, limit = 10) {
+    try {
+        const baseUrl = bot.url;
+        const endpoints = [
+            '/events?type=WildEncounter&limit=' + limit,
+            '/events/wild_encounter?limit=' + limit,
+            '/wild_encounters?limit=' + limit
+        ];
+        
+        for (const endpoint of endpoints) {
+            try {
+                const fullUrl = baseUrl.endsWith('/') 
+                    ? baseUrl.slice(0, -1) + endpoint 
+                    : baseUrl + endpoint;
+                
+                // Try proxy first
+                let response = null;
+                try {
+                    response = await fetch(`/api/bot-proxy?url=${encodeURIComponent(fullUrl)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        signal: AbortSignal.timeout(5000)
+                    });
+                } catch (proxyErr) {
+                    // Try direct
+                    try {
+                        response = await fetch(fullUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json'
+                            },
+                            signal: AbortSignal.timeout(5000)
+                        });
+                    } catch (directErr) {
+                        continue;
+                    }
+                }
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    
+                    // Handle different response formats
+                    let events = [];
+                    if (Array.isArray(data)) {
+                        events = data;
+                    } else if (data.events && Array.isArray(data.events)) {
+                        events = data.events;
+                    } else if (data.data && Array.isArray(data.data)) {
+                        events = data.data;
+                    } else if (data.results && Array.isArray(data.results)) {
+                        events = data.results;
+                    } else if (data.wild_encounters && Array.isArray(data.wild_encounters)) {
+                        events = data.wild_encounters;
+                    }
+                    
+                    // Filter for WildEncounter events if not already filtered
+                    const wildEncounters = events.filter(event => {
+                        if (typeof event === 'object' && event !== null) {
+                            return event.type === 'WildEncounter' || 
+                                   event.event_type === 'WildEncounter' ||
+                                   event.name === 'WildEncounter' ||
+                                   // If no type field, assume it's a wild encounter if it has pokemon/species data
+                                   (!event.type && !event.event_type && (event.pokemon || event.species));
+                        }
+                        return false;
+                    });
+                    
+                    if (wildEncounters.length > 0) {
+                        console.log(`[${bot.name}] Fetched ${wildEncounters.length} WildEncounter events from ${endpoint}`);
+                        return wildEncounters;
+                    }
+                }
+            } catch (err) {
+                console.warn(`[${bot.name}] Failed to fetch from ${endpoint}:`, err);
+                continue;
+            }
+        }
+        
+        console.warn(`[${bot.name}] No WildEncounter events found from any endpoint`);
+        return [];
+    } catch (error) {
+        console.error(`[${bot.name}] Error fetching WildEncounter events:`, error);
+        return [];
+    }
 }
 
 // Track current encounter - add to tracked list when it changes
@@ -1221,6 +1418,17 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                     if (endpoint.includes('encounter_rate') && data) {
                         console.log(`[${bot.name}] Returning encounter_rate data:`, data);
                     }
+                    // For /party endpoint, ensure we return an array or null
+                    if (endpoint.includes('/party')) {
+                        if (data === null || data === undefined) {
+                            console.warn(`[${bot.name}] Party endpoint returned null/undefined, returning empty array`);
+                            return [];
+                        }
+                        if (!Array.isArray(data)) {
+                            console.warn(`[${bot.name}] Party endpoint returned non-array data:`, typeof data, data);
+                            return [];
+                        }
+                    }
                     return data;
                 } catch (jsonErr) {
                     // Check if response contains SQLite error
@@ -1231,11 +1439,21 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                         // Re-throw as a specific error that can be caught by retry logic
                         throw new Error('SQLite cursor error: ' + errorText.substring(0, 200));
                     }
-                    // Other JSON parse errors
+                    // Other JSON parse errors - for party endpoint, return empty array
+                    if (endpoint.includes('/party')) {
+                        console.warn(`[${bot.name}] JSON parse error for party endpoint, returning empty array:`, jsonErr);
+                        return [];
+                    }
                     console.warn(`[${bot.name}] JSON parse error for ${endpoint}:`, jsonErr);
                     continue;
                 }
             } else if (response && !response.ok) {
+                // For party endpoint, return empty array on error instead of continuing
+                if (endpoint.includes('/party')) {
+                    const statusText = response.statusText || 'Unknown error';
+                    console.warn(`[${bot.name}] Party endpoint returned error ${response.status}: ${statusText}, returning empty array`);
+                    return [];
+                }
                 // Check response text for SQLite errors
                 try {
                     const errorText = await response.text().catch(() => '');
@@ -1317,8 +1535,20 @@ function updateDashboardSummary() {
             }
             
             if (typeof encounters === 'number' && encounters > 0) {
-                totalEncounters += encounters;
+                // Update maximum encounters cache for this bot
+                const currentMax = maxTotalEncountersCache.get(botId) || 0;
+                if (encounters > currentMax) {
+                    maxTotalEncountersCache.set(botId, encounters);
+                }
             }
+        }
+    });
+    
+    // Use maximum encounters from cache (even for disconnected bots)
+    maxTotalEncountersCache.forEach((maxEncounters, botId) => {
+        // Only count visible bots
+        if (visibleBotIds.has(botId)) {
+            totalEncounters += maxEncounters;
         }
     });
     
@@ -1439,6 +1669,32 @@ function updateBotStatus(showLoading = false) {
                     // Cache bot data for summary calculations
                     botDataCache.set(bot.id, result);
                     
+                    // Update connection tracking - mark as successful
+                    botConnectionTracking.set(bot.id, {
+                        lastSuccess: Date.now(),
+                        firstFailure: null
+                    });
+                    
+                    // Update maximum encounters cache
+                    if (result && result.success && result.data) {
+                        const stats = result.data.stats || {};
+                        const totals = stats.totals || {};
+                        let encounters = 0;
+                        if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
+                            encounters = totals.total_encounters;
+                        } else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
+                            encounters = stats.total_encounters;
+                        } else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
+                            encounters = stats.totalEncounters;
+                        }
+                        if (typeof encounters === 'number' && encounters > 0) {
+                            const currentMax = maxTotalEncountersCache.get(bot.id) || 0;
+                            if (encounters > currentMax) {
+                                maxTotalEncountersCache.set(bot.id, encounters);
+                            }
+                        }
+                    }
+                    
                     // Update live encounter rate history (in-memory only)
                     const encounterRate = result.data.encounter_rate;
                     if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
@@ -1458,9 +1714,33 @@ function updateBotStatus(showLoading = false) {
                         }
                     }
                 } else {
-                    // Remove from cache if bot is offline
-                    botDataCache.delete(bot.id);
-                    liveEncounterRateHistory.delete(bot.id);
+                    // Track failure but don't immediately remove data
+                    const now = Date.now();
+                    const tracking = botConnectionTracking.get(bot.id);
+                    
+                    if (!tracking || tracking.firstFailure === null) {
+                        // First failure - record the time
+                        botConnectionTracking.set(bot.id, {
+                            lastSuccess: tracking?.lastSuccess || now,
+                            firstFailure: now
+                        });
+                    }
+                    
+                    // Check if bot has been offline for 10+ seconds
+                    const failureTime = botConnectionTracking.get(bot.id)?.firstFailure;
+                    if (failureTime && (now - failureTime) >= BOT_OFFLINE_TIMEOUT) {
+                        // Bot has been offline for 10+ seconds - remove from cache
+                        botDataCache.delete(bot.id);
+                        liveEncounterRateHistory.delete(bot.id);
+                        botConnectionTracking.delete(bot.id);
+                    } else {
+                        // Bot is temporarily offline - keep showing last known data
+                        // Use the last successful data from cache if available
+                        const cachedData = botDataCache.get(bot.id);
+                        if (cachedData) {
+                            result = cachedData; // Use cached data instead of failed result
+                        }
+                    }
                 }
                 if (statusCard) {
                     updateStatusCard(statusCard, bot, result);
@@ -2031,22 +2311,59 @@ function updateStatusCard(card, bot, result) {
     const content = card.querySelector('.status-card-content');
     const indicator = card.querySelector('.status-indicator');
 
+    let usingCachedData = false;
     if (!result.success) {
-        indicator.textContent = 'Offline';
-        indicator.className = 'status-indicator offline';
-        content.innerHTML = `
-            <div class="error-message">
-                <p><strong>Error:</strong> ${result.error || 'Could not connect to bot'}</p>
-                <p class="bot-url-display">${bot.url}</p>
-            </div>
-        `;
-        return;
+        // Check if we should use cached data (bot hasn't been offline for 10+ seconds)
+        const tracking = botConnectionTracking.get(bot.id);
+        const now = Date.now();
+        const failureTime = tracking?.firstFailure;
+        
+        if (failureTime && (now - failureTime) < BOT_OFFLINE_TIMEOUT) {
+            // Bot is temporarily offline but within timeout - use cached data
+            const cachedData = botDataCache.get(bot.id);
+            if (cachedData && cachedData.success) {
+                // Use cached data instead of failed result
+                result = cachedData;
+                usingCachedData = true;
+            } else {
+                // No cached data available - show offline
+                if (indicator) {
+                    indicator.textContent = 'Offline';
+                    indicator.className = 'status-indicator offline';
+                }
+                content.innerHTML = `
+                    <div class="error-message">
+                        <p><strong>Error:</strong> ${result.error || 'Could not connect to bot'}</p>
+                        <p class="bot-url-display">${bot.url}</p>
+                    </div>
+                `;
+                return;
+            }
+        } else {
+            // Bot has been offline for 10+ seconds or no tracking data - show offline
+            if (indicator) {
+                indicator.textContent = 'Offline';
+                indicator.className = 'status-indicator offline';
+            }
+            content.innerHTML = `
+                <div class="error-message">
+                    <p><strong>Error:</strong> ${result.error || 'Could not connect to bot'}</p>
+                    <p class="bot-url-display">${bot.url}</p>
+                </div>
+            `;
+            return;
+        }
     }
 
-    // Always set to online when we have successful data
+    // Set status indicator - show "Updating..." if using cached data, "Online" if fresh data
     if (indicator) {
-        indicator.textContent = 'Online';
-        indicator.className = 'status-indicator online';
+        if (usingCachedData) {
+            indicator.textContent = 'Updating...';
+            indicator.className = 'status-indicator loading';
+        } else {
+            indicator.textContent = 'Online';
+            indicator.className = 'status-indicator online';
+        }
     }
 
     const data = result.data || {};
@@ -2118,6 +2435,67 @@ function updateStatusCard(card, bot, result) {
             </div>`;
         }
     }
+
+    // Target Pokemon
+    const targetPokemon = getBotTargetPokemon(bot.id);
+    html += `<div class="status-section target-pokemon-section">
+        <h4>Target Pokemon</h4>`;
+    if (targetPokemon) {
+        const spriteUrl = `/api/pokemon/sprite/${targetPokemon.speciesId}`;
+        
+        // Get species-specific encounter count from stats
+        let speciesEncounters = null;
+        if (stats && stats.species) {
+            // Check if stats has per-species data
+            const speciesData = stats.species[targetPokemon.speciesId] || 
+                              stats.species[targetPokemon.speciesId.toString()] ||
+                              stats.by_species?.[targetPokemon.speciesId] ||
+                              stats.by_species?.[targetPokemon.speciesId.toString()];
+            if (speciesData) {
+                speciesEncounters = speciesData.encounters || 
+                                  speciesData.total_encounters || 
+                                  speciesData.count ||
+                                  speciesData.total;
+            }
+        }
+        // Also check if stats has a nested structure like stats.totals.by_species
+        if (speciesEncounters === null && stats && stats.totals) {
+            const totalsBySpecies = stats.totals.by_species || stats.totals.species;
+            if (totalsBySpecies) {
+                const speciesData = totalsBySpecies[targetPokemon.speciesId] || 
+                                  totalsBySpecies[targetPokemon.speciesId.toString()];
+                if (speciesData) {
+                    speciesEncounters = speciesData.encounters || 
+                                      speciesData.total_encounters || 
+                                      speciesData.count ||
+                                      speciesData.total;
+                }
+            }
+        }
+        
+        html += `
+            <div class="target-pokemon-display">
+                <div class="target-pokemon-sprite-container">
+                    <img src="${spriteUrl}" alt="${targetPokemon.speciesName}" class="target-pokemon-sprite" 
+                         onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${targetPokemon.speciesId}.png'">
+                    <p class="target-pokemon-encounters" id="target-encounters-${bot.id}" style="display: ${speciesEncounters !== null ? 'block' : 'none'};">${speciesEncounters !== null ? `${speciesEncounters.toLocaleString()}` : ''}</p>
+                </div>
+                <div class="target-pokemon-info">
+                    <p class="target-pokemon-name">#${targetPokemon.speciesId} ${targetPokemon.speciesName}</p>
+                    <button class="btn btn-small btn-secondary change-target-btn" data-bot-id="${bot.id}">Change</button>
+                </div>
+            </div>
+        `;
+        
+    } else {
+        html += `
+            <div class="target-pokemon-display">
+                <p class="no-target">No target set</p>
+                <button class="btn btn-small btn-primary set-target-btn" data-bot-id="${bot.id}">Set Target</button>
+            </div>
+        `;
+    }
+    html += `</div>`;
 
     // Current Location/Map
     if (dashboardSettings.showMap) {
@@ -2241,14 +2619,32 @@ function updateStatusCard(card, bot, result) {
         // Show most recent encounters first (already in reverse order from tracking)
         const recentEncounters = encounterList.slice(0, recentFindsCount);
         recentEncounters.forEach(encounter => {
-            // Handle different encounter data structures
+            // Handle different encounter data structures, including WildEncounter events
             let speciesId = 0;
             let speciesName = '#0';
             let level = 0;
             let isShiny = false;
             
-            // Try multiple data structure formats
-            if (encounter.species) {
+            // WildEncounter event format: { type: 'WildEncounter', data: { pokemon: {...} } } or { pokemon: {...} }
+            // Check if this is a WildEncounter event
+            if (encounter.type === 'WildEncounter' || encounter.event_type === 'WildEncounter' || encounter.name === 'WildEncounter') {
+                // WildEncounter event format
+                const eventData = encounter.data || encounter;
+                const pokemon = eventData.pokemon || eventData;
+                
+                if (pokemon.species) {
+                    const species = pokemon.species;
+                    speciesId = species.id || species.national_dex_number || species.nationalDexNumber || 0;
+                    speciesName = species.name || `#${speciesId}`;
+                    level = pokemon.level || eventData.level || 0;
+                    isShiny = pokemon.is_shiny || pokemon.isShiny || eventData.is_shiny || eventData.isShiny || false;
+                } else if (pokemon.id || pokemon.national_dex_number) {
+                    speciesId = pokemon.id || pokemon.national_dex_number || pokemon.nationalDexNumber || 0;
+                    speciesName = pokemon.name || pokemon.species_name || `#${speciesId}`;
+                    level = pokemon.level || 0;
+                    isShiny = pokemon.is_shiny || pokemon.isShiny || false;
+                }
+            } else if (encounter.species) {
                 // Format: { species: { id, name, national_dex_number }, level, is_shiny }
                 const species = encounter.species;
                 speciesId = species.id || species.national_dex_number || species.nationalDexNumber || 0;
@@ -2861,34 +3257,7 @@ function updateStatusCard(card, bot, result) {
                 statInfo.push(`Total Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
             }
             
-            // Phase encounters
-            if (totals.phase_encounters !== undefined) {
-                statInfo.push(`Phase Encounters: ${totals.phase_encounters.toLocaleString()}`);
-            }
-            
-            // Phase highest IV sum
-            if (totals.phase_highest_iv_sum && typeof totals.phase_highest_iv_sum === 'object') {
-                const iv = totals.phase_highest_iv_sum;
-                statInfo.push(`Phase Highest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
-            }
-            
-            // Phase lowest IV sum
-            if (totals.phase_lowest_iv_sum && typeof totals.phase_lowest_iv_sum === 'object') {
-                const iv = totals.phase_lowest_iv_sum;
-                statInfo.push(`Phase Lowest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
-            }
-            
-            // Phase highest SV
-            if (totals.phase_highest_sv && typeof totals.phase_highest_sv === 'object') {
-                const sv = totals.phase_highest_sv;
-                statInfo.push(`Phase Highest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
-            }
-            
-            // Phase lowest SV
-            if (totals.phase_lowest_sv && typeof totals.phase_lowest_sv === 'object') {
-                const sv = totals.phase_lowest_sv;
-                statInfo.push(`Phase Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
-            }
+            // Phase-related data removed from Total Stats
         }
         
         // Display all stats from the stats object
@@ -2905,36 +3274,7 @@ function updateStatusCard(card, bot, result) {
             { key: 'shiny_rate', label: 'Shiny Rate', aliases: ['shinyRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(4)}%` : v },
             { key: 'average_iv_sum', label: 'Average IV Sum', aliases: ['averageIvSum', 'avg_iv_sum', 'avgIvSum'], formatter: (v) => typeof v === 'number' ? v.toFixed(2) : v },
             { key: 'best_iv_sum', label: 'Best IV Sum', aliases: ['bestIvSum', 'highest_iv_sum', 'highestIvSum'] },
-            { key: 'total_phases', label: 'Total Phases', aliases: ['totalPhases', 'phases'] },
-            { key: 'current_phase_number', label: 'Current Phase #', aliases: ['currentPhaseNumber', 'phase_number', 'phaseNumber'] },
-            { key: 'longest_phase', label: 'Longest Phase', aliases: ['longestPhase'], formatter: (v) => {
-                if (typeof v === 'number') return formatPlayTime(v);
-                if (typeof v === 'object' && v !== null) {
-                    // Handle phase object - might have duration, encounters, value, species_name, etc.
-                    if (v.duration !== undefined) return formatPlayTime(v.duration);
-                    if (v.encounters !== undefined) return `${v.encounters.toLocaleString()} encounters`;
-                    if (v.value !== undefined && v.species_name !== undefined) {
-                        return `${v.value.toLocaleString()} (${v.species_name})`;
-                    }
-                    if (v.value !== undefined) return v.value.toLocaleString();
-                    return `${v.species_name || 'Unknown'}: ${v.encounters || v.duration || 'N/A'}`;
-                }
-                return String(v);
-            }},
-            { key: 'shortest_phase', label: 'Shortest Phase', aliases: ['shortestPhase'], formatter: (v) => {
-                if (typeof v === 'number') return formatPlayTime(v);
-                if (typeof v === 'object' && v !== null) {
-                    // Handle phase object - might have duration, encounters, value, species_name, etc.
-                    if (v.duration !== undefined) return formatPlayTime(v.duration);
-                    if (v.encounters !== undefined) return `${v.encounters.toLocaleString()} encounters`;
-                    if (v.value !== undefined && v.species_name !== undefined) {
-                        return `${v.value.toLocaleString()} (${v.species_name})`;
-                    }
-                    if (v.value !== undefined) return v.value.toLocaleString();
-                    return `${v.species_name || 'Unknown'}: ${v.encounters || v.duration || 'N/A'}`;
-                }
-                return String(v);
-            }},
+            // Phase-related fields removed from Total Stats
             { key: 'total_pokemon_caught', label: 'Pokemon Caught', aliases: ['totalPokemonCaught', 'pokemon_caught'] },
             { key: 'total_pokemon_seen', label: 'Pokemon Seen', aliases: ['totalPokemonSeen', 'pokemon_seen'] },
             { key: 'total_battles', label: 'Total Battles', aliases: ['totalBattles', 'battles'] },
@@ -2989,8 +3329,9 @@ function updateStatusCard(card, bot, result) {
                 continue;
             }
             
-            // Skip fields containing "fraction" or "time spent" (user requested removal)
-            if (key.toLowerCase().includes('fraction') || 
+            // Skip phase-related fields
+            if (key.toLowerCase().includes('phase') || 
+                key.toLowerCase().includes('fraction') || 
                 key.toLowerCase().includes('time_spent') ||
                 key.toLowerCase().includes('timespent')) {
                 continue;
@@ -3050,6 +3391,64 @@ function updateStatusCard(card, bot, result) {
         existingContent.innerHTML = html;
     } else {
         content.innerHTML = html;
+    }
+    
+    // If target Pokemon encounter count needs to be fetched, do it now (after DOM is updated)
+    const targetPokemonForFetch = getBotTargetPokemon(bot.id);
+    if (targetPokemonForFetch) {
+        const statsForFetch = data.stats || {};
+        let speciesEncountersFromStats = null;
+        if (statsForFetch && statsForFetch.species) {
+            const speciesData = statsForFetch.species[targetPokemonForFetch.speciesId] || 
+                              statsForFetch.species[targetPokemonForFetch.speciesId.toString()] ||
+                              statsForFetch.by_species?.[targetPokemonForFetch.speciesId] ||
+                              statsForFetch.by_species?.[targetPokemonForFetch.speciesId.toString()];
+            if (speciesData) {
+                speciesEncountersFromStats = speciesData.encounters || 
+                                  speciesData.total_encounters || 
+                                  speciesData.count ||
+                                  speciesData.total;
+            }
+        }
+        if (speciesEncountersFromStats === null && statsForFetch && statsForFetch.totals) {
+            const totalsBySpecies = statsForFetch.totals.by_species || statsForFetch.totals.species;
+            if (totalsBySpecies) {
+                const speciesData = totalsBySpecies[targetPokemonForFetch.speciesId] || 
+                                  totalsBySpecies[targetPokemonForFetch.speciesId.toString()];
+                if (speciesData) {
+                    speciesEncountersFromStats = speciesData.encounters || 
+                                      speciesData.total_encounters || 
+                                      speciesData.count ||
+                                      speciesData.total;
+                }
+            }
+        }
+        
+        // If not found in stats, fetch from API asynchronously (non-blocking)
+        if (speciesEncountersFromStats === null) {
+            fetchSpeciesEncounterCount(bot, targetPokemonForFetch.speciesId).then(count => {
+                if (count !== null && count !== undefined) {
+                    const encountersEl = document.getElementById(`target-encounters-${bot.id}`);
+                    if (encountersEl) {
+                        encountersEl.textContent = count.toLocaleString();
+                        encountersEl.style.display = 'block';
+                    }
+                }
+            }).catch(err => {
+                console.warn(`[${bot.name}] Failed to fetch species encounter count:`, err);
+            });
+        }
+    }
+    
+    // Add event listeners for target Pokemon buttons
+    const setTargetBtn = card.querySelector(`.set-target-btn[data-bot-id="${bot.id}"]`);
+    const changeTargetBtn = card.querySelector(`.change-target-btn[data-bot-id="${bot.id}"]`);
+    
+    if (setTargetBtn) {
+        setTargetBtn.addEventListener('click', () => showTargetPokemonSelector(bot.id));
+    }
+    if (changeTargetBtn) {
+        changeTargetBtn.addEventListener('click', () => showTargetPokemonSelector(bot.id));
     }
     
     // Restore or create mini graph for this bot if enabled
@@ -4442,6 +4841,13 @@ function updateBotControls(card, bot, status) {
     if (modeDisplay) {
         const mode = status.mode || status.bot_mode || status.game_mode || status.gameMode || 'Unknown';
         modeDisplay.textContent = mode;
+        
+        // Add/remove red background tint for Manual mode
+        if (mode && mode.toLowerCase() === 'manual') {
+            card.classList.add('bot-manual-mode');
+        } else {
+            card.classList.remove('bot-manual-mode');
+        }
     }
     
     // Update emulation speed
@@ -4629,6 +5035,26 @@ function connectToBotStream(bot) {
                 // Cache bot data for summary calculations
                 botDataCache.set(bot.id, result);
                 
+                // Update maximum encounters cache
+                if (result && result.success && result.data) {
+                    const stats = result.data.stats || {};
+                    const totals = stats.totals || {};
+                    let encounters = 0;
+                    if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
+                        encounters = totals.total_encounters;
+                    } else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
+                        encounters = stats.total_encounters;
+                    } else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
+                        encounters = stats.totalEncounters;
+                    }
+                    if (typeof encounters === 'number' && encounters > 0) {
+                        const currentMax = maxTotalEncountersCache.get(bot.id) || 0;
+                        if (encounters > currentMax) {
+                            maxTotalEncountersCache.set(bot.id, encounters);
+                        }
+                    }
+                }
+                
                 // Update live encounter rate history (in-memory only)
                 const encounterRate = result.data.encounter_rate;
                 if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
@@ -4714,6 +5140,362 @@ function connectToBotStream(bot) {
         // Fallback to polling for this bot
         fallbackToPollingForBot(bot);
     }
+}
+
+// Show target Pokemon selector modal
+async function showTargetPokemonSelector(botId) {
+    // Create or get modal
+    let modal = document.getElementById('targetPokemonModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'targetPokemonModal';
+        modal.className = 'modal hidden';
+        modal.innerHTML = `
+            <div class="modal-content target-pokemon-modal-content">
+                <div class="modal-header">
+                    <h2>Set Target Pokemon</h2>
+                    <span class="modal-close" id="closeTargetPokemonModal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="targetPokemonSelect">Select Pokemon:</label>
+                        <div class="pokemon-select-wrapper">
+                            <input type="text" id="targetPokemonSelect" class="target-pokemon-select" placeholder="Type to search Pokemon..." autocomplete="off">
+                            <div id="targetPokemonDropdown" class="pokemon-dropdown hidden"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="saveTargetPokemonBtn">Set Target</button>
+                        <button class="btn btn-secondary" id="clearTargetPokemonBtn">Clear Target</button>
+                        <button class="btn btn-secondary" id="cancelTargetPokemonBtn">Cancel</button>
+                    </div>
+                    <div id="targetPokemonPreview" class="target-pokemon-preview"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Populate Pokemon dropdown (Gen 3: 1-386)
+        const pokemonSelect = document.getElementById('targetPokemonSelect');
+        const pokemonDropdown = document.getElementById('targetPokemonDropdown');
+        if (pokemonSelect && pokemonDropdown) {
+            // Load Pokemon names asynchronously
+            loadPokemonList(pokemonSelect, pokemonDropdown);
+        }
+        
+        // Add event listeners
+        const closeBtn = document.getElementById('closeTargetPokemonModal');
+        const cancelBtn = document.getElementById('cancelTargetPokemonBtn');
+        const saveBtn = document.getElementById('saveTargetPokemonBtn');
+        const clearBtn = document.getElementById('clearTargetPokemonBtn');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+        }
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                const currentBotId = modal.dataset.botId;
+                if (currentBotId) {
+                    delete botTargetPokemon[currentBotId];
+                    localStorage.setItem('botTargetPokemon', JSON.stringify(botTargetPokemon));
+                    modal.classList.add('hidden');
+                    // Refresh the bot status card
+                    const card = document.getElementById(`bot-status-${currentBotId}`);
+                    if (card) {
+                        const bot = botInstances.find(b => b.id === currentBotId);
+                        if (bot) {
+                            const cachedData = botDataCache.get(currentBotId);
+                            if (cachedData) {
+                                updateStatusCard(card, bot, cachedData);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                const currentBotId = modal.dataset.botId;
+                if (!currentBotId) {
+                    alert('Error: Bot ID not found.');
+                    return;
+                }
+                const inputValue = pokemonSelect.value.trim();
+                if (!inputValue) {
+                    alert('Please select a Pokemon.');
+                    return;
+                }
+                
+                // Parse the input value - could be "#123 - Name", "Name", "#123", or "123"
+                let speciesId = null;
+                let speciesName = null;
+                
+                // Try to parse from format "#123 - Name"
+                const match = inputValue.match(/^#?(\d+)\s*-\s*(.+)$/);
+                if (match) {
+                    speciesId = parseInt(match[1]);
+                    speciesName = match[2].trim();
+                } else {
+                    // Try to get from datalist or parse as ID
+                    const datalist = document.getElementById('targetPokemonList');
+                    if (datalist) {
+                        // Get pokemon map from stored data
+                        const mapData = pokemonSelect.dataset.pokemonMap;
+                        if (mapData) {
+                            const pokemonMap = new Map(JSON.parse(mapData));
+                            // Try to find by name or ID
+                            for (const [id, name] of pokemonMap.entries()) {
+                                if (inputValue === name || inputValue === `#${id}` || inputValue === id.toString() || inputValue === `#${id} - ${name}`) {
+                                    speciesId = parseInt(id);
+                                    speciesName = name;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If still not found, try parsing as just a number
+                    if (!speciesId) {
+                        const numMatch = inputValue.match(/^#?(\d+)$/);
+                        if (numMatch) {
+                            speciesId = parseInt(numMatch[1]);
+                            // Try to get name from map
+                            const mapData = pokemonSelect.dataset.pokemonMap;
+                            if (mapData) {
+                                const pokemonMap = new Map(JSON.parse(mapData));
+                                speciesName = pokemonMap.get(speciesId);
+                            }
+                        }
+                    }
+                }
+                
+                if (speciesId && speciesId >= 1 && speciesId <= 386 && speciesName) {
+                    setBotTargetPokemon(currentBotId, speciesId, speciesName);
+                    modal.classList.add('hidden');
+                    // Refresh the bot status card
+                    const card = document.getElementById(`bot-status-${currentBotId}`);
+                    if (card) {
+                        const bot = botInstances.find(b => b.id === currentBotId);
+                        if (bot) {
+                            const cachedData = botDataCache.get(currentBotId);
+                            if (cachedData) {
+                                updateStatusCard(card, bot, cachedData);
+                            }
+                        }
+                    }
+                } else {
+                    alert('Please select a valid Pokemon.');
+                }
+            });
+        }
+        if (pokemonSelect) {
+            const pokemonDropdown = document.getElementById('targetPokemonDropdown');
+            
+            // Filter and show dropdown when input changes
+            const filterAndShowDropdown = () => {
+                const inputValue = pokemonSelect.value.trim().toLowerCase();
+                const mapData = pokemonSelect.dataset.pokemonMap;
+                if (!mapData || !pokemonDropdown) {
+                    return;
+                }
+                
+                const pokemonMap = new Map(JSON.parse(mapData));
+                const pokemonList = Array.from(pokemonMap.entries()).map(([id, name]) => ({
+                    id: parseInt(id),
+                    name,
+                    displayText: `#${id} - ${name}`
+                }));
+                
+                // Filter Pokemon based on input
+                let filtered = [];
+                if (inputValue) {
+                    filtered = pokemonList.filter(p => 
+                        p.name.toLowerCase().includes(inputValue) ||
+                        p.id.toString().includes(inputValue) ||
+                        `#${p.id}`.includes(inputValue)
+                    );
+                } else {
+                    filtered = pokemonList.slice(0, 20); // Show first 20 when empty
+                }
+                
+                // Limit to 50 results
+                filtered = filtered.slice(0, 50);
+                
+                // Update dropdown
+                if (filtered.length > 0 && inputValue) {
+                    pokemonDropdown.innerHTML = '';
+                    filtered.forEach(pokemon => {
+                        const item = document.createElement('div');
+                        item.className = 'pokemon-dropdown-item';
+                        item.textContent = pokemon.displayText;
+                        item.dataset.pokemonId = pokemon.id;
+                        item.dataset.pokemonName = pokemon.name;
+                        item.addEventListener('click', () => {
+                            pokemonSelect.value = pokemon.displayText;
+                            pokemonDropdown.classList.add('hidden');
+                            updatePreview();
+                        });
+                        pokemonDropdown.appendChild(item);
+                    });
+                    pokemonDropdown.classList.remove('hidden');
+                } else {
+                    pokemonDropdown.classList.add('hidden');
+                }
+            };
+            
+            // Update preview when input changes
+            const updatePreview = async () => {
+                const inputValue = pokemonSelect.value.trim();
+                if (!inputValue) {
+                    const preview = document.getElementById('targetPokemonPreview');
+                    if (preview) {
+                        preview.innerHTML = '';
+                    }
+                    return;
+                }
+                
+                // Get pokemon map from stored data
+                const mapData = pokemonSelect.dataset.pokemonMap;
+                if (!mapData) {
+                    return; // Map not loaded yet
+                }
+                
+                const pokemonMap = new Map(JSON.parse(mapData));
+                
+                // Try to find matching Pokemon by name or ID
+                let matchedPokemon = null;
+                for (const [id, name] of pokemonMap.entries()) {
+                    const displayText = `#${id} - ${name}`;
+                    if (inputValue === displayText || inputValue === name || inputValue === `#${id}` || inputValue === id.toString()) {
+                        matchedPokemon = { id: parseInt(id), name };
+                        break;
+                    }
+                }
+                
+                if (matchedPokemon && matchedPokemon.id >= 1 && matchedPokemon.id <= 386) {
+                    const preview = document.getElementById('targetPokemonPreview');
+                    const spriteUrl = `/api/pokemon/sprite/${matchedPokemon.id}`;
+                    if (preview) {
+                        preview.innerHTML = `
+                            <div class="target-pokemon-preview-content">
+                                <img src="${spriteUrl}" alt="${matchedPokemon.name}" 
+                                     onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${matchedPokemon.id}.png'">
+                                <p><strong>#${matchedPokemon.id} ${matchedPokemon.name}</strong></p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    const preview = document.getElementById('targetPokemonPreview');
+                    if (preview) {
+                        preview.innerHTML = '';
+                    }
+                }
+            };
+            
+            pokemonSelect.addEventListener('input', () => {
+                filterAndShowDropdown();
+                updatePreview();
+            });
+            pokemonSelect.addEventListener('focus', filterAndShowDropdown);
+            
+            // Hide dropdown when clicking outside
+            const wrapper = pokemonSelect.closest('.pokemon-select-wrapper');
+            document.addEventListener('click', (e) => {
+                if (wrapper && !wrapper.contains(e.target)) {
+                    pokemonDropdown.classList.add('hidden');
+                }
+            });
+        }
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Set current bot ID
+    modal.dataset.botId = botId;
+    
+    // Load current target if set
+    const currentTarget = getBotTargetPokemon(botId);
+    const pokemonSelect = document.getElementById('targetPokemonSelect');
+    if (pokemonSelect) {
+        if (currentTarget) {
+            // Set value in format "#123 - Name" for the input
+            pokemonSelect.value = `#${currentTarget.speciesId} - ${currentTarget.speciesName}`;
+            // Trigger preview update
+            pokemonSelect.dispatchEvent(new Event('input'));
+        } else {
+            pokemonSelect.value = '';
+        }
+    }
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+// Load Pokemon list (sorted alphabetically)
+async function loadPokemonList(inputElement, dropdownElement) {
+    try {
+        // Fetch all Pokemon names for Gen 3 (1-386)
+        const pokemonList = [];
+        const batchSize = 50;
+        
+        for (let i = 1; i <= 386; i += batchSize) {
+            const batch = [];
+            for (let j = i; j < Math.min(i + batchSize, 387); j++) {
+                batch.push(fetchPokemonNameForList(j));
+            }
+            const results = await Promise.all(batch);
+            results.forEach((name, index) => {
+                if (name) {
+                    pokemonList.push({ id: i + index, name });
+                }
+            });
+        }
+        
+        // Sort by Pokemon name alphabetically
+        pokemonList.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Store the map for lookup in the input handler
+        const pokemonDataMap = new Map();
+        pokemonList.forEach(pokemon => {
+            pokemonDataMap.set(pokemon.id, pokemon.name);
+        });
+        
+        // Store the map in the input element's dataset
+        if (inputElement) {
+            inputElement.dataset.pokemonMap = JSON.stringify(Array.from(pokemonDataMap.entries()));
+        }
+    } catch (error) {
+        console.error('Error loading Pokemon list:', error);
+    }
+}
+
+// Fetch Pokemon name for list (with caching)
+const pokemonNameCache = new Map();
+async function fetchPokemonNameForList(speciesId) {
+    if (pokemonNameCache.has(speciesId)) {
+        return pokemonNameCache.get(speciesId);
+    }
+    
+    try {
+        const response = await fetch(`/api/pokemon/species/${speciesId}`);
+        if (response.ok) {
+            const speciesData = await response.json();
+            const speciesName = speciesData.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            pokemonNameCache.set(speciesId, speciesName);
+            return speciesName;
+        }
+    } catch (error) {
+        console.error(`Error fetching Pokemon name for ${speciesId}:`, error);
+    }
+    
+    return `Unknown (${speciesId})`;
 }
 
 // Store polling intervals per bot
