@@ -1,7 +1,7 @@
 {
   "name": "gen3-save-manager",
-  "version": "1.0.0",
-  "description": "Web-based viewer for .pk3 Pokemon files",
+  "version": "0.1.0-alpha",
+  "description": "Web-based viewer and manager for Pokémon files (Gen 3-7) and Generation 3 save files",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,23 +1,61 @@
 # Dependencies
 node_modules/
 
-
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
 # Build files
 dist/
 build/
 
+# PKHeX source (included for reference, but not needed for runtime)
 PKHeX-master/
+
+# Test files
+*test*.js
+check-*.js
+debug-*.js
+testscript.py
+*.test.js
+*.spec.js
+
+# User data and config files (should not be committed)
+*.pk3
+*.pk4
+*.pk5
+*.pk6
+*.pk7
+*.sav
+bot-targets.json
+bots-config.json
+folders-config.json
+scanner-config.json
+
+# User data directories (Pokemon databases)
+gen3botdisc/
+pk3-db-bots/
+
+# Temporary directories
+temp-emerald-map/
+temp-frlg-map/
+
+# Environment files
+.env
+.env.local
+.env.*.local

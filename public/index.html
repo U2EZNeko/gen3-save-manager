@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1200, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Gen3 Pokemon Viewer</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -195,9 +195,9 @@
             </div>
             <div class="save-file-controls">
                 <input type="file" id="saveFileInput" accept=".sav" style="display: none;">
-                <button id="loadSaveFileBtn" class="btn btn-primary">Load Save File</button>
-                <button id="sortBoxesBtn" class="btn btn-secondary" disabled>Sort Boxes by National Dex</button>
-                <button id="exportSaveBtn" class="btn btn-primary" disabled>Export Save File</button>
+                <button id="loadSaveFileBtn" class="btn btn-primary" style="display: none;">Load Save File</button>
+                <button id="sortBoxesBtn" class="btn btn-secondary" disabled style="display: none;">Sort Boxes by National Dex</button>
+                <button id="exportSaveBtn" class="btn btn-primary" disabled style="display: none;">Export Save File</button>
                 <div class="import-options">
                     <div class="import-target-options">
                         <label>
@@ -220,7 +220,7 @@
                 </div>
                 <div class="selected-pokemon-info">
                     <p id="selectedCount">0 Pokemon selected</p>
-                    <button id="importSelectedBtn" class="btn btn-primary" disabled>Import Selected Pokemon</button>
+                    <button id="importSelectedBtn" class="btn btn-primary" disabled style="display: none;">Import Selected Pokemon</button>
                 </div>
             </div>
         </div>
@@ -239,6 +239,9 @@
                 <div class="notification-text">
                     <strong>New files detected!</strong>
                     <span id="notificationMessage">Files have been moved to your database. Reload to see them.</span>
+                    <div id="pendingFilesCounter" class="pending-files-counter" style="margin-top: 8px; font-weight: 600; color: var(--accent-color);">
+                        <span id="pendingFilesCount">0</span> Pokemon waiting to be refreshed
+                    </div>
                 </div>
                 <div class="notification-actions">
                     <button id="reloadDbBtn" class="btn btn-primary btn-small">Reload Database</button>
@@ -600,8 +603,8 @@
                     <h3>Quick Actions</h3>
                     <div class="quick-actions-grid">
                         <button id="duplicateScannerBtn" class="btn btn-secondary">Scan Duplicates</button>
-                        <button id="loadSaveBtn" class="btn btn-secondary">Load Save File</button>
-                        <button id="batchEvolveBtn" class="btn btn-secondary">Batch Evolve</button>
+                        <button id="loadSaveBtn" class="btn btn-secondary" style="display: none;">Load Save File</button>
+                        <button id="batchEvolveBtn" class="btn btn-secondary" style="display: none;">Batch Evolve</button>
                     </div>
                 </div>
                 

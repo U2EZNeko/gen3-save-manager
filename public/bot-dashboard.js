@@ -92,22 +92,79 @@ const MAX_LIVE_HISTORY_POINTS = 50; // Keep last 50 points per bot
 // Bot order and visibility configuration
 let botOrderConfig = {}; // botId -> { order: number, hidden: boolean }
 
-// Bot target Pokemon configuration
-let botTargetPokemon = JSON.parse(localStorage.getItem('botTargetPokemon') || '{}'); // botId -> { speciesId: number, speciesName: string }
+// Bot target Pokemon configuration (server-side, cached locally)
+let botTargetPokemon = {}; // botId -> { speciesId: number, speciesName: string }
 
-// Get target Pokemon for a bot
+// Load bot targets from server
+async function loadBotTargets() {
+    try {
+        const response = await fetch('/api/bot-targets');
+        if (response.ok) {
+            const data = await response.json();
+            botTargetPokemon = data || {};
+        } else {
+            console.warn('Failed to load bot targets from server, using empty object');
+            botTargetPokemon = {};
+        }
+    } catch (error) {
+        console.error('Error loading bot targets:', error);
+        // Use empty object as fallback
+        botTargetPokemon = {};
+    }
+}
+
+// Get target Pokemon for a bot (synchronous, uses local cache)
 function getBotTargetPokemon(botId) {
     return botTargetPokemon[botId] || null;
 }
 
-// Set target Pokemon for a bot
-function setBotTargetPokemon(botId, speciesId, speciesName) {
-    if (speciesId && speciesName) {
-        botTargetPokemon[botId] = { speciesId, speciesName };
-    } else {
-        delete botTargetPokemon[botId];
+// Set target Pokemon for a bot (server-side)
+async function setBotTargetPokemon(botId, speciesId, speciesName) {
+    try {
+        const response = await fetch(`/api/bot-targets/${botId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ speciesId, speciesName })
+        });
+        
+        if (response.ok) {
+            // Update local cache
+            if (speciesId && speciesName) {
+                botTargetPokemon[botId] = { speciesId, speciesName };
+            } else {
+                delete botTargetPokemon[botId];
+            }
+            return true;
+        } else {
+            console.error('Failed to save bot target');
+            return false;
+        }
+    } catch (error) {
+        console.error('Error setting bot target:', error);
+        return false;
     }
-    localStorage.setItem('botTargetPokemon', JSON.stringify(botTargetPokemon));
+}
+
+// Clear target Pokemon for a bot (server-side)
+async function clearBotTarget(botId) {
+    try {
+        const response = await fetch(`/api/bot-targets/${botId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            delete botTargetPokemon[botId];
+            return true;
+        } else {
+            console.error('Failed to clear bot target');
+            return false;
+        }
+    } catch (error) {
+        console.error('Error clearing bot target:', error);
+        return false;
+    }
 }
 
 // DOM elements
@@ -149,24 +206,35 @@ const cardWidthValue = document.getElementById('cardWidthValue');
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Dashboard] DOMContentLoaded - initializing...');
-    initializeTheme();
-    loadDashboardSettings();
-    await loadBotInstancesFromServer();
-    console.log('[Dashboard] Loaded', botInstances.length, 'bot instances');
     
-    // Load bot order and visibility configuration
-    loadBotOrderConfig();
-    setupEventListeners();
-    setupOptionsModal();
-    setupPokemonInfoModal();
-    console.log('[Dashboard] Starting polling...');
-    startPolling();
-    
-    // Initial update of combined encounter rate after a short delay
-    setTimeout(() => {
-        updateCombinedEncounterRate();
-    }, 2000);
-    console.log('[Dashboard] Initialization complete');
+    try {
+        // Load bot targets from server (non-blocking - continue even if it fails)
+        loadBotTargets().catch(error => {
+            console.warn('Failed to load bot targets, continuing with empty targets:', error);
+        });
+        
+        initializeTheme();
+        loadDashboardSettings();
+        await loadBotInstancesFromServer();
+        console.log('[Dashboard] Loaded', botInstances.length, 'bot instances');
+        
+        // Load bot order and visibility configuration
+        loadBotOrderConfig();
+        setupEventListeners();
+        setupOptionsModal();
+        setupPokemonInfoModal();
+        console.log('[Dashboard] Starting polling...');
+        startPolling();
+        
+        // Initial update of combined encounter rate after a short delay
+        setTimeout(() => {
+            updateCombinedEncounterRate();
+        }, 2000);
+        console.log('[Dashboard] Initialization complete');
+    } catch (error) {
+        console.error('[Dashboard] Error during initialization:', error);
+        // Still try to show the page even if initialization fails
+    }
 });
 
 // Theme management
@@ -4083,17 +4151,17 @@ function setupPokemonInfoModal() {
                 // Parse encounter data and show actual stats
                 try {
                     const encounter = JSON.parse(encounterData);
-                    showEncounterStats(speciesId, encounter);
+                    showEncounterStats(speciesId, encounter).catch(error => console.error('Error showing encounter stats:', error));
                 } catch (err) {
                     console.error('Error parsing encounter data:', err);
                     // Fallback to Pokedex info
                     if (speciesId > 0) {
-                        showPokemonInfo(speciesId);
+                        showPokemonInfo(speciesId).catch(error => console.error('Error showing Pokemon info:', error));
                     }
                 }
             } else if (speciesId > 0) {
                 // Fallback to Pokedex info if no encounter data
-                showPokemonInfo(speciesId);
+                showPokemonInfo(speciesId).catch(err => console.error('Error showing Pokemon info:', err));
             }
         }
     });
@@ -5196,11 +5264,10 @@ async function showTargetPokemonSelector(botId) {
             cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
         }
         if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
+            clearBtn.addEventListener('click', async () => {
                 const currentBotId = modal.dataset.botId;
                 if (currentBotId) {
-                    delete botTargetPokemon[currentBotId];
-                    localStorage.setItem('botTargetPokemon', JSON.stringify(botTargetPokemon));
+                    await clearBotTarget(currentBotId);
                     modal.classList.add('hidden');
                     // Refresh the bot status card
                     const card = document.getElementById(`bot-status-${currentBotId}`);
@@ -5217,7 +5284,7 @@ async function showTargetPokemonSelector(botId) {
             });
         }
         if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
+            saveBtn.addEventListener('click', async () => {
                 const currentBotId = modal.dataset.botId;
                 if (!currentBotId) {
                     alert('Error: Bot ID not found.');
@@ -5273,7 +5340,7 @@ async function showTargetPokemonSelector(botId) {
                 }
                 
                 if (speciesId && speciesId >= 1 && speciesId <= 386 && speciesName) {
-                    setBotTargetPokemon(currentBotId, speciesId, speciesName);
+                    await setBotTargetPokemon(currentBotId, speciesId, speciesName);
                     modal.classList.add('hidden');
                     // Refresh the bot status card
                     const card = document.getElementById(`bot-status-${currentBotId}`);

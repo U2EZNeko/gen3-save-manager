@@ -648,6 +648,326 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
   }
 });
 
+// Scanner configuration file path
+const SCANNER_CONFIG_FILE = path.join(__dirname, 'scanner-config.json');
+
+// Bot target Pokemon configuration file path
+const BOT_TARGETS_FILE = path.join(__dirname, 'bot-targets.json');
+
+// Server-side auto-scan state
+let serverAutoScanInterval = null;
+
+// Load scanner configuration from file
+function loadScannerConfig() {
+  try {
+    if (fs.existsSync(SCANNER_CONFIG_FILE)) {
+      const configData = fs.readFileSync(SCANNER_CONFIG_FILE, 'utf8');
+      return JSON.parse(configData);
+    }
+  } catch (error) {
+    console.error('[Scanner] Error loading config:', error);
+  }
+  return null;
+}
+
+// Save scanner configuration to file
+function saveScannerConfig(config) {
+  try {
+    fs.writeFileSync(SCANNER_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('[Scanner] Error saving config:', error);
+    return false;
+  }
+}
+
+// Perform a scan and move operation (server-side)
+async function performServerScan(sourceFolder, targetDbId) {
+  try {
+    // Validate source folder
+    let sourcePath;
+    if (path.isAbsolute(sourceFolder)) {
+      sourcePath = sourceFolder;
+    } else {
+      sourcePath = path.join(__dirname, sourceFolder);
+    }
+    
+    if (!fs.existsSync(sourcePath)) {
+      console.log(`[Scanner] Source folder does not exist: ${sourcePath}`);
+      return { success: false, error: 'Source folder does not exist' };
+    }
+    
+    // Validate target database
+    const targetDb = PK3_DATABASES.find(db => db.id === targetDbId);
+    if (!targetDb) {
+      console.log(`[Scanner] Target database not found: ${targetDbId}`);
+      return { success: false, error: 'Target database not found' };
+    }
+    
+    // Ensure target folder exists
+    if (!fs.existsSync(targetDb.path)) {
+      fs.mkdirSync(targetDb.path, { recursive: true });
+    }
+    
+    // Recursively find all Pokemon files
+    const pk3Files = findPokemonFilesRecursive(sourcePath);
+    const timestamp = new Date().toLocaleString();
+    console.log(`[Scanner] Auto-scan found ${pk3Files.length} Pokemon file(s) [${timestamp}]`);
+    
+    if (pk3Files.length === 0) {
+      return { success: true, filesMoved: 0, filesSkipped: 0, totalFound: 0 };
+    }
+    
+    // Move files to target database
+    let filesMoved = 0;
+    let filesSkipped = 0;
+    
+    for (const filePath of pk3Files) {
+      try {
+        const filename = path.basename(filePath);
+        let targetPath = path.join(targetDb.path, filename);
+        
+        // Check if file already exists in target
+        if (fs.existsSync(targetPath)) {
+          // Compare file sizes to see if they're the same
+          const sourceStats = fs.statSync(filePath);
+          const targetStats = fs.statSync(targetPath);
+          
+          if (sourceStats.size === targetStats.size) {
+            // Same file, skip it
+            filesSkipped++;
+            continue;
+          } else {
+            // Different file with same name, rename it
+            const ext = path.extname(filename);
+            const baseName = path.basename(filename, ext);
+            let counter = 1;
+            do {
+              const newFilename = `${baseName}_${counter}${ext}`;
+              targetPath = path.join(targetDb.path, newFilename);
+              counter++;
+            } while (fs.existsSync(targetPath));
+          }
+        }
+        
+        // Move the file (use copy + delete for cross-device support)
+        try {
+          fs.copyFileSync(filePath, targetPath);
+          
+          // Verify the copy was successful
+          if (!fs.existsSync(targetPath)) {
+            throw new Error('Copy verification failed');
+          }
+          
+          // Delete the source file
+          fs.unlinkSync(filePath);
+          
+          // Final verification
+          if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
+            filesMoved++;
+          } else {
+            throw new Error('File move verification failed');
+          }
+        } catch (moveError) {
+          // If copy succeeded but delete failed, try to clean up the target
+          if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(targetPath);
+            } catch (cleanupError) {
+              // Silently handle cleanup errors
+            }
+          }
+          throw moveError;
+        }
+      } catch (error) {
+        console.error(`[Scanner] Error moving file ${path.basename(filePath)}: ${error.message}`);
+      }
+    }
+    
+    if (filesMoved > 0) {
+      console.log(`[Scanner] Auto-scan moved ${filesMoved} file(s) to ${targetDb.name} [${timestamp}]`);
+    }
+    
+    return { success: true, filesMoved, filesSkipped, totalFound: pk3Files.length };
+  } catch (error) {
+    console.error('[Scanner] Error in auto-scan:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Start server-side auto-scan
+function startServerAutoScan(config) {
+  // Stop any existing interval
+  if (serverAutoScanInterval) {
+    clearInterval(serverAutoScanInterval);
+    serverAutoScanInterval = null;
+  }
+  
+  if (!config.enableAutoScan || !config.sourceFolder || !config.targetDbId) {
+    return;
+  }
+  
+  const intervalMinutes = config.scanInterval || 5;
+  const intervalMs = intervalMinutes * 60 * 1000;
+  
+  console.log(`[Scanner] Starting auto-scan: ${config.sourceFolder} -> ${config.targetDbId} (every ${intervalMinutes} minutes)`);
+  
+  // Perform initial scan
+  performServerScan(config.sourceFolder, config.targetDbId);
+  
+  // Set up interval
+  serverAutoScanInterval = setInterval(() => {
+    performServerScan(config.sourceFolder, config.targetDbId);
+  }, intervalMs);
+}
+
+// Stop server-side auto-scan
+function stopServerAutoScan() {
+  if (serverAutoScanInterval) {
+    clearInterval(serverAutoScanInterval);
+    serverAutoScanInterval = null;
+    console.log('[Scanner] Auto-scan stopped');
+  }
+}
+
+// Load bot targets from file
+function loadBotTargets() {
+  try {
+    if (fs.existsSync(BOT_TARGETS_FILE)) {
+      const targetsData = fs.readFileSync(BOT_TARGETS_FILE, 'utf8');
+      return JSON.parse(targetsData);
+    }
+  } catch (error) {
+    console.error('[Bot Targets] Error loading targets:', error);
+  }
+  return {};
+}
+
+// Save bot targets to file
+function saveBotTargets(targets) {
+  try {
+    fs.writeFileSync(BOT_TARGETS_FILE, JSON.stringify(targets, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('[Bot Targets] Error saving targets:', error);
+    return false;
+  }
+}
+
+// API endpoint to get bot target for a specific bot
+app.get('/api/bot-targets/:botId', (req, res) => {
+  try {
+    const botId = req.params.botId;
+    const targets = loadBotTargets();
+    const target = targets[botId] || null;
+    res.json(target);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get all bot targets
+app.get('/api/bot-targets', (req, res) => {
+  try {
+    const targets = loadBotTargets();
+    res.json(targets);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to set bot target
+app.post('/api/bot-targets/:botId', express.json(), (req, res) => {
+  try {
+    const botId = req.params.botId;
+    const { speciesId, speciesName } = req.body;
+    
+    const targets = loadBotTargets();
+    
+    if (speciesId && speciesName) {
+      targets[botId] = { speciesId, speciesName };
+    } else {
+      delete targets[botId];
+    }
+    
+    if (saveBotTargets(targets)) {
+      res.json({ success: true, target: targets[botId] || null });
+    } else {
+      res.status(500).json({ error: 'Failed to save bot target' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to delete bot target
+app.delete('/api/bot-targets/:botId', (req, res) => {
+  try {
+    const botId = req.params.botId;
+    const targets = loadBotTargets();
+    
+    delete targets[botId];
+    
+    if (saveBotTargets(targets)) {
+      res.json({ success: true });
+    } else {
+      res.status(500).json({ error: 'Failed to delete bot target' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to get scanner configuration
+app.get('/api/scanner/config', (req, res) => {
+  try {
+    const config = loadScannerConfig();
+    if (config) {
+      res.json(config);
+    } else {
+      res.json({
+        sourceFolder: '',
+        targetDbId: '',
+        enableAutoScan: false,
+        scanInterval: 5
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to save scanner configuration
+app.post('/api/scanner/config', express.json(), (req, res) => {
+  try {
+    const { sourceFolder, targetDbId, enableAutoScan, scanInterval } = req.body;
+    
+    if (!targetDbId) {
+      return res.status(400).json({ error: 'Target database is required' });
+    }
+    
+    const config = {
+      sourceFolder: sourceFolder || '',
+      targetDbId: targetDbId,
+      enableAutoScan: enableAutoScan || false,
+      scanInterval: scanInterval || 5
+    };
+    
+    if (saveScannerConfig(config)) {
+      // Restart auto-scan with new config
+      stopServerAutoScan();
+      if (config.enableAutoScan) {
+        startServerAutoScan(config);
+      }
+      res.json({ success: true, config });
+    } else {
+      res.status(500).json({ error: 'Failed to save configuration' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // API endpoint to remove a folder
 app.delete('/api/databases/:id', (req, res) => {
   try {
@@ -4402,5 +4722,11 @@ app.listen(PORT, () => {
   console.log(`Place your .pk3 files in the 'pk3-files' folder`);
   console.log(`Maps available at: http://localhost:${PORT}/FRLGIronmonMap and http://localhost:${PORT}/EmeraldIronmonMap`);
   console.log(`Bot updates available via SSE at: http://localhost:${PORT}/api/bot-updates`);
+  
+  // Load and start auto-scan if enabled
+  const scannerConfig = loadScannerConfig();
+  if (scannerConfig && scannerConfig.enableAutoScan) {
+    startServerAutoScan(scannerConfig);
+  }
 });
 

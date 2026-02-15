@@ -81,6 +81,59 @@ const dbReloadNotification = document.getElementById('dbReloadNotification');
 const reloadDbBtn = document.getElementById('reloadDbBtn');
 const dismissNotificationBtn = document.getElementById('dismissNotificationBtn');
 const notificationMessage = document.getElementById('notificationMessage');
+const pendingFilesCounter = document.getElementById('pendingFilesCounter');
+const pendingFilesCount = document.getElementById('pendingFilesCount');
+
+// Track pending files count per database (stored in localStorage)
+const PENDING_FILES_KEY = 'pendingFilesCount';
+function getPendingFilesCount(dbId) {
+    try {
+        const counts = JSON.parse(localStorage.getItem(PENDING_FILES_KEY) || '{}');
+        return counts[dbId] || 0;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function setPendingFilesCount(dbId, count) {
+    try {
+        const counts = JSON.parse(localStorage.getItem(PENDING_FILES_KEY) || '{}');
+        counts[dbId] = count;
+        localStorage.setItem(PENDING_FILES_KEY, JSON.stringify(counts));
+    } catch (e) {
+        console.error('Error saving pending files count:', e);
+    }
+}
+
+function addPendingFilesCount(dbId, count) {
+    const current = getPendingFilesCount(dbId);
+    setPendingFilesCount(dbId, current + count);
+    return current + count;
+}
+
+function clearPendingFilesCount(dbId) {
+    try {
+        const counts = JSON.parse(localStorage.getItem(PENDING_FILES_KEY) || '{}');
+        delete counts[dbId];
+        localStorage.setItem(PENDING_FILES_KEY, JSON.stringify(counts));
+        updatePendingFilesCounter();
+    } catch (e) {
+        console.error('Error clearing pending files count:', e);
+    }
+}
+
+// Update pending files counter display
+function updatePendingFilesCounter() {
+    if (!pendingFilesCount || !pendingFilesCounter) return;
+    
+    const pending = getPendingFilesCount(currentDatabase);
+    if (pending > 0) {
+        pendingFilesCount.textContent = pending;
+        pendingFilesCounter.classList.remove('hidden');
+    } else {
+        pendingFilesCounter.classList.add('hidden');
+    }
+}
 const sortSelect = document.getElementById('sortSelect');
 const searchInput = document.getElementById('searchInput');
 const groupByOT = document.getElementById('groupByOT');
@@ -205,6 +258,8 @@ if (databaseSelect) {
         filteredData = [];
         selectedPokemon.clear();
         availableGenerations = []; // Clear available generations when database changes
+        // Update pending files counter for new database
+        updatePendingFilesCounter();
         loadPokemon();
     });
     
@@ -335,7 +390,20 @@ function showDbReloadNotification(filesMoved, targetDbId) {
     const dbName = targetDb ? targetDb.name : 'database';
     const fileText = filesMoved === 1 ? 'file' : 'files';
     
-    notificationMessage.textContent = `${filesMoved} ${fileText} ${filesMoved === 1 ? 'has' : 'have'} been moved to ${dbName}. Reload to see them.`;
+    // Add to cumulative pending count
+    const totalPending = addPendingFilesCount(targetDbId, filesMoved);
+    
+    // Update notification message
+    notificationMessage.textContent = `${filesMoved} ${fileText} ${filesMoved === 1 ? 'has' : 'have'} been moved to ${dbName} in this run. Reload to see them.`;
+    
+    // Update pending files counter
+    if (pendingFilesCount) {
+        pendingFilesCount.textContent = totalPending;
+    }
+    if (pendingFilesCounter) {
+        pendingFilesCounter.classList.remove('hidden');
+    }
+    
     dbReloadNotification.classList.remove('hidden');
 }
 
@@ -357,12 +425,18 @@ if (reloadDbBtn) {
             }
         }
         
+        // Clear pending files count for the current database
+        clearPendingFilesCount(currentDatabase);
+        
         // Reload Pokemon
         loadPokemon();
         
         // Hide notification
         if (dbReloadNotification) {
             dbReloadNotification.classList.add('hidden');
+        }
+        if (pendingFilesCounter) {
+            pendingFilesCounter.classList.add('hidden');
         }
     });
 }
@@ -1138,7 +1212,7 @@ function filterNeedsEvolution(data) {
         125, 126, 130, 134, 135, 136, 139, 141, 149,
         // Final evolutions Gen 2
         154, 157, 160, 162, 164, 166, 168, 169, 171, 176, 178, 181, 184, 189, 192, 195, 199, 201, 205, 210, 212, 214, 217,
-        219, 224, 226, 229, 232, 235, 237, 239, 240, 242, 248,
+        219, 224, 226, 229, 232, 235, 237, 242, 248,
         // Final evolutions Gen 3
         254, 257, 260, 262, 264, 267, 269, 272, 275, 277, 279, 282, 284, 286, 289, 291, 295, 297, 301, 306,
         308, 310, 317, 318, 320, 322, 330, 332, 334, 340, 342, 344, 346, 348, 350, 354, 356, 362, 365, 367, 368, 373, 376,
@@ -2556,7 +2630,7 @@ async function showPokemonModal(pokemon) {
                     <span class="modal-value" style="font-family: monospace; font-size: 0.9em;">${pokemon.filename}</span>
                 </div>
                 <div class="modal-actions">
-                    ${getEvolutionSpecies(pokemon.species) ? `<button class="btn btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species})" id="evolveBtn">Evolve</button>` : ''}
+                    ${getEvolutionSpecies(pokemon.species) ? `<button class="btn btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species})" id="evolveBtn" style="display: none;">Evolve</button>` : ''}
                     <button class="btn btn-danger" onclick="deletePokemonFile('${pokemon.filename}')">Delete File</button>
                 </div>
             </div>
@@ -2692,7 +2766,7 @@ async function displayBatchEvolveSuggestions(suggestions) {
                         Level: ${pokemon.level} | IV Sum: ${pokemon.ivSum} | ${pokemon.filename}
                     </div>
                 </div>
-                <button class="btn btn-small btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species}); event.stopPropagation();" style="margin-left: 10px;">Evolve</button>
+                <button class="btn btn-small btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species}); event.stopPropagation();" style="margin-left: 10px; display: none;">Evolve</button>
             `;
             
             pokemonListDiv.appendChild(pokemonDiv);
@@ -3623,7 +3697,7 @@ function calculateStatistics(pokemon) {
         shinyCount: 0,
         shinySpecies: {},
         ivStats: {
-            sum: { total: 0, count: 0, max: 0, min: 186 },
+            sum: { total: 0, count: 0, max: 0, min: 186, distribution: {} },
             hp: { total: 0, count: 0, max: 0, min: 31 },
             attack: { total: 0, count: 0, max: 0, min: 31 },
             defense: { total: 0, count: 0, max: 0, min: 31 },
@@ -3631,6 +3705,8 @@ function calculateStatistics(pokemon) {
             spDefense: { total: 0, count: 0, max: 0, min: 31 },
             speed: { total: 0, count: 0, max: 0, min: 31 }
         },
+        highestIVShiny: null,
+        highestIVNonShiny: null,
         levelStats: { total: 0, count: 0, max: 0, min: 100, distribution: {} },
         evStats: {
             sum: { total: 0, count: 0, max: 0, min: 510 },
@@ -3678,6 +3754,47 @@ function calculateStatistics(pokemon) {
             stats.ivStats.sum.count++;
             stats.ivStats.sum.max = Math.max(stats.ivStats.sum.max, ivSum);
             stats.ivStats.sum.min = Math.min(stats.ivStats.sum.min, ivSum);
+            
+            // IV Sum category distribution
+            let category = '';
+            if (ivSum >= 186) category = '186';
+            else if (ivSum >= 180) category = '180-185';
+            else if (ivSum >= 170) category = '170-179';
+            else if (ivSum >= 150) category = '150-169';
+            else if (ivSum >= 130) category = '130-149';
+            else if (ivSum >= 100) category = '100-129';
+            else if (ivSum >= 70) category = '70-99';
+            else if (ivSum >= 50) category = '50-69';
+            else if (ivSum >= 11) category = '11-49';
+            else category = '10-0';
+            
+            if (!stats.ivStats.sum.distribution[category]) {
+                stats.ivStats.sum.distribution[category] = 0;
+            }
+            stats.ivStats.sum.distribution[category]++;
+            
+            // Track highest IV shiny and non-shiny
+            if (p.isShiny) {
+                if (!stats.highestIVShiny || ivSum > (stats.highestIVShiny.ivSum || 0)) {
+                    stats.highestIVShiny = {
+                        species: speciesName,
+                        speciesId: p.species,
+                        ivSum: ivSum,
+                        ivs: { ...ivs },
+                        filename: p.filename || 'Unknown'
+                    };
+                }
+            } else {
+                if (!stats.highestIVNonShiny || ivSum > (stats.highestIVNonShiny.ivSum || 0)) {
+                    stats.highestIVNonShiny = {
+                        species: speciesName,
+                        speciesId: p.species,
+                        ivSum: ivSum,
+                        ivs: { ...ivs },
+                        filename: p.filename || 'Unknown'
+                    };
+                }
+            }
             
             ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
                 const value = ivs[stat] || 0;
@@ -3896,7 +4013,50 @@ function displayStatistics(stats, pokemon = []) {
         html += '<h3>IV Statistics</h3>';
         html += '<div class="statistics-grid">';
         html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.avg}</div><div class="statistic-label">Avg IV Sum</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.max}</div><div class="statistic-label">Max IV Sum</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${stats.ivStats.sum.min}</div><div class="statistic-label">Min IV Sum</div></div>`;
         html += '</div>';
+        
+        // IV Sum Categories
+        if (stats.ivStats.sum.distribution && Object.keys(stats.ivStats.sum.distribution).length > 0) {
+            html += '<div class="statistics-subsection">';
+            html += '<h4>IV Sum Categories</h4>';
+            html += '<div class="statistics-list">';
+            
+            // Sort categories in descending order
+            const categoryOrder = ['186', '180-185', '170-179', '150-169', '130-149', '100-129', '70-99', '50-69', '11-49', '10-0'];
+            const sortedCategories = categoryOrder.filter(cat => stats.ivStats.sum.distribution[cat]);
+            
+            sortedCategories.forEach(category => {
+                const count = stats.ivStats.sum.distribution[category];
+                const percentage = ((count / stats.ivStats.sum.count) * 100).toFixed(1);
+                html += `<div class="statistics-item"><span class="statistics-name">${category}</span><span class="statistics-count">${count} (${percentage}%)</span></div>`;
+            });
+            
+            html += '</div></div>';
+        }
+        
+        // Highest IV Pokemon
+        html += '<div class="statistics-subsection">';
+        html += '<h4>Highest IV Pokemon</h4>';
+        html += '<div class="statistics-list">';
+        
+        if (stats.highestIVShiny) {
+            const shiny = stats.highestIVShiny;
+            const ivsStr = `HP:${shiny.ivs.hp || 0} Atk:${shiny.ivs.attack || 0} Def:${shiny.ivs.defense || 0} SpA:${shiny.ivs.spAttack || 0} SpD:${shiny.ivs.spDefense || 0} Spe:${shiny.ivs.speed || 0}`;
+            html += `<div class="statistics-item"><span class="statistics-name">⭐ Highest Shiny: ${shiny.species}</span><span class="statistics-count">IV Sum: ${shiny.ivSum}</span></div>`;
+            html += `<div class="statistics-item" style="padding-left: 20px; font-size: 0.9em; color: var(--text-secondary);"><span class="statistics-name">${ivsStr}</span></div>`;
+        }
+        
+        if (stats.highestIVNonShiny) {
+            const nonShiny = stats.highestIVNonShiny;
+            const ivsStr = `HP:${nonShiny.ivs.hp || 0} Atk:${nonShiny.ivs.attack || 0} Def:${nonShiny.ivs.defense || 0} SpA:${nonShiny.ivs.spAttack || 0} SpD:${nonShiny.ivs.spDefense || 0} Spe:${nonShiny.ivs.speed || 0}`;
+            html += `<div class="statistics-item"><span class="statistics-name">Highest Non-Shiny: ${nonShiny.species}</span><span class="statistics-count">IV Sum: ${nonShiny.ivSum}</span></div>`;
+            html += `<div class="statistics-item" style="padding-left: 20px; font-size: 0.9em; color: var(--text-secondary);"><span class="statistics-name">${ivsStr}</span></div>`;
+        }
+        
+        html += '</div></div>';
+        
         html += '<div class="iv-breakdown">';
         ['hp', 'attack', 'defense', 'spAttack', 'spDefense', 'speed'].forEach(stat => {
             const statName = stat === 'spAttack' ? 'Sp. Atk' : stat === 'spDefense' ? 'Sp. Def' : stat.charAt(0).toUpperCase() + stat.slice(1);
@@ -4337,6 +4497,8 @@ function updateStatisticsGraph(timeframe = null, mode = null, chartType = null) 
 }
 
 // Duplicate Scanner
+// Used by "Scan Duplicates" button in Advanced Options
+// Only shows duplicates of the same species with the same IVs
 async function scanDuplicates() {
     const duplicateResultsBody = document.getElementById('duplicateResultsBody');
     duplicateResultsBody.innerHTML = '<p>Scanning for duplicates...</p>';
@@ -4344,7 +4506,7 @@ async function scanDuplicates() {
     
     // Group by PID (Personality Value) - most reliable duplicate detection
     const pidMap = new Map();
-    const ivMap = new Map(); // Also check by species + IVs + level
+    const ivMap = new Map(); // Check by species + IVs (level removed since it can change)
     const duplicates = [];
     
     pokemonData.forEach(p => {
@@ -4357,9 +4519,9 @@ async function scanDuplicates() {
         }
         pidMap.get(pidKey).push(p);
         
-        // Check by species + IVs + level (alternative duplicate detection)
+        // Check by species + IVs only (level removed - if same species and same IVs, it's a duplicate)
         if (p.speciesId && p.ivs) {
-            const ivKey = `${p.speciesId}_${p.ivs.hp || 0}_${p.ivs.attack || 0}_${p.ivs.defense || 0}_${p.ivs.spAttack || 0}_${p.ivs.spDefense || 0}_${p.ivs.speed || 0}_${p.level || 0}`;
+            const ivKey = `${p.speciesId}_${p.ivs.hp || 0}_${p.ivs.attack || 0}_${p.ivs.defense || 0}_${p.ivs.spAttack || 0}_${p.ivs.spDefense || 0}_${p.ivs.speed || 0}`;
             if (!ivMap.has(ivKey)) {
                 ivMap.set(ivKey, []);
             }
@@ -4368,13 +4530,22 @@ async function scanDuplicates() {
     });
     
     // Find duplicates (groups with more than 1)
-    const pidDuplicates = Array.from(pidMap.values()).filter(group => group.length > 1);
+    // Filter PID duplicates to only show groups where all Pokemon have the same species
+    const pidDuplicates = Array.from(pidMap.values())
+        .filter(group => {
+            if (group.length <= 1) return false;
+            // Check if all Pokemon in the group have the same species
+            const firstSpecies = group[0].speciesId;
+            return group.every(p => p.speciesId === firstSpecies);
+        });
+    
+    // IV duplicates already ensure same species (speciesId is in the key)
     const ivDuplicates = Array.from(ivMap.values()).filter(group => group.length > 1);
     
     let html = '<div class="duplicate-summary">';
     html += `<h3>Duplicate Detection Results</h3>`;
-    html += `<p><strong>${pidDuplicates.length}</strong> duplicate groups found by PID (Personality Value)</p>`;
-    html += `<p><strong>${ivDuplicates.length}</strong> potential duplicate groups found by Species + IVs + Level</p>`;
+    html += `<p><strong>${pidDuplicates.length}</strong> duplicate groups found by PID (Personality Value, same species only)</p>`;
+    html += `<p><strong>${ivDuplicates.length}</strong> potential duplicate groups found by Species + IVs (same species and same IVs)</p>`;
     html += '</div>';
     
     // Display PID duplicates
@@ -4414,7 +4585,7 @@ async function scanDuplicates() {
     
     // Display IV duplicates (if different from PID duplicates)
     if (ivDuplicates.length > 0) {
-        html += '<div class="duplicate-section"><h4>Potential Duplicates (Same Species + IVs + Level)</h4>';
+        html += '<div class="duplicate-section"><h4>Potential Duplicates (Same Species + Same IVs)</h4>';
         let ivGroupIdx = 0;
         ivDuplicates.forEach(group => {
             // Skip if already shown as PID duplicate
@@ -5541,8 +5712,8 @@ let isAutoScanning = false;
 // Scanner configuration storage key
 const SCANNER_CONFIG_KEY = 'folderScannerConfig';
 
-// Save scanner configuration
-function saveScannerConfig() {
+// Save scanner configuration (server-side)
+async function saveScannerConfig() {
     const sourceFolderEl = document.getElementById('scanSourceFolder');
     const targetDbEl = document.getElementById('scanTargetDb');
     const autoScanEl = document.getElementById('enableAutoScan');
@@ -5561,17 +5732,37 @@ function saveScannerConfig() {
         return;
     }
     
-    localStorage.setItem(SCANNER_CONFIG_KEY, JSON.stringify(config));
-    alert('Scanner configuration saved!');
+    try {
+        const response = await fetch('/api/scanner/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (response.ok) {
+            alert('Scanner configuration saved! Auto-scan will run on the server.');
+        } else {
+            const error = await response.json();
+            alert(`Failed to save configuration: ${error.error || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Error saving scanner config:', error);
+        alert('Failed to save configuration. Please try again.');
+    }
 }
 
-// Load scanner configuration
-function loadScannerConfig() {
+// Load scanner configuration (server-side)
+async function loadScannerConfig() {
     try {
-        const saved = localStorage.getItem(SCANNER_CONFIG_KEY);
-        if (!saved) return;
+        const response = await fetch('/api/scanner/config');
+        if (!response.ok) {
+            console.error('Failed to load scanner config from server');
+            return;
+        }
         
-        const config = JSON.parse(saved);
+        const config = await response.json();
         
         const sourceFolderEl = document.getElementById('scanSourceFolder');
         const targetDbEl = document.getElementById('scanTargetDb');
@@ -5703,13 +5894,7 @@ if (saveScannerConfigBtn) {
                     return;
                 }
                 
-                // Stop any existing interval first
-                if (autoScanInterval) {
-                    clearInterval(autoScanInterval);
-                    autoScanInterval = null;
-                }
-                
-                // Start auto-scan
+                // Auto-scan now runs on the server, so just update UI
                 isAutoScanning = true;
                 const stopAutoScanBtn = document.getElementById('stopAutoScanBtn');
                 const scanStatus = document.getElementById('scanStatus');
@@ -5718,18 +5903,9 @@ if (saveScannerConfigBtn) {
                     stopAutoScanBtn.style.display = 'inline-block';
                 }
                 if (scanStatus) {
-                    scanStatus.innerHTML = `<div class="scan-result-success"><p>Auto-scanning every ${intervalMinutes} minute(s)...</p></div>`;
+                    scanStatus.innerHTML = `<div class="scan-result-success"><p>Auto-scanning on server every ${intervalMinutes} minute(s)...</p></div>`;
                     scanStatus.classList.remove('hidden');
                 }
-                
-                // Perform initial scan
-                await performScanAndMove();
-                
-                // Set up interval
-                const intervalMs = intervalMinutes * 60 * 1000;
-                autoScanInterval = setInterval(async () => {
-                    await performScanAndMove();
-                }, intervalMs);
             }
         } else {
             // If auto-scan is disabled, stop any running scan
@@ -6498,8 +6674,28 @@ if (enableAutoScan) {
     });
 }
 
-// Stop auto-scan
-function stopAutoScan() {
+// Stop auto-scan (server-side)
+async function stopAutoScan() {
+    // Update server config to disable auto-scan
+    try {
+        const response = await fetch('/api/scanner/config');
+        if (response.ok) {
+            const config = await response.json();
+            config.enableAutoScan = false;
+            
+            await fetch('/api/scanner/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+        }
+    } catch (error) {
+        console.error('Error stopping auto-scan on server:', error);
+    }
+    
+    // Update UI
     if (autoScanInterval) {
         clearInterval(autoScanInterval);
         autoScanInterval = null;
@@ -6722,6 +6918,8 @@ function initializeScanButton() {
 }
 
 // Initialize scan button on page load
+// Initialize pending files counter on page load
+updatePendingFilesCounter();
 initializeScanButton();
 
 // Auto-load Pokemon when DOM is ready
@@ -8787,21 +8985,32 @@ async function generatePlanner() {
             return false;
         }
         
+        // Group missing species by their base form (evolution chain)
+        // Each evolution chain only needs 1 base form Pokemon, regardless of how many evolutions are missing
+        const processedBaseForms = new Set();
+        
         for (const speciesId of missingSpecies) {
             // Find the base form we need to catch
             const baseForm = findBaseForm(speciesId);
             
-            // Check if we have any Pokemon in this evolution chain
-            const hasInChain = hasAnyInChain(baseForm);
-            
-            if (hasInChain) {
-                // We have something in the chain, so we need +1 of the base form to evolve
-                const currentCount = pokemonNeededCounts.get(baseForm) || 0;
-                pokemonNeededCounts.set(baseForm, currentCount + 1);
-            } else {
-                // We don't have anything in the chain, need to catch the base form
-                const currentCount = pokemonNeededCounts.get(baseForm) || 0;
-                pokemonNeededCounts.set(baseForm, currentCount + 1);
+            // Only count each base form once, even if multiple evolutions in that chain are missing
+            if (!processedBaseForms.has(baseForm)) {
+                processedBaseForms.add(baseForm);
+                
+                // Check if we have any Pokemon in this evolution chain
+                const hasInChain = hasAnyInChain(baseForm);
+                
+                // We only need 1 base form per evolution chain
+                // If we already have something in the chain, we might still need 1 more to evolve
+                // But typically, if we have something, we can evolve it, so we might not need another
+                // For simplicity, if we don't have anything in the chain, we need 1 base form
+                if (!hasInChain) {
+                    pokemonNeededCounts.set(baseForm, 1);
+                } else {
+                    // We have something in the chain, but we're still missing evolutions
+                    // This means we need 1 more base form to evolve (since we can't evolve the one we have)
+                    pokemonNeededCounts.set(baseForm, 1);
+                }
             }
         }
 
