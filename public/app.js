@@ -7404,14 +7404,29 @@ async function displayPokedex(data) {
         sampleEntries: Object.entries(pokedex).slice(0, 5)
     });
     
-    // Update generation filter dropdown to show all generations
+    // Update generation filter dropdown to show only generations in the database
     let genFilterSelect = document.getElementById('pokedexGenFilter');
     if (genFilterSelect) {
+        // Preserve the currently selected value before rebuilding
+        const currentSelection = genFilterSelect.value;
+        
         genFilterSelect.innerHTML = '<option value="all">All Generations</option>';
-        // Show all 9 generations
-        for (let genNum = 1; genNum <= 9; genNum++) {
-            const genName = completionStats[genNum]?.name || `Generation ${genNum}`;
-            genFilterSelect.innerHTML += `<option value="${genNum}">${genName}</option>`;
+        // Only show generations that are present in the database
+        if (availableGenerations && availableGenerations.length > 0) {
+            // Sort generations numerically
+            const sortedGens = [...availableGenerations].sort((a, b) => a - b);
+            for (const genNum of sortedGens) {
+                const genName = completionStats[genNum]?.name || `Generation ${genNum}`;
+                genFilterSelect.innerHTML += `<option value="${genNum}">${genName}</option>`;
+            }
+        }
+        
+        // Restore the selected value if it's still valid (either "all" or a generation in availableGenerations)
+        if (currentSelection === 'all' || (availableGenerations && availableGenerations.includes(parseInt(currentSelection)))) {
+            genFilterSelect.value = currentSelection;
+        } else {
+            // If the previously selected generation is no longer available, default to "all"
+            genFilterSelect.value = 'all';
         }
     }
     
