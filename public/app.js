@@ -1524,7 +1524,16 @@ async function createPokemonCard(pokemon) {
     // Ensure species is a number for the check
     const speciesId = parseInt(pokemon.species);
     const isGen3 = pokemon.isGen3 !== undefined ? pokemon.isGen3 : (speciesId >= 1 && speciesId <= 386);
-    const spriteUrl = getSpriteUrl(speciesId, pokemon.isShiny);
+    
+    // Determine Unown form (if applicable) so the thumbnail matches the actual letter
+    let spriteForm = null;
+    if (speciesId === 201) {
+        const unownFormIndex = calculateUnownForm(pokemon);
+        const unownFormName = getUnownFormName(unownFormIndex);
+        spriteForm = unownFormName.toLowerCase();
+    }
+    
+    const spriteUrl = getSpriteUrl(speciesId, pokemon.isShiny, spriteForm);
     const nickname = pokemon.nickname && pokemon.nickname !== '???' && pokemon.nickname !== 'Loading...' ? pokemon.nickname : speciesName;
     
     // Show sprite for all valid Pokemon (Gen 1-6)
@@ -2864,7 +2873,7 @@ function getAllEvolutionSpecies(speciesId, gen3Only = false) {
         152: [153], 153: [154], 155: [156], 156: [157], 158: [159], 159: [160], 161: [162], 163: [164],
         165: [166], 167: [168], 170: [171], 172: [25], 173: [35], 174: [39], 175: [176], 177: [178],
         179: [180], 180: [181], 183: [184], 187: [188], 188: [189], 191: [192], 194: [195], 198: [430], 200: [429],
-        204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 223: [224], 225: [226],
+        204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 220: [221], 221: [473], 223: [224], 225: [226],
         228: [229], 231: [232], 233: [474], 236: [106, 107, 237], 238: [124], 239: [125], 240: [126], 246: [247], 247: [248],
         // Gen 3
         252: [253], 253: [254], 255: [256], 256: [257], 258: [259], 259: [260], 261: [262], 263: [264],
@@ -2914,7 +2923,7 @@ function getPreEvolution(speciesId) {
         152: [153], 153: [154], 155: [156], 156: [157], 158: [159], 159: [160], 161: [162], 163: [164],
         165: [166], 167: [168], 170: [171], 172: [25], 173: [35], 174: [39], 175: [176], 177: [178],
         179: [180], 180: [181], 183: [184], 187: [188], 188: [189], 191: [192], 194: [195], 198: [430], 200: [429],
-        204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 223: [224], 225: [226],
+        204: [205], 209: [210], 215: [461], 216: [217], 218: [219], 220: [221], 221: [473], 223: [224], 225: [226],
         228: [229], 231: [232], 233: [474], 236: [106, 107, 237], 238: [124], 239: [125], 240: [126], 246: [247], 247: [248],
         // Gen 3
         252: [253], 253: [254], 255: [256], 256: [257], 258: [259], 259: [260], 261: [262], 263: [264],
@@ -7681,15 +7690,37 @@ async function displayPokedex(data) {
     }
 }
 
-// Calculate Unown form from IVs (Gen 3 formula)
-// Form is determined by: ((ATK & 0x6) << 5) | ((DEF & 0x6) << 3) | ((SPE & 0x6) << 1) | ((SPC & 0x6) >> 1)) / 10
-function calculateUnownForm(attackIV, defenseIV, speedIV, spAttackIV) {
+// Calculate Unown form from personality value (PID) when available.
+// For modern games / PK3 data, Unown's form is derived from the PID, not IVs.
+// Falls back to the older IV-based formula only if PID is missing.
+function calculateUnownForm(pokemon) {
+    const pid = pokemon?.personality;
+    
+    if (typeof pid === 'number' && pid > 0) {
+        // Derive Unown form index 0–27 from PID.
+        // This mirrors how Unown forms are derived from the personality value:
+        // take specific low bits from each byte and reduce modulo 28.
+        const value =
+            ((pid & 0x03000000) >> 18) | // bits from highest byte
+            ((pid & 0x00030000) >> 12) | // bits from next byte
+            ((pid & 0x00000300) >> 6)  | // bits from next byte
+            (pid & 0x00000003);          // lowest 2 bits
+        
+        return Math.min(27, Math.max(0, value % 28));
+    }
+    
+    // Fallback: legacy Gen 2–style IV formula if we don't have a PID
+    const attackIV   = pokemon?.ivs?.attack   ?? 0;
+    const defenseIV  = pokemon?.ivs?.defense  ?? 0;
+    const speedIV    = pokemon?.ivs?.speed    ?? 0;
+    const spAttackIV = pokemon?.ivs?.spAttack ?? 0;
+    
     const atkBits = (attackIV & 0x6) << 5;
     const defBits = (defenseIV & 0x6) << 3;
     const speBits = (speedIV & 0x6) << 1;
     const spcBits = (spAttackIV & 0x6) >> 1;
     const formValue = (atkBits | defBits | speBits | spcBits) / 10;
-    return Math.min(27, Math.max(0, Math.floor(formValue))); // Forms 0-27 (A-Z, !, ?)
+    return Math.min(27, Math.max(0, Math.floor(formValue))); // 0–27 (A–Z, !, ?)
 }
 
 // Get Unown form letter/character
@@ -7738,13 +7769,8 @@ async function showUnownDex() {
         // Process all Pokemon to find Unown
         for (const pokemon of pokemonData) {
             if (pokemon.species === 201 && !pokemon.error) {
-                // Calculate form from IVs
-                const form = calculateUnownForm(
-                    pokemon.ivs?.attack || 0,
-                    pokemon.ivs?.defense || 0,
-                    pokemon.ivs?.speed || 0,
-                    pokemon.ivs?.spAttack || 0
-                );
+                // Calculate form from PID (with IV fallback)
+                const form = calculateUnownForm(pokemon);
                 
                 if (form >= 0 && form <= 27) {
                     unownForms[form].owned = true;
@@ -7817,10 +7843,10 @@ async function showUnownDex() {
             const ownedClass = formData.owned ? 'owned' : 'missing';
             const shinyClass = formData.shiny ? 'shiny' : '';
             
-            // Get sprite URL for this form
-            const formLower = formName.toLowerCase();
-            const spriteUrl = getSpriteUrl(201, false, formLower);
-            const shinySpriteUrl = getSpriteUrl(201, true, formLower);
+            // Get sprite URL for this form (letters a-z, !, ?)
+            const formKey = formName.toLowerCase();
+            const spriteUrl = getSpriteUrl(201, false, formKey);
+            const shinySpriteUrl = getSpriteUrl(201, true, formKey);
             
             // Get Pokemon count for this form
             const pokemonCount = unownPokemonByForm[form].length;
@@ -7937,13 +7963,8 @@ async function loadUnownForms() {
         // Process all Pokemon to find Unown
         for (const pokemon of pokemonData) {
             if (pokemon.species === 201 && !pokemon.error) {
-                // Calculate form from IVs
-                const form = calculateUnownForm(
-                    pokemon.ivs?.attack || 0,
-                    pokemon.ivs?.defense || 0,
-                    pokemon.ivs?.speed || 0,
-                    pokemon.ivs?.spAttack || 0
-                );
+                // Calculate form from PID (with IV fallback)
+                const form = calculateUnownForm(pokemon);
                 
                 if (form >= 0 && form <= 27) {
                     unownForms[form].owned = true;
@@ -7963,15 +7984,10 @@ async function loadUnownForms() {
             const ownedClass = formData.owned ? 'owned' : 'missing';
             const shinyClass = formData.shiny ? 'shiny' : '';
             
-            // Get sprite URL for this form
-            // PokeAPI uses lowercase letters for A-Z, and special characters need URL encoding
-            let formLower = formName.toLowerCase();
-            if (formName === '!') formLower = 'exclamation';
-            if (formName === '?') formLower = 'question';
-            
-            // Use direct PokeAPI sprite URL for Unown forms
-            const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-${formLower}.png`;
-            const shinySpriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/201-${formLower}.png`;
+            // Get sprite URL for this form (letters a-z, !, ?)
+            const formKey = formName.toLowerCase();
+            const spriteUrl = getSpriteUrl(201, false, formKey);
+            const shinySpriteUrl = getSpriteUrl(201, true, formKey);
             
             // Get Pokemon count for this form
             const pokemonCount = unownPokemonByForm[form].length;

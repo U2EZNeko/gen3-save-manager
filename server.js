@@ -1566,8 +1566,9 @@ const EVOLUTION_CHAIN = {
   213: 214, // Shuckle (no evolution)
   215: 216, // Heracross (no evolution)
   216: 217, // Sneasel -> Weavile (Gen 4)
-  218: 219, // Teddiursa -> Ursaring
-  220: 221, // Slugma -> Magcargo
+  218: 219, // Slugma -> Magcargo
+  220: 221, // Swinub -> Piloswine
+  221: 473, // Piloswine -> Mamoswine (Gen 4)
   223: 224, // Remoraid -> Octillery
   225: 226, // Houndour -> Houndoom
   228: 229, // Phanpy -> Donphan
@@ -1940,7 +1941,7 @@ app.get('/api/pokemon/sprite/:speciesId', (req, res) => {
   try {
     const speciesId = parseInt(req.params.speciesId);
     const isShiny = req.query.shiny === 'true';
-    const form = req.query.form; // For Unown forms (a-z, !, ?)
+    const form = req.query.form; // For Unown forms (a-z, !, ?, or named variants)
     
     if (!speciesId || isNaN(speciesId)) {
       return res.status(400).json({ error: 'Invalid species ID' });
@@ -1949,10 +1950,15 @@ app.get('/api/pokemon/sprite/:speciesId', (req, res) => {
     // Handle Unown forms (species 201)
     let spriteId = speciesId;
     if (speciesId === 201 && form) {
-      // Unown forms use format: 201-{form} where form is lowercase letter or ! or ?
-      const formLower = form.toLowerCase();
-      if (formLower.length === 1 && ((formLower >= 'a' && formLower <= 'z') || formLower === '!' || formLower === '?')) {
+      // Unown forms use format: 201-{letter} (a-z), 201-exclamation, 201-question
+      const formLower = String(form).toLowerCase();
+      
+      if (formLower.length === 1 && formLower >= 'a' && formLower <= 'z') {
         spriteId = `201-${formLower}`;
+      } else if (formLower === '!' || formLower === 'exclamation') {
+        spriteId = '201-exclamation';
+      } else if (formLower === '?' || formLower === 'question') {
+        spriteId = '201-question';
       }
     }
     
