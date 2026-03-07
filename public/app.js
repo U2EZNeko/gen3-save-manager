@@ -541,10 +541,8 @@ if (startSelectingBtn) {
             // Clear selection when exiting selection mode
             selectedPokemon.clear();
             updateSelectionUI();
-            // Re-render cards to remove checkboxes
-            sortAndDisplay();
         }
-        // Re-render cards to show/hide checkboxes
+        // Re-render cards once to show/hide checkboxes (single call to avoid duplicate groups)
         sortAndDisplay();
     });
 }
@@ -1374,6 +1372,8 @@ async function displayPokemon(pokemon) {
 
 // Display Pokemon grouped by OT Name and/or TID/SID
 async function displayGroupedPokemon(pokemon, totalCount) {
+    // Reset so we don't accumulate cards from previous renders
+    allPokemonCards = [];
     // Determine grouping key based on checkboxes
     const useTIDSID = groupByTIDSID.checked;
     const useOT = groupByOT.checked;

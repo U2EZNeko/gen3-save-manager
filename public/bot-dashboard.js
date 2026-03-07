@@ -2534,7 +2534,8 @@ function updateStatusCard(card, bot, result) {
         <h4>Target Pokemon</h4>`;
     if (targetPokemon) {
         const unownForm = (targetPokemon.speciesId === 201) ? getUnownFormFromSpeciesName(targetPokemon.speciesName) : null;
-        const spriteUrl = getSpriteUrl(targetPokemon.speciesId, false, unownForm || undefined);
+        const spriteUrl = getSpriteUrl(targetPokemon.speciesId, true, unownForm || undefined);
+        const fallbackShinyUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${targetPokemon.speciesId === 201 && unownForm ? '201-' + (unownForm.length === 1 ? unownForm : unownForm === '!' ? 'exclamation' : 'question') : targetPokemon.speciesId}.png`;
         
         // Get species-specific encounter count from stats
         let speciesEncounters = null;
@@ -2570,7 +2571,7 @@ function updateStatusCard(card, bot, result) {
             <div class="target-pokemon-display">
                 <div class="target-pokemon-sprite-container">
                     <img src="${spriteUrl}" alt="${targetPokemon.speciesName}" class="target-pokemon-sprite" 
-                         onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${targetPokemon.speciesId === 201 && unownForm ? '201-' + (unownForm.length === 1 ? unownForm : unownForm === '!' ? 'exclamation' : 'question') : targetPokemon.speciesId}.png'">
+                         onerror="this.src='${fallbackShinyUrl}'">
                     <p class="target-pokemon-encounters" id="target-encounters-${bot.id}" style="display: ${speciesEncounters !== null ? 'block' : 'none'};">${speciesEncounters !== null ? `${speciesEncounters.toLocaleString()}` : ''}</p>
                 </div>
                 <div class="target-pokemon-info">
