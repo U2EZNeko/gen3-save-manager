@@ -1655,6 +1655,42 @@ async function createPokemonCard(pokemon) {
     }
     
     // Store filename in card data attribute for easy access
+// When Group by OT or TID/SID is used, shift-click range applies only within the same group.
+// Returns { cards: Element[], indexInCards: number, group: Element|null } for the card, or null if not found.
+function getRangeSelectionScope(card) {
+    const group = card.closest('.ot-group');
+    if (group) {
+        const groupGrid = group.querySelector('.pokemon-grid');
+        if (!groupGrid) return null;
+        const cards = Array.from(groupGrid.querySelectorAll('.pokemon-card'));
+        const idx = cards.indexOf(card);
+        if (idx < 0) return null;
+        return { cards, indexInCards: idx, group };
+    }
+    // Flat view: use global allPokemonCards
+    const indexInCards = allPokemonCards.findIndex(c => c === card);
+    if (indexInCards < 0) return null;
+    return { cards: allPokemonCards, indexInCards, group: null };
+}
+
+// Resolve last-selected card and its scope for shift-click. Returns { scope, indexInScope } or null.
+function getLastSelectedScope() {
+    if (lastSelectedIndex < 0 || !allPokemonCards[lastSelectedIndex]) return null;
+    const lastCard = allPokemonCards[lastSelectedIndex];
+    const scope = getRangeSelectionScope(lastCard);
+    if (!scope) return null;
+    return { scope, indexInScope: scope.indexInCards };
+}
+
+// True if both cards are in the same scope for range selection (same group, or both in flat list).
+function isSameRangeScope(cardA, cardB) {
+    const groupA = cardA.closest('.ot-group');
+    const groupB = cardB.closest('.ot-group');
+    if (groupA && groupB) return groupA === groupB;
+    if (!groupA && !groupB) return true;
+    return false;
+}
+
     card.dataset.filename = pokemon.filename;
     
     // Add selection checkbox (show if save file is loaded OR if in selection mode)
@@ -1668,24 +1704,31 @@ async function createPokemonCard(pokemon) {
             
             // Multi-select support: Shift for range, Ctrl/Cmd for toggle
             if (e.shiftKey && lastSelectedIndex >= 0) {
-                // Range selection
-                const currentIndex = allPokemonCards.findIndex(c => c.dataset.filename === pokemon.filename);
-                if (currentIndex >= 0) {
-                    const start = Math.min(lastSelectedIndex, currentIndex);
-                    const end = Math.max(lastSelectedIndex, currentIndex);
+                const currentScope = getRangeSelectionScope(card);
+                if (currentScope) {
+                    const lastScope = getLastSelectedScope();
                     const rangeSelected = checkbox.checked;
-                    
-                    for (let i = start; i <= end; i++) {
-                        const c = allPokemonCards[i];
-                        if (c) {
-                            const cb = c.querySelector('.pokemon-select-checkbox');
-                            if (cb) {
-                                cb.checked = rangeSelected;
-                                togglePokemonSelection(c.dataset.filename, rangeSelected);
+                    const lastCard = lastScope ? allPokemonCards[lastSelectedIndex] : null;
+                    if (lastScope && lastCard && isSameRangeScope(card, lastCard)) {
+                        // Same group (or same flat list): apply range within this scope
+                        const start = Math.min(lastScope.indexInScope, currentScope.indexInCards);
+                        const end = Math.max(lastScope.indexInScope, currentScope.indexInCards);
+                        for (let i = start; i <= end; i++) {
+                            const c = currentScope.cards[i];
+                            if (c) {
+                                const cb = c.querySelector('.pokemon-select-checkbox');
+                                if (cb) {
+                                    cb.checked = rangeSelected;
+                                    togglePokemonSelection(c.dataset.filename, rangeSelected);
+                                }
                             }
                         }
+                    } else {
+                        // Different group or no previous: just apply to this card
+                        togglePokemonSelection(pokemon.filename, rangeSelected);
                     }
-                    lastSelectedIndex = currentIndex;
+                    const globalIdx = allPokemonCards.findIndex(c => c === card);
+                    if (globalIdx >= 0) lastSelectedIndex = globalIdx;
                     return;
                 }
             }
@@ -1718,24 +1761,30 @@ async function createPokemonCard(pokemon) {
             const checkbox = card.querySelector('.pokemon-select-checkbox');
             if (checkbox) {
                 if (e.shiftKey && lastSelectedIndex >= 0) {
-                    // Range selection
-                    const currentIndex = allPokemonCards.findIndex(c => c === card);
-                    if (currentIndex >= 0) {
-                        const start = Math.min(lastSelectedIndex, currentIndex);
-                        const end = Math.max(lastSelectedIndex, currentIndex);
+                    const currentScope = getRangeSelectionScope(card);
+                    if (currentScope) {
+                        const lastScope = getLastSelectedScope();
                         const newState = !selectedPokemon.has(pokemon.filename);
-                        
-                        for (let i = start; i <= end; i++) {
-                            const c = allPokemonCards[i];
-                            if (c) {
-                                const cb = c.querySelector('.pokemon-select-checkbox');
-                                if (cb) {
-                                    cb.checked = newState;
-                                    togglePokemonSelection(c.dataset.filename, newState);
+                        const lastCard = lastScope ? allPokemonCards[lastSelectedIndex] : null;
+                        if (lastScope && lastCard && isSameRangeScope(card, lastCard)) {
+                            const start = Math.min(lastScope.indexInScope, currentScope.indexInCards);
+                            const end = Math.max(lastScope.indexInScope, currentScope.indexInCards);
+                            for (let i = start; i <= end; i++) {
+                                const c = currentScope.cards[i];
+                                if (c) {
+                                    const cb = c.querySelector('.pokemon-select-checkbox');
+                                    if (cb) {
+                                        cb.checked = newState;
+                                        togglePokemonSelection(c.dataset.filename, newState);
+                                    }
                                 }
                             }
+                        } else {
+                            checkbox.checked = newState;
+                            togglePokemonSelection(pokemon.filename, newState);
                         }
-                        lastSelectedIndex = currentIndex;
+                        const globalIdx = allPokemonCards.findIndex(c => c === card);
+                        if (globalIdx >= 0) lastSelectedIndex = globalIdx;
                         return;
                     }
                 }
@@ -5727,12 +5776,14 @@ async function saveScannerConfig() {
     const targetDbEl = document.getElementById('scanTargetDb');
     const autoScanEl = document.getElementById('enableAutoScan');
     const intervalEl = document.getElementById('scanInterval');
+    const copyFilesEl = document.getElementById('scanCopyFiles');
     
     const config = {
         sourceFolder: sourceFolderEl ? sourceFolderEl.value.trim() : '',
         targetDbId: targetDbEl ? targetDbEl.value : '',
         enableAutoScan: autoScanEl ? autoScanEl.checked : false,
-        scanInterval: intervalEl ? parseInt(intervalEl.value) || 5 : 5
+        scanInterval: intervalEl ? parseInt(intervalEl.value) || 5 : 5,
+        copyInsteadOfMove: copyFilesEl ? copyFilesEl.checked : false
     };
     
     // Only save if targetDbId is not empty
@@ -5778,6 +5829,7 @@ async function loadScannerConfig() {
         const autoScanEl = document.getElementById('enableAutoScan');
         const intervalEl = document.getElementById('scanInterval');
         const scanIntervalGroup = document.getElementById('scanIntervalGroup');
+        const copyFilesEl = document.getElementById('scanCopyFiles');
         
         if (sourceFolderEl && config.sourceFolder) {
             sourceFolderEl.value = config.sourceFolder;
@@ -5789,6 +5841,10 @@ async function loadScannerConfig() {
             if (targetDbExists) {
                 targetDbEl.value = config.targetDbId;
             }
+        }
+        
+        if (copyFilesEl) {
+            copyFilesEl.checked = config.copyInsteadOfMove || false;
         }
         
         if (autoScanEl) {
@@ -6748,6 +6804,9 @@ async function performScanAndMove() {
         return;
     }
     
+    const copyFilesEl = document.getElementById('scanCopyFiles');
+    const copyInsteadOfMove = copyFilesEl ? copyFilesEl.checked : false;
+    
     try {
         const response = await fetch('/api/databases/scan-and-move', {
             method: 'POST',
@@ -6756,7 +6815,8 @@ async function performScanAndMove() {
             },
             body: JSON.stringify({
                 sourceFolder: source,
-                targetDbId: targetId
+                targetDbId: targetId,
+                copyInsteadOfMove: copyInsteadOfMove
             })
         });
         
@@ -6767,11 +6827,12 @@ async function performScanAndMove() {
         
         const result = await response.json();
         
+        const actionLabel = result.copyMode ? 'copied' : 'moved';
         // Display results
         let resultHtml = `<div class="scan-result-success">
             <h4>Scan Complete</h4>
             <p><strong>Total files found:</strong> ${result.totalFound}</p>
-            <p><strong>Files moved:</strong> ${result.filesMoved}</p>
+            <p><strong>Files ${actionLabel}:</strong> ${result.filesMoved}</p>
             <p><strong>Files skipped:</strong> ${result.filesSkipped}</p>
         </div>`;
         
@@ -6789,8 +6850,9 @@ async function performScanAndMove() {
             // Update status for auto-scan
             if (scanStatus) {
                 const now = new Date().toLocaleTimeString();
+                const actionLabel = result.copyMode ? 'Copied' : 'Moved';
                 scanStatus.innerHTML = `<div class="scan-result-success">
-                    <p><strong>Last scan:</strong> ${now} - Moved ${result.filesMoved} file(s), skipped ${result.filesSkipped}</p>
+                    <p><strong>Last scan:</strong> ${now} - ${actionLabel} ${result.filesMoved} file(s), skipped ${result.filesSkipped}</p>
                 </div>`;
                 scanStatus.classList.remove('hidden');
             }

@@ -563,7 +563,7 @@ function findPokemonFilesRecursive(dirPath, fileList = []) {
 // API endpoint to scan and move PK3 files
 app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
   try {
-    const { sourceFolder, targetDbId } = req.body;
+    const { sourceFolder, targetDbId, copyInsteadOfMove } = req.body;
     
     if (!sourceFolder || !targetDbId) {
       return res.status(400).json({ error: 'Source folder and target database are required' });
@@ -607,12 +607,13 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
       });
     }
     
-    // Move files to target database
+    const copyMode = !!copyInsteadOfMove;
+    // Move or copy files to target database
     let filesMoved = 0;
     let filesSkipped = 0;
     const errors = [];
     
-    console.log(`[Folder Scanner] Processing ${pk3Files.length} file(s)... [${timestamp}]`);
+    console.log(`[Folder Scanner] Processing ${pk3Files.length} file(s) (${copyMode ? 'copy' : 'move'})... [${timestamp}]`);
     
     for (const filePath of pk3Files) {
       try {
@@ -642,27 +643,24 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
           }
         }
         
-        // Move the file (use copy + delete for cross-device support)
+        // Copy the file (always copy first for cross-device support when moving)
         try {
-          // Copy the file first (works across drives)
           fs.copyFileSync(filePath, targetPath);
           
-          // Verify the copy was successful
           if (!fs.existsSync(targetPath)) {
             throw new Error('Copy verification failed - target file does not exist');
           }
           
-          // Delete the source file
-          fs.unlinkSync(filePath);
-          
-          // Final verification
-          if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
-            filesMoved++;
-          } else {
-            throw new Error(`File move verification failed - target exists: ${fs.existsSync(targetPath)}, source removed: ${!fs.existsSync(filePath)}`);
+          if (!copyMode) {
+            // Move: delete the source file after successful copy
+            fs.unlinkSync(filePath);
+            if (fs.existsSync(filePath)) {
+              throw new Error('Source file was not removed');
+            }
           }
+          
+          filesMoved++;
         } catch (moveError) {
-          // If copy succeeded but delete failed, try to clean up the target
           if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
             try {
               fs.unlinkSync(targetPath);
@@ -670,11 +668,11 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
               // Silently handle cleanup errors
             }
           }
-          throw new Error(`Failed to move file: ${moveError.message}`);
+          throw new Error(`Failed to ${copyMode ? 'copy' : 'move'} file: ${moveError.message}`);
         }
       } catch (error) {
         const filename = path.basename(filePath);
-        console.error(`[Folder Scanner] Error moving file ${filename}: ${error.message}`);
+        console.error(`[Folder Scanner] Error ${copyMode ? 'copying' : 'moving'} file ${filename}: ${error.message}`);
         errors.push({
           file: filePath,
           error: error.message
@@ -682,13 +680,15 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
       }
     }
     
+    const actionVerb = copyMode ? 'Copied' : 'Moved';
     const responseData = {
       success: true,
-      message: `Moved ${filesMoved} file(s) to ${targetDb.name}`,
+      message: `${actionVerb} ${filesMoved} file(s) to ${targetDb.name}`,
       filesMoved: filesMoved,
       filesSkipped: filesSkipped,
       totalFound: pk3Files.length,
-      errors: errors
+      errors: errors,
+      copyMode: copyMode
     };
     
     res.json(responseData);
@@ -731,7 +731,7 @@ function saveScannerConfig(config) {
 }
 
 // Perform a scan and move operation (server-side)
-async function performServerScan(sourceFolder, targetDbId) {
+async function performServerScan(sourceFolder, targetDbId, copyInsteadOfMove) {
   try {
     // Validate source folder (absolute or relative to current working directory)
     let sourcePath;
@@ -761,13 +761,14 @@ async function performServerScan(sourceFolder, targetDbId) {
     // Recursively find all Pokemon files
     const pk3Files = findPokemonFilesRecursive(sourcePath);
     const timestamp = new Date().toLocaleString();
-    console.log(`[Scanner] Auto-scan found ${pk3Files.length} Pokemon file(s) [${timestamp}]`);
+    const copyMode = !!copyInsteadOfMove;
+    console.log(`[Scanner] Auto-scan found ${pk3Files.length} Pokemon file(s) (${copyMode ? 'copy' : 'move'}) [${timestamp}]`);
     
     if (pk3Files.length === 0) {
       return { success: true, filesMoved: 0, filesSkipped: 0, totalFound: 0 };
     }
     
-    // Move files to target database
+    // Move or copy files to target database
     let filesMoved = 0;
     let filesSkipped = 0;
     
@@ -778,16 +779,13 @@ async function performServerScan(sourceFolder, targetDbId) {
         
         // Check if file already exists in target
         if (fs.existsSync(targetPath)) {
-          // Compare file sizes to see if they're the same
           const sourceStats = fs.statSync(filePath);
           const targetStats = fs.statSync(targetPath);
           
           if (sourceStats.size === targetStats.size) {
-            // Same file, skip it
             filesSkipped++;
             continue;
           } else {
-            // Different file with same name, rename it
             const ext = path.extname(filename);
             const baseName = path.basename(filename, ext);
             let counter = 1;
@@ -799,26 +797,22 @@ async function performServerScan(sourceFolder, targetDbId) {
           }
         }
         
-        // Move the file (use copy + delete for cross-device support)
         try {
           fs.copyFileSync(filePath, targetPath);
           
-          // Verify the copy was successful
           if (!fs.existsSync(targetPath)) {
             throw new Error('Copy verification failed');
           }
           
-          // Delete the source file
-          fs.unlinkSync(filePath);
-          
-          // Final verification
-          if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
-            filesMoved++;
-          } else {
-            throw new Error('File move verification failed');
+          if (!copyMode) {
+            fs.unlinkSync(filePath);
+            if (fs.existsSync(filePath)) {
+              throw new Error('Source file was not removed');
+            }
           }
+          
+          filesMoved++;
         } catch (moveError) {
-          // If copy succeeded but delete failed, try to clean up the target
           if (fs.existsSync(targetPath) && !fs.existsSync(filePath)) {
             try {
               fs.unlinkSync(targetPath);
@@ -829,12 +823,12 @@ async function performServerScan(sourceFolder, targetDbId) {
           throw moveError;
         }
       } catch (error) {
-        console.error(`[Scanner] Error moving file ${path.basename(filePath)}: ${error.message}`);
+        console.error(`[Scanner] Error ${copyMode ? 'copying' : 'moving'} file ${path.basename(filePath)}: ${error.message}`);
       }
     }
     
     if (filesMoved > 0) {
-      console.log(`[Scanner] Auto-scan moved ${filesMoved} file(s) to ${targetDb.name} [${timestamp}]`);
+      console.log(`[Scanner] Auto-scan ${copyMode ? 'copied' : 'moved'} ${filesMoved} file(s) to ${targetDb.name} [${timestamp}]`);
     }
     
     return { success: true, filesMoved, filesSkipped, totalFound: pk3Files.length };
@@ -859,14 +853,14 @@ function startServerAutoScan(config) {
   const intervalMinutes = config.scanInterval || 5;
   const intervalMs = intervalMinutes * 60 * 1000;
   
-  console.log(`[Scanner] Starting auto-scan: ${config.sourceFolder} -> ${config.targetDbId} (every ${intervalMinutes} minutes)`);
+  console.log(`[Scanner] Starting auto-scan: ${config.sourceFolder} -> ${config.targetDbId} (${config.copyInsteadOfMove ? 'copy' : 'move'}, every ${intervalMinutes} minutes)`);
   
   // Perform initial scan
-  performServerScan(config.sourceFolder, config.targetDbId);
+  performServerScan(config.sourceFolder, config.targetDbId, config.copyInsteadOfMove);
   
   // Set up interval
   serverAutoScanInterval = setInterval(() => {
-    performServerScan(config.sourceFolder, config.targetDbId);
+    performServerScan(config.sourceFolder, config.targetDbId, config.copyInsteadOfMove);
   }, intervalMs);
 }
 
@@ -978,7 +972,8 @@ app.get('/api/scanner/config', (req, res) => {
         sourceFolder: '',
         targetDbId: '',
         enableAutoScan: false,
-        scanInterval: 5
+        scanInterval: 5,
+        copyInsteadOfMove: false
       });
     }
   } catch (error) {
@@ -989,7 +984,7 @@ app.get('/api/scanner/config', (req, res) => {
 // API endpoint to save scanner configuration
 app.post('/api/scanner/config', express.json(), (req, res) => {
   try {
-    const { sourceFolder, targetDbId, enableAutoScan, scanInterval } = req.body;
+    const { sourceFolder, targetDbId, enableAutoScan, scanInterval, copyInsteadOfMove } = req.body;
     
     if (!targetDbId) {
       return res.status(400).json({ error: 'Target database is required' });
@@ -999,7 +994,8 @@ app.post('/api/scanner/config', express.json(), (req, res) => {
       sourceFolder: sourceFolder || '',
       targetDbId: targetDbId,
       enableAutoScan: enableAutoScan || false,
-      scanInterval: scanInterval || 5
+      scanInterval: scanInterval || 5,
+      copyInsteadOfMove: !!copyInsteadOfMove
     };
     
     if (saveScannerConfig(config)) {

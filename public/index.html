@@ -639,7 +639,14 @@
                             <select id="scanTargetDb" class="form-input">
                                 <option value="">Select a database...</option>
                             </select>
-                            <small class="form-hint">Select the database where files will be moved</small>
+                            <small class="form-hint">Select the database where files will be moved or copied</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="scanCopyFiles" class="checkbox">
+                                Copy files (keep originals in source folder)
+                            </label>
+                            <small class="form-hint">When unchecked, files are moved (removed from source). When checked, files are copied and originals stay.</small>
                         </div>
                         <div class="form-group">
                             <label>
