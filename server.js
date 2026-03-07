@@ -170,8 +170,8 @@ const upload = multer({
   limits: { fileSize: 256 * 1024 } // 256KB max (Gen 3 saves are 128KB, but allow some buffer)
 });
 
-// Default folder path - user can change this
-const DEFAULT_PK3_FOLDER = path.join(__dirname, 'pk3-files');
+// Default folder path - user can change this (uses cwd so it works when run from any directory)
+const DEFAULT_PK3_FOLDER = path.join(process.cwd(), 'pk3-files');
 
 // Path to the folders configuration file
 const FOLDERS_CONFIG_PATH = path.join(__dirname, 'folders-config.json');
@@ -223,10 +223,10 @@ function loadFolders() {
   }
 }
 
-// Get default folders configuration
+// Get default folders configuration (uses cwd so directories are created where the script is run from)
 function getDefaultFolders() {
   return [
-    { id: 'db1', name: 'Database 1', path: path.join(__dirname, 'pk3-files') }
+    { id: 'db1', name: 'Database 1', path: path.join(process.cwd(), 'pk3-files') }
   ];
 }
 
