@@ -18,6 +18,11 @@ Gen3 Save Manager is a powerful, web-based application for viewing, managing, an
 
 Perfect for Pokémon collectors, breeders, and bot operators who need to organize, analyze, and manage large collections of Pokémon files.
 
+<img width="2357" height="1266" alt="image" src="https://github.com/user-attachments/assets/48a976dd-98ac-45b7-aff9-d19b3094a497" />
+<img width="2178" height="1258" alt="image" src="https://github.com/user-attachments/assets/5e77b816-d1a8-45d0-882e-b15d10055c99" />
+
+
+
 ---
 
 ## ✨ Key Features
@@ -31,17 +36,26 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 
 ### 📊 Advanced Viewing & Analysis
 - **Card-based Display**: Beautiful Pokémon cards with sprites, stats, and metadata
+
 - **Detailed Modal Views**: Complete IV/EV breakdowns with interactive charts
+  <img width="943" height="1184" alt="image" src="https://github.com/user-attachments/assets/236416af-56f0-4d8e-8a9c-4285aeca2b78" />
 - **Pokédex Viewer**: Browse all Pokémon with detailed information
-- **Map Viewer**: Visual location data for Pokémon encounters
+  <img width="1242" height="1194" alt="image" src="https://github.com/user-attachments/assets/d68cce24-8bd6-4a56-a8f3-f0fe67f9942d" />
+
+- **Map Viewer**: Visual location data for Pokémon encounters WIP
 - **Completion Planner**: Plan your Pokédex completion with encounter requirements
+
+<img width="1271" height="842" alt="image" src="https://github.com/user-attachments/assets/479048f8-0e6a-428b-a1ce-f7a0bf85d665" />
 
 ### 🔍 Powerful Filtering & Sorting
 - **Advanced Filters**: IV ranges, EV ranges, nature, ability, ball type, and more
+
+  <img width="447" height="1277" alt="image" src="https://github.com/user-attachments/assets/39e4422a-cbc8-465e-9dce-d11e21a47ba2" />
+
 - **Multiple Sort Options**: Sort by IV sum, species, level, stats, and more
 - **Grouping**: Organize by OT name or TID/SID combinations
 - **Search**: Quick search by species name or nickname
-
+  <img width="662" height="312" alt="image" src="https://github.com/user-attachments/assets/20877cae-66e9-49ce-9e86-9a381f2fae3c" />
 ### 📈 Comprehensive Statistics
 - **Database Statistics**: Total Pokémon, unique species, shiny counts
 - **IV Statistics**: 
@@ -52,6 +66,8 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 - **Trend Analysis**: 7-day growth graphs
 - **Distribution Charts**: Species, natures, abilities, balls, locations, and more
 
+<img width="1428" height="1178" alt="image" src="https://github.com/user-attachments/assets/e85033b7-42b0-493c-935e-b74f74b4c226" />
+
 ### 🤖 Bot Dashboard
 - **Multi-Bot Monitoring**: Monitor multiple PokeBotGen-3 instances simultaneously
 - **Real-time Updates**: Live status updates via Server-Sent Events or polling
@@ -59,6 +75,8 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 - **Target Pokémon Tracking**: Set and track target Pokémon for each bot
 - **Encounter Rate Graphs**: Visualize encounter rates over time
 - **Combined Statistics**: Aggregate data across all bots
+  
+<img width="2063" height="1180" alt="image" src="https://github.com/user-attachments/assets/3bedfd20-2aec-4fa3-a5d5-1b04a94266d9" />
 
 ### 📁 File Management
 - **Multiple Databases**: Manage up to 4+ custom database folders
