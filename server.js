@@ -156,7 +156,31 @@ function convertNationalToInternal3(nationalSpecies) {
 }
 
 const app = express();
-const PORT = 3000;
+
+// Server bind address and port (from config or defaults)
+const SERVER_CONFIG_PATH = path.join(process.cwd(), 'server-config.json');
+function loadServerConfig() {
+  const defaults = { host: '0.0.0.0', port: 3000 };
+  if (fs.existsSync(SERVER_CONFIG_PATH)) {
+    try {
+      const data = fs.readFileSync(SERVER_CONFIG_PATH, 'utf8');
+      const parsed = JSON.parse(data);
+      return {
+        host: typeof parsed.host === 'string' && parsed.host ? parsed.host : defaults.host,
+        port: typeof parsed.port === 'number' && parsed.port > 0 ? parsed.port : (parseInt(parsed.port, 10) || defaults.port)
+      };
+    } catch (err) {
+      console.warn('Could not load server-config.json, using defaults:', err.message);
+    }
+  }
+  return defaults;
+}
+let serverConfig = loadServerConfig();
+// Environment variables override config file
+if (process.env.HOST) serverConfig = { ...serverConfig, host: process.env.HOST };
+if (process.env.PORT) serverConfig = { ...serverConfig, port: parseInt(process.env.PORT, 10) || serverConfig.port };
+const PORT = serverConfig.port;
+const HOST = serverConfig.host;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -4747,8 +4771,12 @@ setInterval(pollBots, 2000);
 // Initial poll
 setTimeout(pollBots, 1000);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  const bindAddr = HOST === '0.0.0.0' ? 'all interfaces' : HOST;
+  console.log(`Server running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT} (binding on ${bindAddr}:${PORT})`);
+  if (HOST === '0.0.0.0') {
+    console.log('  (Reachable from other devices on your network; allow in firewall if prompted.)');
+  }
   console.log(`Looking for .pk3 files in: ${DEFAULT_PK3_FOLDER}`);
   console.log(`Place your .pk3 files in the 'pk3-files' folder`);
   console.log(`Maps available at: http://localhost:${PORT}/FRLGIronmonMap and http://localhost:${PORT}/EmeraldIronmonMap`);

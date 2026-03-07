@@ -30,9 +30,13 @@
             <!-- Top Section: 3 Cards -->
             <div class="controls-section">
                 <!-- Card 1: Dashboard Settings -->
-                <div class="controls-section-1">
-                    <h3>Dashboard Settings</h3>
-                    <div class="settings-row">
+                <div class="controls-section-1 foldable-card" data-foldable-id="bot-dashboard-settings">
+                    <div class="foldable-header">
+                        <h3>Dashboard Settings</h3>
+                        <span class="foldable-chevron" aria-hidden="true">▼</span>
+                    </div>
+                    <div class="foldable-body">
+                        <div class="settings-row">
                         <div class="setting-group">
                             <label for="layoutSelect">Layout:</label>
                             <select id="layoutSelect" class="select">
@@ -97,26 +101,34 @@
                             </label>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- Card 2: Bot Instances -->
-                <div class="controls-section-2">
-                    <div class="section-header">
+                <div class="controls-section-2 foldable-card" data-foldable-id="bot-instances">
+                    <div class="foldable-header section-header">
                         <h3>Bot Instances</h3>
                         <div class="bot-instances-actions">
                             <button id="addBotBtn" class="btn btn-primary">Add Bot</button>
                             <button id="showHiddenBotsBtn" class="btn btn-secondary">Show Hidden Bots</button>
                         </div>
+                        <span class="foldable-chevron" aria-hidden="true">▼</span>
                     </div>
+                    <div class="foldable-body">
                     <div id="botInstances" class="bot-instances">
                         <!-- Bot instances will be added here -->
+                    </div>
                     </div>
                 </div>
 
                 <!-- Card 3: Dashboard Summary -->
-                <div class="controls-section-3">
-                    <h3>Dashboard Summary</h3>
-                    <div id="dashboardSummary" class="dashboard-summary">
+                <div class="controls-section-3 foldable-card" data-foldable-id="bot-dashboard-summary">
+                    <div class="foldable-header">
+                        <h3>Dashboard Summary</h3>
+                        <span class="foldable-chevron" aria-hidden="true">▼</span>
+                    </div>
+                    <div class="foldable-body">
+                        <div id="dashboardSummary" class="dashboard-summary">
                         <div class="summary-item">
                             <span class="summary-label">Total Bots:</span>
                             <span id="summaryTotalBots" class="summary-value">0</span>
@@ -133,13 +145,14 @@
                             <span class="summary-label">Total Encounters:</span>
                             <span id="summaryTotalEncounters" class="summary-value">0</span>
                         </div>
-                    </div>
+                        </div>
                     <div class="combined-encounter-rate">
                         <div class="combined-rate-display">
                             <span class="combined-rate-label">Combined Encounter Rate:</span>
                             <span id="combinedEncounterRateValue" class="combined-rate-value">0/hr</span>
                         </div>
                         <canvas id="combinedEncounterRateChart" class="combined-encounter-rate-chart"></canvas>
+                    </div>
                     </div>
                 </div>
             </div>

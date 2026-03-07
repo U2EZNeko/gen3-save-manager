@@ -215,6 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         initializeTheme();
         loadDashboardSettings();
+        initFoldableCards();
         await loadBotInstancesFromServer();
         console.log('[Dashboard] Loaded', botInstances.length, 'bot instances');
         
@@ -236,6 +237,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Still try to show the page even if initialization fails
     }
 });
+
+// Initialize foldable top cards (Dashboard Settings, Bot Instances, Dashboard Summary)
+function initFoldableCards() {
+    document.querySelectorAll('.foldable-card').forEach(card => {
+        const id = card.dataset.foldableId;
+        if (id) {
+            const saved = localStorage.getItem('foldable-' + id);
+            if (saved === 'true') card.classList.add('collapsed');
+        }
+    });
+    document.addEventListener('click', (e) => {
+        const header = e.target.closest('.foldable-header');
+        if (!header) return;
+        if (e.target.closest('button')) return;
+        const card = header.closest('.foldable-card');
+        if (!card || !card.querySelector('.foldable-body')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        card.classList.toggle('collapsed');
+        const id = card.dataset.foldableId;
+        if (id) localStorage.setItem('foldable-' + id, card.classList.contains('collapsed'));
+    }, true);
+}
 
 // Theme management
 function initializeTheme() {
@@ -2509,7 +2533,8 @@ function updateStatusCard(card, bot, result) {
     html += `<div class="status-section target-pokemon-section">
         <h4>Target Pokemon</h4>`;
     if (targetPokemon) {
-        const spriteUrl = `/api/pokemon/sprite/${targetPokemon.speciesId}`;
+        const unownForm = (targetPokemon.speciesId === 201) ? getUnownFormFromSpeciesName(targetPokemon.speciesName) : null;
+        const spriteUrl = getSpriteUrl(targetPokemon.speciesId, false, unownForm || undefined);
         
         // Get species-specific encounter count from stats
         let speciesEncounters = null;
@@ -2545,7 +2570,7 @@ function updateStatusCard(card, bot, result) {
             <div class="target-pokemon-display">
                 <div class="target-pokemon-sprite-container">
                     <img src="${spriteUrl}" alt="${targetPokemon.speciesName}" class="target-pokemon-sprite" 
-                         onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${targetPokemon.speciesId}.png'">
+                         onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${targetPokemon.speciesId === 201 && unownForm ? '201-' + (unownForm.length === 1 ? unownForm : unownForm === '!' ? 'exclamation' : 'question') : targetPokemon.speciesId}.png'">
                     <p class="target-pokemon-encounters" id="target-encounters-${bot.id}" style="display: ${speciesEncounters !== null ? 'block' : 'none'};">${speciesEncounters !== null ? `${speciesEncounters.toLocaleString()}` : ''}</p>
                 </div>
                 <div class="target-pokemon-info">
@@ -2613,7 +2638,8 @@ function updateStatusCard(card, bot, result) {
             const level = pokemon.level || 0;
             const nickname = pokemon.nickname || '';
             const isShiny = pokemon.is_shiny || pokemon.isShiny || false;
-            const spriteUrl = getSpriteUrl(speciesId, isShiny);
+            const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(pokemon) ?? 0) : undefined;
+            const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
             const displayName = nickname && nickname.toLowerCase() !== speciesName.toLowerCase() 
                 ? nickname 
                 : speciesName;
@@ -2740,7 +2766,8 @@ function updateStatusCard(card, bot, result) {
             
             // Only display if we have valid data
             if (speciesId > 0 || speciesName !== '#0') {
-                const spriteUrl = getSpriteUrl(speciesId, isShiny);
+                const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(encounter) ?? 0) : undefined;
+                const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
                 
                 // Store the full encounter data as JSON in data attribute (HTML-encoded)
                 const encounterData = JSON.stringify(encounter).replace(/"/g, '&quot;');
@@ -2789,7 +2816,8 @@ function updateStatusCard(card, bot, result) {
         ability = currentEncounter.ability || currentEncounter.ability_name;
         
         if (speciesId > 0 || speciesName !== 'Unknown') {
-            const spriteUrl = getSpriteUrl(speciesId, isShiny);
+            const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(currentEncounter) ?? 0) : undefined;
+            const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
             html += `<div class="current-encounter-display">`;
             
             if (dashboardSettings.showEncounterSprite !== false) {
@@ -4886,13 +4914,63 @@ function formatPokemonInfo(data, speciesId, speciesName) {
     return html;
 }
 
-function getSpriteUrl(speciesId, isShiny) {
-    // Use PokeAPI sprites
-    if (speciesId > 0 && speciesId <= 1025) {
-        const paddedId = String(speciesId).padStart(3, '0');
-        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${isShiny ? 'shiny/' : ''}${speciesId}.png`;
+function getSpriteUrl(speciesId, isShiny, form) {
+    // Use app sprite API (supports Unown form)
+    const id = parseInt(speciesId);
+    if (!id || id < 1 || id > 1025) return '';
+    let url = `/api/pokemon/sprite/${id}${isShiny ? '?shiny=true' : ''}`;
+    if (id === 201 && form) {
+        const formParam = (form.length === 1) ? form.toLowerCase() : (form === '!' ? 'exclamation' : form === '?' ? 'question' : form.toLowerCase());
+        url += (isShiny ? '&' : '?') + `form=${encodeURIComponent(formParam)}`;
     }
-    return '';
+    return url;
+}
+
+// Unown form index 0-25 = A-Z, 26 = !, 27 = ?
+function getUnownFormName(formIndex) {
+    if (formIndex >= 0 && formIndex <= 25) return String.fromCharCode(65 + formIndex);
+    if (formIndex === 26) return '!';
+    if (formIndex === 27) return '?';
+    return '?';
+}
+
+function getUnownFormForSprite(formIndex) {
+    if (formIndex >= 0 && formIndex <= 25) return String.fromCharCode(97 + formIndex);
+    if (formIndex === 26) return '!';
+    if (formIndex === 27) return '?';
+    return '?';
+}
+
+// Extract Unown form from encounter/pokemon (personality or IVs)
+function calculateUnownFormFromEncounter(encounter) {
+    const pid = encounter?.personality ?? encounter?.pid ?? encounter?.pokemon?.personality ?? encounter?.data?.pokemon?.personality;
+    if (typeof pid === 'number' && pid > 0) {
+        const value = ((pid & 0x03000000) >> 18) | ((pid & 0x00030000) >> 12) | ((pid & 0x00000300) >> 6) | (pid & 0x00000003);
+        return Math.min(27, Math.max(0, value % 28));
+    }
+    const ivs = encounter?.ivs ?? encounter?.IVs ?? encounter?.pokemon?.ivs ?? encounter?.data?.pokemon?.ivs;
+    if (ivs) {
+        const atk = (ivs.attack ?? ivs.atk ?? 0) & 0x6;
+        const def = (ivs.defense ?? ivs.def ?? 0) & 0x6;
+        const spe = (ivs.speed ?? ivs.spd ?? 0) & 0x6;
+        const spa = (ivs.spAttack ?? ivs.spa ?? 0) & 0x6;
+        const formValue = ((atk << 5) | (def << 3) | (spe << 1) | (spa >> 1)) / 10;
+        return Math.min(27, Math.max(0, Math.floor(formValue)));
+    }
+    return null;
+}
+
+// Parse Unown form from target speciesName e.g. "Unown (A)" -> "a"
+function getUnownFormFromSpeciesName(speciesName) {
+    if (!speciesName) return null;
+    const m = speciesName.match(/Unown\s*\(([A-Za-z!?])\)/i);
+    if (!m) return null;
+    const ch = m[1];
+    if (ch >= 'A' && ch <= 'Z') return ch.toLowerCase();
+    if (ch >= 'a' && ch <= 'z') return ch;
+    if (ch === '!') return '!';
+    if (ch === '?') return '?';
+    return null;
 }
 
 function formatPlayTime(seconds) {
@@ -5300,40 +5378,29 @@ async function showTargetPokemonSelector(botId) {
                 let speciesId = null;
                 let speciesName = null;
                 
-                // Try to parse from format "#123 - Name"
                 const match = inputValue.match(/^#?(\d+)\s*-\s*(.+)$/);
                 if (match) {
                     speciesId = parseInt(match[1]);
                     speciesName = match[2].trim();
                 } else {
-                    // Try to get from datalist or parse as ID
-                    const datalist = document.getElementById('targetPokemonList');
-                    if (datalist) {
-                        // Get pokemon map from stored data
-                        const mapData = pokemonSelect.dataset.pokemonMap;
-                        if (mapData) {
-                            const pokemonMap = new Map(JSON.parse(mapData));
-                            // Try to find by name or ID
-                            for (const [id, name] of pokemonMap.entries()) {
-                                if (inputValue === name || inputValue === `#${id}` || inputValue === id.toString() || inputValue === `#${id} - ${name}`) {
-                                    speciesId = parseInt(id);
-                                    speciesName = name;
-                                    break;
-                                }
-                            }
+                    const displayMapData = pokemonSelect.dataset.pokemonDisplayMap;
+                    if (displayMapData) {
+                        const displayMap = new Map(JSON.parse(displayMapData));
+                        const entry = displayMap.get(inputValue) || displayMap.get(inputValue.trim());
+                        if (entry) {
+                            speciesId = entry.id;
+                            speciesName = entry.name;
                         }
                     }
-                    
-                    // If still not found, try parsing as just a number
-                    if (!speciesId) {
+                    if (!speciesId && /^#?\d+$/.test(inputValue)) {
                         const numMatch = inputValue.match(/^#?(\d+)$/);
                         if (numMatch) {
                             speciesId = parseInt(numMatch[1]);
-                            // Try to get name from map
-                            const mapData = pokemonSelect.dataset.pokemonMap;
-                            if (mapData) {
-                                const pokemonMap = new Map(JSON.parse(mapData));
-                                speciesName = pokemonMap.get(speciesId);
+                            const displayMapData = pokemonSelect.dataset.pokemonDisplayMap;
+                            if (displayMapData) {
+                                const displayMap = new Map(JSON.parse(displayMapData));
+                                const entry = displayMap.get(`#${speciesId}`);
+                                if (entry) speciesName = entry.name;
                             }
                         }
                     }
@@ -5364,34 +5431,27 @@ async function showTargetPokemonSelector(botId) {
             // Filter and show dropdown when input changes
             const filterAndShowDropdown = () => {
                 const inputValue = pokemonSelect.value.trim().toLowerCase();
-                const mapData = pokemonSelect.dataset.pokemonMap;
-                if (!mapData || !pokemonDropdown) {
-                    return;
-                }
+                const listData = pokemonSelect.dataset.pokemonList;
+                if (!listData || !pokemonDropdown) return;
                 
-                const pokemonMap = new Map(JSON.parse(mapData));
-                const pokemonList = Array.from(pokemonMap.entries()).map(([id, name]) => ({
-                    id: parseInt(id),
-                    name,
-                    displayText: `#${id} - ${name}`
+                const pokemonList = JSON.parse(listData);
+                const listWithDisplay = pokemonList.map(p => ({
+                    ...p,
+                    displayText: `#${p.id} - ${p.name}`
                 }));
                 
-                // Filter Pokemon based on input
                 let filtered = [];
                 if (inputValue) {
-                    filtered = pokemonList.filter(p => 
+                    filtered = listWithDisplay.filter(p =>
                         p.name.toLowerCase().includes(inputValue) ||
                         p.id.toString().includes(inputValue) ||
-                        `#${p.id}`.includes(inputValue)
+                        p.displayText.toLowerCase().includes(inputValue)
                     );
                 } else {
-                    filtered = pokemonList.slice(0, 20); // Show first 20 when empty
+                    filtered = listWithDisplay.slice(0, 20);
                 }
-                
-                // Limit to 50 results
                 filtered = filtered.slice(0, 50);
                 
-                // Update dropdown
                 if (filtered.length > 0 && inputValue) {
                     pokemonDropdown.innerHTML = '';
                     filtered.forEach(pokemon => {
@@ -5400,6 +5460,7 @@ async function showTargetPokemonSelector(botId) {
                         item.textContent = pokemon.displayText;
                         item.dataset.pokemonId = pokemon.id;
                         item.dataset.pokemonName = pokemon.name;
+                        if (pokemon.form) item.dataset.pokemonForm = pokemon.form;
                         item.addEventListener('click', () => {
                             pokemonSelect.value = pokemon.displayText;
                             pokemonDropdown.classList.add('hidden');
@@ -5418,47 +5479,35 @@ async function showTargetPokemonSelector(botId) {
                 const inputValue = pokemonSelect.value.trim();
                 if (!inputValue) {
                     const preview = document.getElementById('targetPokemonPreview');
-                    if (preview) {
-                        preview.innerHTML = '';
-                    }
+                    if (preview) preview.innerHTML = '';
                     return;
                 }
-                
-                // Get pokemon map from stored data
-                const mapData = pokemonSelect.dataset.pokemonMap;
-                if (!mapData) {
-                    return; // Map not loaded yet
+                const displayMapData = pokemonSelect.dataset.pokemonDisplayMap;
+                if (!displayMapData) return;
+                const displayMap = new Map(JSON.parse(displayMapData));
+                let matchedPokemon = displayMap.get(inputValue) || displayMap.get(inputValue.replace(/^#(\d+)\s*-\s*(.+)$/, (_, id, name) => `#${id} - ${name.trim()}`));
+                if (!matchedPokemon) {
+                    const match = inputValue.match(/^#?(\d+)\s*-\s*(.+)$/);
+                    if (match) matchedPokemon = displayMap.get(`#${match[1]} - ${match[2].trim()}`);
                 }
-                
-                const pokemonMap = new Map(JSON.parse(mapData));
-                
-                // Try to find matching Pokemon by name or ID
-                let matchedPokemon = null;
-                for (const [id, name] of pokemonMap.entries()) {
-                    const displayText = `#${id} - ${name}`;
-                    if (inputValue === displayText || inputValue === name || inputValue === `#${id}` || inputValue === id.toString()) {
-                        matchedPokemon = { id: parseInt(id), name };
-                        break;
-                    }
-                }
-                
                 if (matchedPokemon && matchedPokemon.id >= 1 && matchedPokemon.id <= 386) {
                     const preview = document.getElementById('targetPokemonPreview');
-                    const spriteUrl = `/api/pokemon/sprite/${matchedPokemon.id}`;
+                    const formParam = (matchedPokemon.id === 201 && matchedPokemon.form) ? `?form=${encodeURIComponent(matchedPokemon.form)}` : '';
+                    const spriteUrl = `/api/pokemon/sprite/${matchedPokemon.id}${formParam}`;
+                    const fallbackForm = (matchedPokemon.id === 201 && matchedPokemon.form) ? (matchedPokemon.form.length === 1 ? matchedPokemon.form : matchedPokemon.form === '!' ? 'exclamation' : 'question') : '';
+                    const fallbackSuffix = fallbackForm ? '-' + fallbackForm : '';
                     if (preview) {
                         preview.innerHTML = `
                             <div class="target-pokemon-preview-content">
                                 <img src="${spriteUrl}" alt="${matchedPokemon.name}" 
-                                     onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${matchedPokemon.id}.png'">
+                                     onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${matchedPokemon.id}${fallbackSuffix}.png'">
                                 <p><strong>#${matchedPokemon.id} ${matchedPokemon.name}</strong></p>
                             </div>
                         `;
                     }
                 } else {
                     const preview = document.getElementById('targetPokemonPreview');
-                    if (preview) {
-                        preview.innerHTML = '';
-                    }
+                    if (preview) preview.innerHTML = '';
                 }
             };
             
@@ -5505,7 +5554,7 @@ async function showTargetPokemonSelector(botId) {
     modal.classList.remove('hidden');
 }
 
-// Load Pokemon list (sorted alphabetically)
+// Load Pokemon list (sorted alphabetically); includes all 28 Unown forms for targets
 async function loadPokemonList(inputElement, dropdownElement) {
     try {
         // Fetch all Pokemon names for Gen 3 (1-386)
@@ -5520,23 +5569,38 @@ async function loadPokemonList(inputElement, dropdownElement) {
             const results = await Promise.all(batch);
             results.forEach((name, index) => {
                 if (name) {
-                    pokemonList.push({ id: i + index, name });
+                    const id = i + index;
+                    if (id === 201) {
+                        // Add all 28 Unown forms as separate entries
+                        for (let f = 0; f <= 25; f++) {
+                            pokemonList.push({ id: 201, name: `Unown (${String.fromCharCode(65 + f)})`, form: String.fromCharCode(97 + f) });
+                        }
+                        pokemonList.push({ id: 201, name: 'Unown (!)', form: '!' });
+                        pokemonList.push({ id: 201, name: 'Unown (?)', form: '?' });
+                    } else {
+                        pokemonList.push({ id, name });
+                    }
                 }
             });
         }
         
-        // Sort by Pokemon name alphabetically
+        // Sort by name alphabetically
         pokemonList.sort((a, b) => a.name.localeCompare(b.name));
         
-        // Store the map for lookup in the input handler
-        const pokemonDataMap = new Map();
-        pokemonList.forEach(pokemon => {
-            pokemonDataMap.set(pokemon.id, pokemon.name);
+        // Build display map for lookup by displayText, name, #id, or id
+        const displayMap = new Map();
+        pokemonList.forEach(p => {
+            const displayText = `#${p.id} - ${p.name}`;
+            const entry = { id: p.id, name: p.name, form: p.form || null };
+            displayMap.set(displayText, entry);
+            displayMap.set(p.name, entry);
+            displayMap.set(`#${p.id}`, entry);
+            displayMap.set(p.id.toString(), entry);
         });
         
-        // Store the map in the input element's dataset
         if (inputElement) {
-            inputElement.dataset.pokemonMap = JSON.stringify(Array.from(pokemonDataMap.entries()));
+            inputElement.dataset.pokemonList = JSON.stringify(pokemonList);
+            inputElement.dataset.pokemonDisplayMap = JSON.stringify(Array.from(displayMap.entries()));
         }
     } catch (error) {
         console.error('Error loading Pokemon list:', error);

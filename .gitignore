@@ -42,10 +42,13 @@ testscript.py
 *.pk6
 *.pk7
 *.sav
-bot-targets.json
-bots-config.json
 folders-config.json
 scanner-config.json
+server-config.json
+
+# Bot dashboard config (user-specific; use bots-config.example.json as template)
+bots-config.json
+bot-targets.json
 
 # User data directories (Pokemon databases)
 gen3botdisc/

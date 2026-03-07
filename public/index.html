@@ -29,7 +29,12 @@
 
         <div class="controls-section">
             <!-- Section 1: Refresh Pokemon, DB Selector, Manage Folders, Card Width, Max Display -->
-            <div class="controls-section-1">
+            <div class="controls-section-1 foldable-card" data-foldable-id="main-controls-1">
+                <div class="foldable-header">
+                    <h3>Database &amp; Display</h3>
+                    <span class="foldable-chevron" aria-hidden="true">▼</span>
+                </div>
+                <div class="foldable-body">
                 <div class="database-controls">
                     <button id="loadBtn" class="btn btn-primary">Refresh Pokemon</button>
                     <button id="pokedexBtn" class="btn btn-secondary">Pokedex</button>
@@ -69,17 +74,22 @@
                             min="0"
                             max="10000"
                             value="50"
-                            step="10"
-                            placeholder="0 = unlimited"
+                        step="10"
+                        placeholder="0 = unlimited"
                         >
                     </div>
+                </div>
                 </div>
             </div>
 
             <!-- Section 2: DB Statistics -->
-            <div class="controls-section-2">
-                <div class="db-statistics">
+            <div class="controls-section-2 foldable-card" data-foldable-id="main-controls-2">
+                <div class="foldable-header">
                     <h3>Database Statistics</h3>
+                    <span class="foldable-chevron" aria-hidden="true">▼</span>
+                </div>
+                <div class="foldable-body">
+                <div class="db-statistics">
                     <div id="dbStatsDisplay" class="db-stats-content">
                         <div class="stat-item">
                             <span class="stat-label">Total Pokemon:</span>
@@ -99,10 +109,16 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
 
             <!-- Section 3: Sort By, Search bar, Start Selecting, Statistics, Advanced options, and 4 checkboxes -->
-            <div class="controls-section-3">
+            <div class="controls-section-3 foldable-card" data-foldable-id="main-controls-3">
+                <div class="foldable-header">
+                    <h3>Sort &amp; Filter</h3>
+                    <span class="foldable-chevron" aria-hidden="true">▼</span>
+                </div>
+                <div class="foldable-body">
                 <div class="sort-search-controls">
                     <div class="sort-controls">
                         <label for="sortSelect">Sort by:</label>
@@ -178,6 +194,7 @@
                             Compact View
                         </label>
                     </div>
+                </div>
                 </div>
             </div>
         </div>

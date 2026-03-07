@@ -6931,9 +6931,33 @@ function initializeScanButton() {
 updatePendingFilesCounter();
 initializeScanButton();
 
+// Initialize foldable top cards (Database & Display, Database Statistics, Sort & Filter)
+function initFoldableCards() {
+    document.querySelectorAll('.foldable-card').forEach(card => {
+        const id = card.dataset.foldableId;
+        if (id) {
+            const saved = localStorage.getItem('foldable-' + id);
+            if (saved === 'true') card.classList.add('collapsed');
+        }
+    });
+    document.addEventListener('click', (e) => {
+        const header = e.target.closest('.foldable-header');
+        if (!header) return;
+        if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) return;
+        const card = header.closest('.foldable-card');
+        if (!card || !card.querySelector('.foldable-body')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        card.classList.toggle('collapsed');
+        const id = card.dataset.foldableId;
+        if (id) localStorage.setItem('foldable-' + id, card.classList.contains('collapsed'));
+    }, true);
+}
+
 // Auto-load Pokemon when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', async () => {
+        initFoldableCards();
         // Load database list and update select
         await loadDatabases();
         // Set the saved database selection
@@ -6966,6 +6990,7 @@ if (document.readyState === 'loading') {
     });
 } else {
     // DOM is already ready, load immediately
+    initFoldableCards();
     (async () => {
         await loadDatabases();
         if (databaseSelect) {

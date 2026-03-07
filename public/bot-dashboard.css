@@ -36,10 +36,47 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    min-height: 0; /* Allow flex children to shrink */
-    overflow-y: auto; /* Allow scrolling */
+    min-height: 0;
+    overflow-y: auto;
     overflow-x: hidden;
-    max-height: 250px; /* Limit card height */
+    max-height: 250px;
+}
+
+/* Foldable cards on bot dashboard */
+.bot-dashboard .foldable-card .foldable-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    gap: 8px;
+    margin: -2px 0 4px 0;
+    padding: 2px 0;
+}
+.bot-dashboard .foldable-card .foldable-header:hover {
+    opacity: 0.9;
+}
+.bot-dashboard .foldable-card .foldable-header h3 {
+    margin: 0;
+}
+.bot-dashboard .foldable-chevron {
+    flex-shrink: 0;
+    font-size: 0.75em;
+    opacity: 0.8;
+    transition: transform 0.2s ease;
+}
+.bot-dashboard .foldable-card.collapsed .foldable-chevron {
+    transform: rotate(-90deg);
+}
+.bot-dashboard .foldable-card.collapsed .foldable-body {
+    display: none !important;
+}
+.bot-dashboard .foldable-card.collapsed {
+    max-height: none;
+}
+.bot-dashboard .foldable-card .foldable-body {
+    overflow: hidden;
+    min-height: 0;
 }
 
 .controls-section-1 {

@@ -274,6 +274,12 @@ gen3-save-manager/
 
 ## 🔧 Configuration
 
+### Server (host & port)
+- Copy `server-config.example.json` to `server-config.json` (in the directory you run the server from) to set the IP and port.
+- **`host`**: Bind address. Use `0.0.0.0` to listen on all interfaces (other devices can connect; Windows may show a firewall prompt). Use `127.0.0.1` for localhost only.
+- **`port`**: Port number (default `3000`).
+- You can also override with environment variables: `HOST=127.0.0.1 PORT=3001 node server.js`.
+
 ### Database Folders
 - **Default**: One database at `pk3-files/` (created in the directory where you run the server)
 - Custom folders can be added via "Manage Folders"

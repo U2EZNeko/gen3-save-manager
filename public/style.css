@@ -325,6 +325,39 @@ header h1 {
     overflow-wrap: break-word; /* Prevent text overflow */
 }
 
+/* Foldable card headers (top sections) */
+.foldable-card .foldable-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    gap: 8px;
+    margin: -4px 0 0 0;
+    padding: 2px 0;
+}
+.foldable-card .foldable-header:hover {
+    opacity: 0.9;
+}
+.foldable-card .foldable-header h3 {
+    margin: 0;
+}
+.foldable-chevron {
+    flex-shrink: 0;
+    font-size: 0.75em;
+    opacity: 0.8;
+    transition: transform 0.2s ease;
+}
+.foldable-card.collapsed .foldable-chevron {
+    transform: rotate(-90deg);
+}
+.foldable-card.collapsed .foldable-body {
+    display: none !important;
+}
+.foldable-card .foldable-body {
+    overflow: hidden;
+}
+
 .controls-section-1 {
     align-items: flex-start;
 }
