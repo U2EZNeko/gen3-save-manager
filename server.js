@@ -173,9 +173,9 @@ const upload = multer({
 // Default folder path - user can change this (uses cwd so it works when run from any directory)
 const DEFAULT_PK3_FOLDER = path.join(process.cwd(), 'pk3-files');
 
-// Path to the folders configuration file
-const FOLDERS_CONFIG_PATH = path.join(__dirname, 'folders-config.json');
-const BOTS_CONFIG_PATH = path.join(__dirname, 'bots-config.json');
+// Path to the folders configuration file (in cwd for portability across systems)
+const FOLDERS_CONFIG_PATH = path.join(process.cwd(), 'folders-config.json');
+const BOTS_CONFIG_PATH = path.join(process.cwd(), 'bots-config.json');
 
 // Load bots from JSON file or initialize with empty array
 function loadBots() {
@@ -243,12 +243,37 @@ function saveFolders(folders) {
 // Available Pokemon database folders
 let PK3_DATABASES = loadFolders();
 
-// Ensure all database directories exist
-PK3_DATABASES.forEach(db => {
-  if (!fs.existsSync(db.path)) {
-    fs.mkdirSync(db.path, { recursive: true });
+// Ensure all database directories exist; migrate paths that fail (e.g. from another machine) to cwd
+function ensureDatabaseDirectories() {
+  let updated = false;
+  PK3_DATABASES = PK3_DATABASES.map(db => {
+    if (fs.existsSync(db.path)) return db;
+    try {
+      fs.mkdirSync(db.path, { recursive: true });
+      return db;
+    } catch (err) {
+      // Path may be from another machine (e.g. G:\... on a system where G: doesn't exist)
+      const fallbackDir = path.join(process.cwd(), path.basename(db.path));
+      console.warn(`[Config] Could not create "${db.path}" (${err.code}). Using "${fallbackDir}" instead.`);
+      try {
+        fs.mkdirSync(fallbackDir, { recursive: true });
+      } catch (e) {
+        console.error(`[Config] Could not create fallback "${fallbackDir}":`, e.message);
+        return db; // keep original so UI can show it
+      }
+      updated = true;
+      return { ...db, path: fallbackDir };
+    }
+  });
+  if (updated) {
+    try {
+      saveFolders(PK3_DATABASES);
+    } catch (e) {
+      console.error('[Config] Could not save updated folders config:', e.message);
+    }
   }
-});
+}
+ensureDatabaseDirectories();
 
 // Helper function to get folder path from database ID
 function getFolderPath(dbId) {
@@ -321,12 +346,12 @@ app.post('/api/databases', express.json(), (req, res) => {
       return res.status(400).json({ error: 'Name and folder path are required' });
     }
     
-    // Validate folder path (must be absolute or relative to project root)
+    // Validate folder path (absolute or relative to current working directory)
     let resolvedPath;
     if (path.isAbsolute(folderPath)) {
       resolvedPath = folderPath;
     } else {
-      resolvedPath = path.join(__dirname, folderPath);
+      resolvedPath = path.join(process.cwd(), folderPath);
     }
     
     // Check if folder already exists in the list
@@ -436,12 +461,12 @@ app.put('/api/databases/:id', express.json(), (req, res) => {
         return res.status(400).json({ error: 'Folder path cannot be empty' });
       }
       
-      // Validate folder path (must be absolute or relative to project root)
+      // Validate folder path (absolute or relative to current working directory)
       let resolvedPath;
       if (path.isAbsolute(trimmedPath)) {
         resolvedPath = path.normalize(trimmedPath);
       } else {
-        resolvedPath = path.normalize(path.join(__dirname, trimmedPath));
+        resolvedPath = path.normalize(path.join(process.cwd(), trimmedPath));
       }
       
       // Normalize the existing path for comparison
@@ -520,12 +545,12 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
       return res.status(400).json({ error: 'Source folder and target database are required' });
     }
     
-    // Validate source folder
+    // Validate source folder (absolute or relative to current working directory)
     let sourcePath;
     if (path.isAbsolute(sourceFolder)) {
       sourcePath = sourceFolder;
     } else {
-      sourcePath = path.join(__dirname, sourceFolder);
+      sourcePath = path.join(process.cwd(), sourceFolder);
     }
     
     if (!fs.existsSync(sourcePath)) {
@@ -648,11 +673,11 @@ app.post('/api/databases/scan-and-move', express.json(), (req, res) => {
   }
 });
 
-// Scanner configuration file path
-const SCANNER_CONFIG_FILE = path.join(__dirname, 'scanner-config.json');
+// Scanner configuration file path (in cwd for portability)
+const SCANNER_CONFIG_FILE = path.join(process.cwd(), 'scanner-config.json');
 
-// Bot target Pokemon configuration file path
-const BOT_TARGETS_FILE = path.join(__dirname, 'bot-targets.json');
+// Bot target Pokemon configuration file path (in cwd for portability)
+const BOT_TARGETS_FILE = path.join(process.cwd(), 'bot-targets.json');
 
 // Server-side auto-scan state
 let serverAutoScanInterval = null;
@@ -684,12 +709,12 @@ function saveScannerConfig(config) {
 // Perform a scan and move operation (server-side)
 async function performServerScan(sourceFolder, targetDbId) {
   try {
-    // Validate source folder
+    // Validate source folder (absolute or relative to current working directory)
     let sourcePath;
     if (path.isAbsolute(sourceFolder)) {
       sourcePath = sourceFolder;
     } else {
-      sourcePath = path.join(__dirname, sourceFolder);
+      sourcePath = path.join(process.cwd(), sourceFolder);
     }
     
     if (!fs.existsSync(sourcePath)) {

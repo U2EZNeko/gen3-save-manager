@@ -539,8 +539,8 @@
                         </div>
                         <div class="form-group">
                             <label for="newFolderPath">Folder Path:</label>
-                            <input type="text" id="newFolderPath" class="form-input" placeholder="e.g., pk3-files-5 (relative) or full path">
-                            <small class="form-hint">Enter a relative path (e.g., pk3-files-5) or an absolute path</small>
+                            <input type="text" id="newFolderPath" class="form-input" placeholder="e.g., pk3-files or /path/to/folder">
+                            <small class="form-hint">Relative path (from current directory) or absolute path</small>
                         </div>
                         <button id="addFolderBtn" class="btn btn-primary">Add Folder</button>
                     </div>
@@ -614,8 +614,8 @@
                     <div class="scanner-form">
                         <div class="form-group">
                             <label for="scanSourceFolder">Source Folder:</label>
-                            <input type="text" id="scanSourceFolder" class="form-input" placeholder="e.g., C:\Pokemon\Saves or ./saves (relative path)">
-                            <small class="form-hint">Enter the folder path to scan recursively for .pk3 files</small>
+                            <input type="text" id="scanSourceFolder" class="form-input" placeholder="e.g., ./saves or absolute path">
+                            <small class="form-hint">Relative path (from current directory) or absolute path to scan for .pk3 files</small>
                         </div>
                         <div class="form-group">
                             <label for="scanTargetDb">Target Database:</label>

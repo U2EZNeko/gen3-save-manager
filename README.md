@@ -105,8 +105,8 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 ### First Time Setup
 
 1. **Create database folders** (optional - created automatically):
-   - Place your Pokémon files in `pk3-files/` (Database 1)
-   - Or add custom folders via "Manage Folders"
+   - Run the server from the desired directory; `pk3-files/` (Database 1) is created there
+   - Or add custom folders via "Manage Folders" (paths can be relative to current directory or absolute)
 
 2. **Add your Pokémon files:**
    - Copy `.pk3`, `.pk4`, `.pk5`, `.pk6`, or `.pk7` files to your database folders
@@ -275,16 +275,17 @@ gen3-save-manager/
 ## 🔧 Configuration
 
 ### Database Folders
-- Default: `pk3-files/`, `pk3-files-2/`, `pk3-files-3/`, `pk3-files-4/`
+- **Default**: One database at `pk3-files/` (created in the directory where you run the server)
 - Custom folders can be added via "Manage Folders"
-- Folders are stored in `folders-config.json` (not committed to git)
+- Folders are stored in `folders-config.json` in the **current working directory** (not committed to git)
+- Copy `folders-config.example.json` to `folders-config.json` to use a portable relative path
 
 ### Bot Configuration
-- Bot instances stored in `bots-config.json` (not committed to git)
-- Bot targets stored in `bot-targets.json` (not committed to git)
+- Bot instances stored in `bots-config.json` (in current working directory, not committed to git)
+- Bot targets stored in `bot-targets.json` (in current working directory, not committed to git)
 
 ### Scanner Configuration
-- Scanner settings stored in `scanner-config.json` (not committed to git)
+- Scanner settings stored in `scanner-config.json` (in current working directory, not committed to git)
 - Auto-scan runs server-side and persists across restarts
 
 ---
