@@ -8,7 +8,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Top Section: 3 Cards (similar to main page) */
@@ -38,9 +38,8 @@
     flex-direction: column;
     gap: 10px;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 250px;
+    overflow-y: visible;
+    max-height: none;
 }
 
 /* Foldable cards on bot dashboard */
@@ -87,8 +86,16 @@
 
 .controls-section-2 {
     max-height: 250px; /* Limit card height */
+    overflow: hidden;
 }
 
+.controls-section-2 .foldable-body {
+    /*Make settings scrollable */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
 .controls-section-1 h3,
 .controls-section-2 h3,
 .controls-section-3 h3 {
@@ -167,7 +174,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
-    min-height: 0; /* Allow scrolling */
+    min-height: 400px; /* Allow scrolling */
     max-height: 100%; /* Don't exceed parent */
     padding-right: 5px; /* Space for scrollbar */
 }
