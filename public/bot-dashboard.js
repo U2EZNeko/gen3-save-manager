@@ -4089,7 +4089,7 @@ function updateCombinedEncounterRate() {
                 y: {
                     beginAtZero: true,
                     title: {
-                        display: true,
+                        display: false,
                         text: 'Encounters per Hour'
                     }
                 },
