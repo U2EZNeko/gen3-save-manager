@@ -20,7 +20,7 @@ body.bot-dashboard-page .container {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 body.bot-dashboard-page .bot-dashboard {
@@ -55,9 +55,8 @@ body.bot-dashboard-page .bot-dashboard {
     flex-direction: column;
     gap: 10px;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 250px;
+    overflow-y: visible;
+    max-height: none;
 }
 
 /* Foldable cards on bot dashboard */
@@ -104,8 +103,16 @@ body.bot-dashboard-page .bot-dashboard {
 
 .controls-section-2 {
     max-height: 250px; /* Limit card height */
+    overflow: hidden;
 }
 
+.controls-section-2 .foldable-body {
+    /*Make settings scrollable */
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
 .controls-section-1 h3,
 .controls-section-2 h3,
 .controls-section-3 h3 {
@@ -184,7 +191,7 @@ body.bot-dashboard-page .bot-dashboard {
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
-    min-height: 0; /* Allow scrolling */
+    min-height: 400px; /* Allow scrolling */
     max-height: 100%; /* Don't exceed parent */
     padding-right: 5px; /* Space for scrollbar */
 }
