@@ -4,6 +4,47 @@
 // Bot instances storage (will be loaded from server)
 let botInstances = [];
 
+const DEFAULT_BOT_CARD_SECTION_ORDER = [
+    'encounterRate',
+    'targetPokemon',
+    'currentLocation',
+    'party',
+    'recentFinds',
+    'currentEncounter',
+    'statistics',
+    'currentPhase',
+    'emulator',
+    'game',
+    'player',
+    'totalStats'
+];
+
+const BOT_CARD_SECTION_LABELS = {
+    encounterRate: 'Encounter Rate',
+    targetPokemon: 'Target Pokemon',
+    currentLocation: 'Current Location',
+    party: 'Current Party',
+    recentFinds: 'Recent Finds',
+    currentEncounter: 'Current Encounter',
+    statistics: 'Statistics',
+    currentPhase: 'Current Phase',
+    emulator: 'Emulator Info',
+    game: 'Game',
+    player: 'Player Info',
+    totalStats: 'Total Stats'
+};
+
+function normalizeBotCardSectionOrder(order) {
+    const valid = Array.isArray(order) ? order.filter(key => DEFAULT_BOT_CARD_SECTION_ORDER.includes(key)) : [];
+    const unique = [...new Set(valid)];
+    for (const key of DEFAULT_BOT_CARD_SECTION_ORDER) {
+        if (!unique.includes(key)) unique.push(key);
+    }
+    return unique;
+}
+
+const DEFAULT_BOT_ACCENT_COLOR = '#667eea';
+
 // Dashboard settings storage
 let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') || JSON.stringify({
     layout: 'grid',
@@ -16,6 +57,7 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     showGameState: false,
     showPlayerInfo: false,
     showTotalStats: false,
+    showLogo: true,
     showEncounterRateGraph: false, // Per-bot graph toggle
     showEncounterRateAsGraph: false, // Show graph instead of number in stats
     updateInterval: 5, // seconds
@@ -61,7 +103,9 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     showPlayerSID: true,
     showPlayerGender: true,
     showPlayerPlayTime: true,
-    showPlayerID32: true
+    showPlayerID32: true,
+    sectionOrder: DEFAULT_BOT_CARD_SECTION_ORDER,
+    accentColor: DEFAULT_BOT_ACCENT_COLOR
 }));
 
 // Encounter rate history for graphing (per bot)
@@ -182,6 +226,7 @@ const hiddenBotsList = document.getElementById('hiddenBotsList');
 const botStatusContainer = document.getElementById('botStatusContainer');
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
+const botHeaderLogo = document.querySelector('.header-logo');
 const layoutSelect = document.getElementById('layoutSelect');
 const optionsBtn = document.getElementById('optionsBtn');
 const optionsModal = document.getElementById('optionsModal');
@@ -203,6 +248,45 @@ const recentFindsCount = document.getElementById('recentFindsCount');
 const cardWidthSlider = document.getElementById('cardWidthSlider');
 const cardWidthValue = document.getElementById('cardWidthValue');
 
+function normalizeHexColor(color) {
+    return /^#[0-9A-Fa-f]{6}$/.test(color || '') ? color : DEFAULT_BOT_ACCENT_COLOR;
+}
+
+function adjustColorBrightness(hex, percent) {
+    hex = normalizeHexColor(hex).replace('#', '');
+
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+
+    const newR = Math.min(255, Math.max(0, r + (r * percent / 100)));
+    const newG = Math.min(255, Math.max(0, g + (g * percent / 100)));
+    const newB = Math.min(255, Math.max(0, b + (b * percent / 100)));
+
+    return '#' + [newR, newG, newB].map(x => {
+        const hexValue = Math.round(x).toString(16);
+        return hexValue.length === 1 ? '0' + hexValue : hexValue;
+    }).join('');
+}
+
+function hexToRgbString(hex) {
+    const normalized = normalizeHexColor(hex).replace('#', '');
+    const r = parseInt(normalized.substr(0, 2), 16);
+    const g = parseInt(normalized.substr(2, 2), 16);
+    const b = parseInt(normalized.substr(4, 2), 16);
+    return `${r}, ${g}, ${b}`;
+}
+
+function applyBotAccentColor(color) {
+    if (!document.body) return;
+
+    const normalized = normalizeHexColor(color);
+    document.body.style.setProperty('--accent-color', normalized);
+    document.body.style.setProperty('--accent-hover', adjustColorBrightness(normalized, 15));
+    document.body.style.setProperty('--accent-color-hover', adjustColorBrightness(normalized, 15));
+    document.body.style.setProperty('--accent-color-rgb', hexToRgbString(normalized));
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Dashboard] DOMContentLoaded - initializing...');
@@ -214,8 +298,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         
         initializeTheme();
+        applyBotAccentColor(dashboardSettings.accentColor || DEFAULT_BOT_ACCENT_COLOR);
         loadDashboardSettings();
+        applyBotLogoVisibility(dashboardSettings.showLogo !== false);
         initFoldableCards();
+        initBotSectionFolding();
         await loadBotInstancesFromServer();
         console.log('[Dashboard] Loaded', botInstances.length, 'bot instances');
         
@@ -261,26 +348,215 @@ function initFoldableCards() {
     }, true);
 }
 
+function getBotSectionFoldStateKey(botId, sectionKey) {
+    return `foldable-bot-${botId}-${sectionKey}`;
+}
+
+function getBotFoldableSectionConfig(sectionEl) {
+    if (!sectionEl) return null;
+
+    if (sectionEl.classList.contains('bot-controls-section')) {
+        return { key: 'controls', title: 'Controls' };
+    }
+
+    if (sectionEl.classList.contains('bot-video-section')) {
+        return { key: 'video', title: 'Video Stream' };
+    }
+
+    if (sectionEl.classList.contains('status-section')) {
+        const key = getBotCardSectionKey(sectionEl);
+        const title = sectionEl.querySelector(':scope > h4')?.textContent?.trim() || 'Section';
+        if (!key) return null;
+        return { key, title };
+    }
+
+    return null;
+}
+
+function makeBotSectionFoldable(sectionEl, botId) {
+    if (!sectionEl || sectionEl.classList.contains('bot-section-foldable')) return;
+
+    const config = getBotFoldableSectionConfig(sectionEl);
+    if (!config) return;
+
+    const header = document.createElement('div');
+    header.className = 'bot-section-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('tabindex', '0');
+    header.setAttribute('aria-expanded', 'true');
+    header.innerHTML = `
+        <span class="bot-section-title">${config.title}</span>
+        <span class="bot-section-chevron" aria-hidden="true">▼</span>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'bot-section-body';
+
+    const originalTitle = sectionEl.querySelector(':scope > h4');
+    if (originalTitle) {
+        originalTitle.remove();
+    }
+
+    while (sectionEl.firstChild) {
+        body.appendChild(sectionEl.firstChild);
+    }
+
+    sectionEl.classList.add('bot-section-foldable');
+    sectionEl.dataset.botId = String(botId);
+    sectionEl.dataset.foldableSectionKey = config.key;
+    sectionEl.appendChild(header);
+    sectionEl.appendChild(body);
+
+    const isCollapsed = localStorage.getItem(getBotSectionFoldStateKey(botId, config.key)) === 'true';
+    if (isCollapsed) {
+        sectionEl.classList.add('collapsed');
+        header.setAttribute('aria-expanded', 'false');
+    }
+}
+
+function initializeBotCardFoldableSections(card, botId) {
+    if (!card) return;
+
+    const foldableSections = card.querySelectorAll('.bot-controls-section, .bot-video-section, .status-section');
+    foldableSections.forEach(sectionEl => makeBotSectionFoldable(sectionEl, botId));
+}
+
+function toggleBotSectionFold(sectionEl) {
+    if (!sectionEl) return;
+
+    sectionEl.classList.toggle('collapsed');
+    const header = sectionEl.querySelector(':scope > .bot-section-header');
+    if (header) {
+        header.setAttribute('aria-expanded', sectionEl.classList.contains('collapsed') ? 'false' : 'true');
+    }
+
+    const botId = sectionEl.dataset.botId;
+    const sectionKey = sectionEl.dataset.foldableSectionKey;
+    if (botId && sectionKey) {
+        localStorage.setItem(
+            getBotSectionFoldStateKey(botId, sectionKey),
+            sectionEl.classList.contains('collapsed')
+        );
+    }
+}
+
+function initBotSectionFolding() {
+    document.addEventListener('click', (e) => {
+        const header = e.target.closest('.bot-section-header');
+        if (!header) return;
+
+        const section = header.closest('.bot-section-foldable');
+        if (!section) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        toggleBotSectionFold(section);
+    }, true);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+
+        const header = e.target.closest('.bot-section-header');
+        if (!header) return;
+
+        const section = header.closest('.bot-section-foldable');
+        if (!section) return;
+
+        e.preventDefault();
+        toggleBotSectionFold(section);
+    });
+}
+
 // Theme management
+const THEME_CONFIG_KEY = 'themeConfig';
+
+function getCurrentTheme() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (!theme) return 'light';
+    if (theme === 'dark-grey') return 'grey';
+    if (theme === 'dark-black') return 'black';
+    return 'light';
+}
+
+function applyTheme(theme) {
+    if (theme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+    } else if (theme === 'grey') {
+        document.documentElement.setAttribute('data-theme', 'dark-grey');
+    } else if (theme === 'black') {
+        document.documentElement.setAttribute('data-theme', 'dark-black');
+    }
+}
+
+function loadStoredTheme() {
+    try {
+        const savedConfig = JSON.parse(localStorage.getItem(THEME_CONFIG_KEY) || '{}');
+        if (savedConfig.darkMode === 'light' || savedConfig.darkMode === 'grey' || savedConfig.darkMode === 'black') {
+            return savedConfig.darkMode;
+        }
+    } catch (error) {
+        console.warn('Failed to parse theme config, falling back to legacy theme key:', error);
+    }
+
+    const legacyTheme = localStorage.getItem('theme');
+    if (legacyTheme === 'dark-grey') return 'grey';
+    if (legacyTheme === 'dark-black') return 'black';
+    return 'light';
+}
+
+function persistTheme(theme) {
+    let existingConfig = {};
+    try {
+        existingConfig = JSON.parse(localStorage.getItem(THEME_CONFIG_KEY) || '{}');
+    } catch (error) {
+        console.warn('Failed to parse existing theme config, resetting it:', error);
+    }
+
+    localStorage.setItem(THEME_CONFIG_KEY, JSON.stringify({
+        ...existingConfig,
+        darkMode: theme
+    }));
+
+    const legacyTheme = theme === 'grey' ? 'dark-grey' : theme === 'black' ? 'dark-black' : 'light';
+    localStorage.setItem('theme', legacyTheme);
+}
+
 function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const savedTheme = loadStoredTheme();
+    applyTheme(savedTheme);
     updateThemeIcon(savedTheme);
 }
 
+function toggleTheme() {
+    const currentTheme = getCurrentTheme();
+    let nextTheme;
+
+    if (currentTheme === 'light') {
+        nextTheme = 'grey';
+    } else if (currentTheme === 'grey') {
+        nextTheme = 'black';
+    } else {
+        nextTheme = 'light';
+    }
+
+    applyTheme(nextTheme);
+    persistTheme(nextTheme);
+    updateThemeIcon(nextTheme);
+}
+
 if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        const newTheme = currentTheme === 'light' ? 'dark-grey' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
-    });
+    themeToggle.addEventListener('click', toggleTheme);
 }
 
 function updateThemeIcon(theme) {
     if (themeIcon) {
-        themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+        if (theme === 'light') {
+            themeIcon.textContent = '☀️';
+        } else if (theme === 'grey') {
+            themeIcon.textContent = '🌙';
+        } else {
+            themeIcon.textContent = '🌑';
+        }
     }
 }
 
@@ -453,7 +729,60 @@ function updateCardWidth(width) {
 }
 
 function saveDashboardSettings() {
+    dashboardSettings.sectionOrder = normalizeBotCardSectionOrder(dashboardSettings.sectionOrder);
     localStorage.setItem('botDashboardSettings', JSON.stringify(dashboardSettings));
+}
+
+function applyBotLogoVisibility(showLogo) {
+    if (botHeaderLogo) {
+        botHeaderLogo.style.display = showLogo === false ? 'none' : '';
+    }
+}
+
+function getBotCardSectionKey(sectionEl) {
+    if (!sectionEl) return null;
+    if (sectionEl.classList.contains('encounter-rate-card')) return 'encounterRate';
+    if (sectionEl.classList.contains('target-pokemon-section')) return 'targetPokemon';
+    const title = sectionEl.querySelector('h4')?.textContent?.trim() || '';
+    if (title === 'Current Location') return 'currentLocation';
+    if (title.startsWith('Current Party')) return 'party';
+    if (title === 'Recent Finds') return 'recentFinds';
+    if (title === 'Current Encounter') return 'currentEncounter';
+    if (title === 'Statistics') return 'statistics';
+    if (title === 'Current Phase') return 'currentPhase';
+    if (title === 'Emulator Info') return 'emulator';
+    if (title === 'Game') return 'game';
+    if (title === 'Player Info') return 'player';
+    if (title === 'Total Stats') return 'totalStats';
+    return null;
+}
+
+function applyBotCardSectionOrder(container) {
+    if (!container) return;
+    const order = normalizeBotCardSectionOrder(dashboardSettings.sectionOrder);
+    const orderMap = new Map(order.map((key, index) => [key, index]));
+    const sections = Array.from(container.children).filter(
+        el => el.classList && el.classList.contains('status-section')
+    );
+    sections
+        .sort((a, b) => {
+            const aIdx = orderMap.get(getBotCardSectionKey(a)) ?? Number.MAX_SAFE_INTEGER;
+            const bIdx = orderMap.get(getBotCardSectionKey(b)) ?? Number.MAX_SAFE_INTEGER;
+            return aIdx - bIdx;
+        })
+        .forEach(section => container.appendChild(section));
+}
+
+function renderSectionOrderControls() {
+    const list = document.getElementById('botSectionOrderList');
+    if (!list) return;
+    const order = normalizeBotCardSectionOrder(dashboardSettings.sectionOrder);
+    list.innerHTML = order.map((key) => `
+        <div class="section-order-item" data-section-key="${key}" draggable="true">
+            <span class="section-order-handle" title="Drag to reorder" aria-hidden="true">⋮⋮</span>
+            <span class="section-order-label">${BOT_CARD_SECTION_LABELS[key] || key}</span>
+        </div>
+    `).join('');
 }
 
 function applyLayout() {
@@ -1919,6 +2248,7 @@ function createStatusCard(bot) {
     
     // Setup reorder and visibility controls
     setupBotCardControls(card, bot);
+    initializeBotCardFoldableSections(card, bot.id);
     
     // Hide card if bot is hidden
     if (config.hidden) {
@@ -2254,13 +2584,41 @@ async function setVideoEnabled(bot, enabled) {
                 }
             }, 500);
         } else {
-            // Only show error for actual failures
+            // Some bot builds apply the command but still return 500.
+            // Verify the actual state before showing an error.
             let errorData;
             try {
                 errorData = JSON.parse(responseText);
             } catch {
                 errorData = { error: responseText || response.statusText };
             }
+            
+            try {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const verifiedResult = await fetchBotData(bot);
+                const verifiedData = verifiedResult?.data || {};
+                const verifiedStatus = verifiedData.status || {};
+                const verifiedEmulator = verifiedData.emulator || verifiedStatus.emulator || {};
+                const actualEnabled =
+                    verifiedStatus.video_enabled ??
+                    verifiedStatus.videoEnabled ??
+                    verifiedEmulator.video_enabled ??
+                    verifiedEmulator.videoEnabled;
+                
+                if (actualEnabled === enabled) {
+                    console.warn(
+                        `[${bot.name}] Video toggle returned ${response.status}, but the bot state updated successfully.`
+                    );
+                    const card = document.getElementById(`bot-status-${bot.id}`);
+                    if (card) {
+                        updateStatusCard(card, bot, verifiedResult);
+                    }
+                    return;
+                }
+            } catch (verifyError) {
+                console.warn(`[${bot.name}] Failed to verify video state after error response:`, verifyError);
+            }
+            
             console.error(`[${bot.name}] Failed to set video:`, errorData);
             alert(`Failed to set video: ${errorData.error || response.statusText}\n\nCheck console for details.`);
         }
@@ -2768,6 +3126,7 @@ function updateStatusCard(card, bot, result) {
             // Only display if we have valid data
             if (speciesId > 0 || speciesName !== '#0') {
                 const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(encounter) ?? 0) : undefined;
+                speciesName = formatEncounterSpeciesName(speciesId, speciesName, encounter);
                 const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
                 
                 // Store the full encounter data as JSON in data attribute (HTML-encoded)
@@ -2827,6 +3186,7 @@ function updateStatusCard(card, bot, result) {
         
         if (speciesId > 0 || speciesName !== 'Unknown') {
             const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(currentEncounter) ?? 0) : undefined;
+            speciesName = formatEncounterSpeciesName(speciesId, speciesName, currentEncounter);
             const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
             html += `<div class="current-encounter-display">`;
             
@@ -3495,9 +3855,12 @@ function updateStatusCard(card, bot, result) {
     const existingContent = card.querySelector('.status-card-content');
     if (existingContent) {
         existingContent.innerHTML = html;
+        applyBotCardSectionOrder(existingContent);
     } else {
         content.innerHTML = html;
+        applyBotCardSectionOrder(content);
     }
+    initializeBotCardFoldableSections(card, bot.id);
     
     // If target Pokemon encounter count needs to be fetched, do it now (after DOM is updated)
     const targetPokemonForFetch = getBotTargetPokemon(bot.id);
@@ -3878,11 +4241,15 @@ function renderBotEncounterRateGraph(botId) {
 // Setup Options Modal
 function setupOptionsModal() {
     if (!optionsBtn || !optionsModal) return;
+    let draggedSectionItem = null;
+    const botAccentColorPicker = document.getElementById('botAccentColorPicker');
+    const botAccentColorText = document.getElementById('botAccentColorText');
     
     // Open options modal
     optionsBtn.addEventListener('click', () => {
         // Sync checkboxes with current settings
         updateOptionsModalCheckboxes();
+        renderSectionOrderControls();
         optionsModal.classList.remove('hidden');
     });
     
@@ -3913,6 +4280,66 @@ function setupOptionsModal() {
             optionsModal.classList.add('hidden');
         }
     });
+
+    if (botAccentColorPicker && botAccentColorText) {
+        botAccentColorPicker.addEventListener('input', (e) => {
+            botAccentColorText.value = e.target.value;
+        });
+
+        botAccentColorText.addEventListener('input', (e) => {
+            const color = normalizeHexColor(e.target.value);
+            if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value || '')) {
+                botAccentColorPicker.value = color;
+            }
+        });
+    }
+
+    const botSectionOrderList = document.getElementById('botSectionOrderList');
+    if (botSectionOrderList) {
+        botSectionOrderList.addEventListener('dragstart', (e) => {
+            const item = e.target.closest('.section-order-item');
+            if (!item) return;
+            draggedSectionItem = item;
+            item.classList.add('dragging');
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', item.dataset.sectionKey || '');
+            }
+        });
+
+        botSectionOrderList.addEventListener('dragend', () => {
+            if (draggedSectionItem) {
+                draggedSectionItem.classList.remove('dragging');
+                draggedSectionItem = null;
+            }
+            dashboardSettings.sectionOrder = normalizeBotCardSectionOrder(
+                Array.from(botSectionOrderList.querySelectorAll('.section-order-item')).map(el => el.dataset.sectionKey)
+            );
+        });
+
+        botSectionOrderList.addEventListener('dragover', (e) => {
+            if (!draggedSectionItem) return;
+            e.preventDefault();
+            const items = Array.from(botSectionOrderList.querySelectorAll('.section-order-item:not(.dragging)'));
+            const target = items.find(item => {
+                const rect = item.getBoundingClientRect();
+                return e.clientY < rect.top + rect.height / 2;
+            });
+            if (target) {
+                botSectionOrderList.insertBefore(draggedSectionItem, target);
+            } else {
+                botSectionOrderList.appendChild(draggedSectionItem);
+            }
+        });
+
+        botSectionOrderList.addEventListener('drop', (e) => {
+            if (!draggedSectionItem) return;
+            e.preventDefault();
+            dashboardSettings.sectionOrder = normalizeBotCardSectionOrder(
+                Array.from(botSectionOrderList.querySelectorAll('.section-order-item')).map(el => el.dataset.sectionKey)
+            );
+        });
+    }
 }
 
 // Update options modal checkboxes to match current settings
@@ -3926,7 +4353,10 @@ function updateOptionsModalCheckboxes() {
     const optShowGameState = document.getElementById('optShowGameState');
     const optShowPlayerInfo = document.getElementById('optShowPlayerInfo');
     const optShowTotalStats = document.getElementById('optShowTotalStats');
+    const optShowLogo = document.getElementById('optShowLogo');
     const optShowEncounterRateAsGraph = document.getElementById('optShowEncounterRateAsGraph');
+    const botAccentColorPicker = document.getElementById('botAccentColorPicker');
+    const botAccentColorText = document.getElementById('botAccentColorText');
     
     // Statistics toggles
     const optShowStatsTotalEncounters = document.getElementById('optShowStatsTotalEncounters');
@@ -3979,7 +4409,10 @@ function updateOptionsModalCheckboxes() {
     if (optShowGameState) optShowGameState.checked = dashboardSettings.showGameState || false;
     if (optShowPlayerInfo) optShowPlayerInfo.checked = dashboardSettings.showPlayerInfo || false;
     if (optShowTotalStats) optShowTotalStats.checked = dashboardSettings.showTotalStats || false;
+    if (optShowLogo) optShowLogo.checked = dashboardSettings.showLogo !== false;
     if (optShowEncounterRateAsGraph) optShowEncounterRateAsGraph.checked = dashboardSettings.showEncounterRateAsGraph || false;
+    if (botAccentColorPicker) botAccentColorPicker.value = normalizeHexColor(dashboardSettings.accentColor);
+    if (botAccentColorText) botAccentColorText.value = normalizeHexColor(dashboardSettings.accentColor);
     
     // Statistics toggles
     if (optShowStatsTotalEncounters) optShowStatsTotalEncounters.checked = dashboardSettings.showStatsTotalEncounters !== false;
@@ -4022,6 +4455,7 @@ function updateOptionsModalCheckboxes() {
     if (optShowPlayerGender) optShowPlayerGender.checked = dashboardSettings.showPlayerGender !== false;
     if (optShowPlayerPlayTime) optShowPlayerPlayTime.checked = dashboardSettings.showPlayerPlayTime !== false;
     if (optShowPlayerID32) optShowPlayerID32.checked = dashboardSettings.showPlayerID32 !== false;
+    renderSectionOrderControls();
 }
 
 // Save options from modal to dashboard settings
@@ -4035,7 +4469,10 @@ function saveOptionsFromModal() {
     const optShowGameState = document.getElementById('optShowGameState');
     const optShowPlayerInfo = document.getElementById('optShowPlayerInfo');
     const optShowTotalStats = document.getElementById('optShowTotalStats');
+    const optShowLogo = document.getElementById('optShowLogo');
     const optShowEncounterRateAsGraph = document.getElementById('optShowEncounterRateAsGraph');
+    const botAccentColorPicker = document.getElementById('botAccentColorPicker');
+    const botAccentColorText = document.getElementById('botAccentColorText');
     
     // Statistics toggles
     const optShowStatsTotalEncounters = document.getElementById('optShowStatsTotalEncounters');
@@ -4078,6 +4515,7 @@ function saveOptionsFromModal() {
     const optShowPlayerGender = document.getElementById('optShowPlayerGender');
     const optShowPlayerPlayTime = document.getElementById('optShowPlayerPlayTime');
     const optShowPlayerID32 = document.getElementById('optShowPlayerID32');
+    const botSectionOrderList = document.getElementById('botSectionOrderList');
     
     // Update dashboard settings
     if (optShowMap) dashboardSettings.showMap = optShowMap.checked;
@@ -4089,7 +4527,11 @@ function saveOptionsFromModal() {
     if (optShowGameState) dashboardSettings.showGameState = optShowGameState.checked;
     if (optShowPlayerInfo) dashboardSettings.showPlayerInfo = optShowPlayerInfo.checked;
     if (optShowTotalStats) dashboardSettings.showTotalStats = optShowTotalStats.checked;
+    if (optShowLogo) dashboardSettings.showLogo = optShowLogo.checked;
     if (optShowEncounterRateAsGraph) dashboardSettings.showEncounterRateAsGraph = optShowEncounterRateAsGraph.checked;
+    dashboardSettings.accentColor = normalizeHexColor(
+        botAccentColorText ? botAccentColorText.value : botAccentColorPicker ? botAccentColorPicker.value : dashboardSettings.accentColor
+    );
     
     // Statistics toggles
     if (optShowStatsTotalEncounters) dashboardSettings.showStatsTotalEncounters = optShowStatsTotalEncounters.checked;
@@ -4132,9 +4574,16 @@ function saveOptionsFromModal() {
     if (optShowPlayerGender) dashboardSettings.showPlayerGender = optShowPlayerGender.checked;
     if (optShowPlayerPlayTime) dashboardSettings.showPlayerPlayTime = optShowPlayerPlayTime.checked;
     if (optShowPlayerID32) dashboardSettings.showPlayerID32 = optShowPlayerID32.checked;
+    if (botSectionOrderList) {
+        dashboardSettings.sectionOrder = normalizeBotCardSectionOrder(
+            Array.from(botSectionOrderList.querySelectorAll('.section-order-item')).map(el => el.dataset.sectionKey)
+        );
+    }
     
     // Save to localStorage
     saveDashboardSettings();
+    applyBotAccentColor(dashboardSettings.accentColor);
+    applyBotLogoVisibility(dashboardSettings.showLogo !== false);
     
     // Update main dashboard checkboxes to match
     if (showMap) showMap.checked = dashboardSettings.showMap;
@@ -4928,6 +5377,14 @@ function formatAbilityValue(ability, fallbackAbilityName, fallbackAbilitySlot) {
     if (fallbackAbilityName) return fallbackAbilityName;
     if (fallbackAbilitySlot) return `Ability Slot ${fallbackAbilitySlot}`;
     return null;
+}
+
+function formatEncounterSpeciesName(speciesId, speciesName, encounter) {
+    if (parseInt(speciesId) !== 201) return speciesName;
+    const formIndex = calculateUnownFormFromEncounter(encounter);
+    if (formIndex === null || formIndex === undefined) return speciesName;
+    const formName = getUnownFormName(formIndex);
+    return `Unown (${formName})`;
 }
 
 function getSpriteUrl(speciesId, isShiny, form) {

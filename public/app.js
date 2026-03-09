@@ -168,6 +168,7 @@ const startSelectingBtn = document.getElementById('startSelectingBtn');
 const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
+const mainHeaderLogo = document.querySelector('.header-logo');
 
 // Advanced filter state
 let advancedFilters = {};
@@ -196,7 +197,8 @@ function setTheme(theme) {
     const currentConfig = {
         accentColor: accentColorPicker ? accentColorPicker.value : '#667eea',
         darkMode: theme,
-        ivSumStyle: ivSumStyleRadios.length > 0 ? ivSumStyleRadios[0].value : 'gradient'
+        ivSumStyle: ivSumStyleRadios.length > 0 ? ivSumStyleRadios[0].value : 'gradient',
+        showLogo: JSON.parse(localStorage.getItem(THEME_CONFIG_KEY) || '{}').showLogo !== false
     };
     localStorage.setItem(THEME_CONFIG_KEY, JSON.stringify(currentConfig));
     
@@ -235,6 +237,12 @@ function updateThemeIcon(theme) {
         } else {
             themeIcon.textContent = '🌑';
         }
+    }
+}
+
+function applyMainLogoVisibility(showLogo) {
+    if (mainHeaderLogo) {
+        mainHeaderLogo.style.display = showLogo === false ? 'none' : '';
     }
 }
 
@@ -6009,7 +6017,8 @@ function loadThemeConfig() {
             config = {
                 accentColor: '#667eea',
                 darkMode: 'grey',
-                ivSumStyle: 'gradient'
+                ivSumStyle: 'gradient',
+                showLogo: true
             };
         }
         
@@ -6040,12 +6049,14 @@ function loadThemeConfig() {
             ivSumStyle = config.ivSumStyle;
         }
         updateIVSumGradients();
+        applyMainLogoVisibility(config.showLogo !== false);
         
         // Update UI elements
         const accentColorPicker = document.getElementById('accentColorPicker');
         const accentColorText = document.getElementById('accentColorText');
         const darkModeRadios = document.querySelectorAll('input[name="darkMode"]');
         const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]');
+        const showMainLogo = document.getElementById('showMainLogo');
         
         if (accentColorPicker && config.accentColor) {
             accentColorPicker.value = config.accentColor;
@@ -6063,6 +6074,9 @@ function loadThemeConfig() {
                 radio.checked = radio.value === config.ivSumStyle;
             });
         }
+        if (showMainLogo) {
+            showMainLogo.checked = config.showLogo !== false;
+        }
         
         // Update theme icon after loading config
         const loadedTheme = config.darkMode || 'grey';
@@ -6079,11 +6093,13 @@ function saveThemeConfig() {
     const accentColorPicker = document.getElementById('accentColorPicker');
     const darkModeRadios = document.querySelectorAll('input[name="darkMode"]:checked');
     const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]:checked');
+    const showMainLogo = document.getElementById('showMainLogo');
     
     const config = {
         accentColor: accentColorPicker ? accentColorPicker.value : '#667eea',
         darkMode: darkModeRadios.length > 0 ? darkModeRadios[0].value : 'grey', // Default to grey
-        ivSumStyle: ivSumStyleRadios.length > 0 ? ivSumStyleRadios[0].value : 'gradient'
+        ivSumStyle: ivSumStyleRadios.length > 0 ? ivSumStyleRadios[0].value : 'gradient',
+        showLogo: showMainLogo ? showMainLogo.checked : true
     };
     
     localStorage.setItem(THEME_CONFIG_KEY, JSON.stringify(config));
@@ -6180,6 +6196,7 @@ const accentColorPicker = document.getElementById('accentColorPicker');
 const accentColorText = document.getElementById('accentColorText');
 const darkModeRadios = document.querySelectorAll('input[name="darkMode"]');
 const ivSumStyleRadios = document.querySelectorAll('input[name="ivSumStyle"]');
+const showMainLogo = document.getElementById('showMainLogo');
 
 if (accentColorPicker) {
     accentColorPicker.addEventListener('input', (e) => {
@@ -6245,6 +6262,13 @@ if (ivSumStyleRadios.length > 0) {
                 saveThemeConfig();
             }
         });
+    });
+}
+
+if (showMainLogo) {
+    showMainLogo.addEventListener('change', (e) => {
+        applyMainLogoVisibility(e.target.checked);
+        saveThemeConfig();
     });
 }
 

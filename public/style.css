@@ -133,6 +133,28 @@ header {
     min-width: 0; /* Allow text to shrink */
 }
 
+.header-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.site-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%;
+    transition: filter 0.2s ease;
+}
+
+[data-theme="dark-grey"] .site-logo,
+[data-theme="dark-black"] .site-logo {
+    filter: invert(1);
+}
+
 .header-actions {
     display: flex;
     gap: 15px;
@@ -149,6 +171,11 @@ header {
     
     .header-text {
         width: 100%;
+    }
+
+    .site-logo {
+        width: 48px;
+        height: 48px;
     }
     
     .header-actions {

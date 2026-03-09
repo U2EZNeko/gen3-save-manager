@@ -1,5 +1,17 @@
 /* Bot Dashboard Styles */
 
+body.bot-dashboard-page {
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+body.bot-dashboard-page .container {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+}
+
 .bot-dashboard {
     padding: 0;
     max-width: 100%;
@@ -9,6 +21,11 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+body.bot-dashboard-page .bot-dashboard {
+    flex: 0 0 auto;
+    overflow: visible;
 }
 
 /* Top Section: 3 Cards (similar to main page) */
@@ -395,6 +412,12 @@
     padding-right: 5px; /* Space for scrollbar */
 }
 
+body.bot-dashboard-page .bot-status-container {
+    flex: 0 0 auto;
+    overflow: visible;
+    padding-right: 0;
+}
+
 /* Custom scrollbar styling for bot status container */
 .bot-status-container::-webkit-scrollbar {
     width: 8px;
@@ -582,6 +605,45 @@
 /* Status Sections */
 .status-section {
     margin-bottom: 12px;
+}
+
+.bot-section-foldable > .bot-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 8px;
+}
+
+.bot-section-foldable > .bot-section-header:hover {
+    opacity: 0.9;
+}
+
+.bot-section-title {
+    color: var(--text-primary);
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.bot-section-chevron {
+    flex-shrink: 0;
+    font-size: 0.75em;
+    opacity: 0.8;
+    transition: transform 0.2s ease;
+}
+
+.bot-section-foldable.collapsed > .bot-section-header .bot-section-chevron {
+    transform: rotate(-90deg);
+}
+
+.bot-section-foldable > .bot-section-body {
+    min-height: 0;
+}
+
+.bot-section-foldable.collapsed > .bot-section-body {
+    display: none;
 }
 
 .status-section h4 {
@@ -993,6 +1055,41 @@
     width: 100%;
 }
 
+.section-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.section-order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+}
+
+.section-order-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.section-order-handle {
+    color: var(--text-secondary);
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.section-order-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    flex: 1;
+}
+
 .summary-item {
     display: flex;
     flex-direction: column;
@@ -1078,6 +1175,12 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 6px;
+}
+
+.bot-controls-section.bot-section-foldable > .bot-section-header,
+.encounter-rate-card.bot-section-foldable > .bot-section-header,
+.target-pokemon-section.bot-section-foldable > .bot-section-header {
+    margin-bottom: 10px;
 }
 
 .bot-control-item {
@@ -1210,13 +1313,28 @@
     padding: 20px 30px;
 }
 
+.options-modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+.options-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
 .modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 20px;
+    margin-top: 0;
     padding: 20px 30px;
     border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
 }
 
 /* Responsive */
