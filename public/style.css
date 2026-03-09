@@ -70,13 +70,11 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: var(--bg-primary);
     min-height: 100vh;
-    height: 100vh;
     padding: 20px;
     margin: 0;
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -732,8 +730,7 @@ header h1 {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(var(--pokemon-card-min-width), 1fr));
     gap: 20px;
-    flex: 1;
-    overflow-y: auto;
+    flex: none;
     min-height: 0;
     padding-bottom: 20px;
 }
