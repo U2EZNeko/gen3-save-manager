@@ -4094,9 +4094,16 @@ function updateCombinedEncounterRate() {
                     }
                 },
                 x: {
+                    display: false,
                     title: {
-                        display: true,
+                        display: false,
                         text: 'Time'
+                    },
+                    ticks: {
+                        display: false
+                    },
+                    grid: {
+                        display: false
                     }
                 }
             }
