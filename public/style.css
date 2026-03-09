@@ -208,13 +208,13 @@ header {
 }
 
 header h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+    font-size: 1.9em;
+    margin-bottom: 6px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 .subtitle {
-    font-size: 1.1em;
+    font-size: 0.95em;
     opacity: 0.9;
 }
 

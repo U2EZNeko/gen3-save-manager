@@ -2813,8 +2813,17 @@ function updateStatusCard(card, bot, result) {
         level = currentEncounter.level || 0;
         isShiny = currentEncounter.is_shiny || currentEncounter.isShiny || false;
         ivs = currentEncounter.ivs || currentEncounter.IVs;
-        nature = currentEncounter.nature || currentEncounter.nature_name;
-        ability = currentEncounter.ability || currentEncounter.ability_name;
+        nature = formatNatureValue(
+            currentEncounter.nature ||
+            currentEncounter.nature_name ||
+            currentEncounter.pokemon?.nature ||
+            currentEncounter.pokemon?.nature_name
+        );
+        ability = formatAbilityValue(
+            currentEncounter.ability || currentEncounter.pokemon?.ability,
+            currentEncounter.ability_name || currentEncounter.pokemon?.ability_name,
+            currentEncounter.ability_slot || currentEncounter.pokemon?.ability_slot
+        );
         
         if (speciesId > 0 || speciesName !== 'Unknown') {
             const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(currentEncounter) ?? 0) : undefined;
@@ -4298,32 +4307,14 @@ function formatEncounterStats(pokemonData, speciesId, speciesName) {
     }
     
     // Extract nature - handle both string and object formats
-    let nature = 'Unknown';
-    if (pokemonData.nature) {
-        if (typeof pokemonData.nature === 'string') {
-            nature = pokemonData.nature;
-        } else if (typeof pokemonData.nature === 'object' && pokemonData.nature.name) {
-            nature = pokemonData.nature.name;
-        }
-    } else if (pokemonData.nature_name) {
-        nature = pokemonData.nature_name;
-    }
+    let nature = formatNatureValue(pokemonData.nature || pokemonData.nature_name) || 'Unknown';
     
     // Extract ability - handle both string and object formats
-    let ability = 'Unknown';
-    if (pokemonData.ability) {
-        if (typeof pokemonData.ability === 'string') {
-            ability = pokemonData.ability;
-        } else if (typeof pokemonData.ability === 'object' && pokemonData.ability.name) {
-            ability = pokemonData.ability.name;
-        } else if (typeof pokemonData.ability === 'number') {
-            ability = `Ability ${pokemonData.ability}`;
-        }
-    } else if (pokemonData.ability_name) {
-        ability = pokemonData.ability_name;
-    } else if (pokemonData.ability_slot) {
-        ability = `Ability Slot ${pokemonData.ability_slot}`;
-    }
+    let ability = formatAbilityValue(
+        pokemonData.ability,
+        pokemonData.ability_name,
+        pokemonData.ability_slot
+    ) || 'Unknown';
     
     // Extract moves - handle different formats
     let moves = [];
@@ -4913,6 +4904,30 @@ function formatPokemonInfo(data, speciesId, speciesName) {
     
     html += '</div>';
     return html;
+}
+
+function formatNatureValue(nature) {
+    if (!nature) return null;
+    if (typeof nature === 'string') return nature;
+    if (typeof nature === 'object') {
+        return nature.name || nature.nature_name || null;
+    }
+    return null;
+}
+
+function formatAbilityValue(ability, fallbackAbilityName, fallbackAbilitySlot) {
+    if (ability) {
+        if (typeof ability === 'string') return ability;
+        if (typeof ability === 'object') {
+            return ability.name || ability.ability_name || null;
+        }
+        if (typeof ability === 'number') {
+            return `Ability ${ability}`;
+        }
+    }
+    if (fallbackAbilityName) return fallbackAbilityName;
+    if (fallbackAbilitySlot) return `Ability Slot ${fallbackAbilitySlot}`;
+    return null;
 }
 
 function getSpriteUrl(speciesId, isShiny, form) {
