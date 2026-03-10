@@ -1034,6 +1034,14 @@ body.bot-dashboard-page .bot-status-container {
     color: var(--text-primary);
 }
 
+.stat-item-full {
+    grid-column: 1 / -1;
+}
+
+.stat-item-full code {
+    font-size: 0.9em;
+}
+
 /* Header Actions */
 .header-actions {
     display: flex;
@@ -1075,6 +1083,190 @@ body.bot-dashboard-page .bot-status-container {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 10px;
+}
+
+.summary-actions-row {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+}
+
+.summary-actions-row .btn {
+    margin-right: 8px;
+}
+
+/* Bot Dashboard Statistics modal (uses .statistics-content from style.css) */
+.statistics-body-wrapper {
+    position: relative;
+    min-height: 120px;
+}
+.statistics-body {
+    padding: 0 15px 15px;
+}
+.statistics-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    gap: 12px;
+}
+.statistics-loading-overlay.hidden {
+    display: none;
+}
+.statistics-loading-overlay .loading-spinner {
+    margin: 0;
+}
+.statistics-loading-text {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95em;
+}
+.statistic-by-instance {
+    font-size: 0.7em;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.3;
+    word-break: break-word;
+}
+.statistics-totals-grid {
+    margin-bottom: 16px;
+}
+.statistics-totals-by-instance {
+    margin-top: 8px;
+}
+.statistics-totals-table-title {
+    font-size: 0.95em;
+    color: var(--text-secondary);
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+.statistics-totals-table {
+    width: 100%;
+}
+.statistics-totals-table th,
+.statistics-totals-table td {
+    padding: 8px 12px;
+    text-align: left;
+}
+.statistics-totals-table th {
+    background: var(--bg-tertiary);
+    font-weight: 600;
+}
+.statistics-totals-table td {
+    border-bottom: 1px solid var(--border-color);
+}
+.statistics-totals-table th:nth-child(n+2),
+.statistics-totals-table td:nth-child(n+2) {
+    text-align: right;
+}
+.statistics-totals-table .statistics-instance-name {
+    font-weight: 500;
+    text-align: left;
+}
+.statistics-totals-table-footer td {
+    border-top: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    padding-top: 10px;
+}
+.statistics-content .statistics-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+    margin: -8px 0 12px 20px;
+}
+.statistics-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin: 0 15px 12px;
+    flex-wrap: wrap;
+}
+.statistics-modal-actions .btn {
+    margin: 0;
+}
+.statistics-detail {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    margin: 4px 0;
+}
+.statistics-cached-badge {
+    font-size: 0.75em;
+    font-weight: normal;
+    color: var(--text-secondary);
+    opacity: 0.9;
+}
+
+.statistics-species-filter {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+}
+
+.statistics-per-mon-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+.statistics-per-mon-list .statistics-item {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.statistics-per-mon-list .statistics-item:last-child {
+    border-bottom: none;
+}
+
+.statistics-per-mon-item {
+    cursor: pointer;
+}
+
+.statistics-per-mon-detail {
+    grid-column: 1 / -1;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    padding: 4px 0 4px 1.5em;
+    margin-top: 2px;
+}
+
+.statistics-per-mon-detail.hidden {
+    display: none;
+}
+
+.statistics-table-wrapper {
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+.statistics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+.statistics-table th,
+.statistics-table td {
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color, #ddd);
+}
+.statistics-table th {
+    font-weight: 600;
+    background: var(--bg-secondary, #f5f5f5);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.statistics-table tbody tr:hover {
+    background: var(--bg-hover, rgba(0,0,0,0.03));
+}
+.statistics-table .statistics-name {
+    font-weight: 500;
+}
+.statistics-table .statistics-last-time {
+    font-size: 0.85em;
+    color: var(--text-secondary);
 }
 
 /* Combined Encounter Rate */
@@ -1159,6 +1351,17 @@ body.bot-dashboard-page .bot-status-container {
     border-radius: 4px;
     text-align: center;
 }
+
+.summary-item-with-action {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    text-align: left;
+}
+.summary-item-with-action .summary-label { margin-bottom: 0; }
+.summary-item-with-action .summary-value { margin-right: auto; }
+.summary-item-with-action .btn { flex-shrink: 0; }
 
 .summary-label {
     color: var(--text-secondary);

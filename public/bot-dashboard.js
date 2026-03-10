@@ -55,10 +55,11 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     showCurrentEncounter: true,
     showEmulator: false,
     showGameState: false,
-    showPlayerInfo: false,
-    showTotalStats: false,
+    showPlayerInfo: true,
+    showTotalStats: true,
     showLogo: true,
     // Bot card section toggles
+    showControls: true,
     showEncounterRateSection: true,
     showTargetPokemonSection: true,
     // Combined encounter rate summary toggle
@@ -135,12 +136,127 @@ let trackedEncounters = JSON.parse(localStorage.getItem('botTrackedEncounters') 
 let botDataCache = new Map(); // botId -> { stats, success, etc. }
 
 // Maximum total encounters cache - tracks the highest total encounters seen per bot
-// This prevents the total from going down when a bot disconnects
+// This prevents the total from going down when a bot disconnects; persisted to localStorage
 let maxTotalEncountersCache = new Map(); // botId -> maxEncounters (number)
+let maxTotalShiniesCache = new Map();    // botId -> maxShinies (number)
+let maxTotalCatchesCache = new Map();    // botId -> maxCatches (number)
+
+const BOT_MAX_TOTALS_STORAGE_KEY = 'botDashboardMaxTotals';
+const BOT_STATS_CACHE_STORAGE_KEY = 'botDashboardStatsCache';
+const BOT_STATS_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes – use cache when opening modal if within this age
+
+function loadBotStatsCache() {
+    try {
+        const saved = localStorage.getItem(BOT_STATS_CACHE_STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            if (data && typeof data === 'object') {
+                Object.entries(data).forEach(([botId, entry]) => {
+                    if (entry && entry.stats != null) {
+                        botStatsCache.set(botId, { stats: entry.stats, time: entry.time || 0 });
+                    }
+                });
+            }
+        }
+    } catch (e) {
+        console.warn('[loadBotStatsCache]', e);
+    }
+}
+
+function saveBotStatsCache() {
+    try {
+        const data = {};
+        botStatsCache.forEach((entry, botId) => {
+            if (entry && entry.stats != null) {
+                data[botId] = { stats: entry.stats, time: entry.time || 0 };
+            }
+        });
+        localStorage.setItem(BOT_STATS_CACHE_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.warn('[saveBotStatsCache]', e);
+    }
+}
+
+function loadBotMaxTotalsCaches() {
+    try {
+        const saved = localStorage.getItem(BOT_MAX_TOTALS_STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            if (data.encounters && typeof data.encounters === 'object') {
+                Object.entries(data.encounters).forEach(([id, val]) => { maxTotalEncountersCache.set(id, Number(val)); });
+            }
+            if (data.shinies && typeof data.shinies === 'object') {
+                Object.entries(data.shinies).forEach(([id, val]) => { maxTotalShiniesCache.set(id, Number(val)); });
+            }
+            if (data.catches && typeof data.catches === 'object') {
+                Object.entries(data.catches).forEach(([id, val]) => { maxTotalCatchesCache.set(id, Number(val)); });
+            }
+        }
+    } catch (e) {
+        console.warn('[loadBotMaxTotalsCaches]', e);
+    }
+}
+
+function saveBotMaxTotalsCaches() {
+    try {
+        const data = {
+            encounters: Object.fromEntries(maxTotalEncountersCache),
+            shinies: Object.fromEntries(maxTotalShiniesCache),
+            catches: Object.fromEntries(maxTotalCatchesCache)
+        };
+        localStorage.setItem(BOT_MAX_TOTALS_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.warn('[saveBotMaxTotalsCaches]', e);
+    }
+}
+
+function updateBotMaxTotals(botId, encounters, shinies, catches) {
+    if (botId == null) return;
+    let changed = false;
+    if (typeof encounters === 'number' && encounters >= 0) {
+        const cur = maxTotalEncountersCache.get(botId) ?? 0;
+        if (encounters > cur) {
+            maxTotalEncountersCache.set(botId, encounters);
+            changed = true;
+        }
+    }
+    if (typeof shinies === 'number' && shinies >= 0) {
+        const cur = maxTotalShiniesCache.get(botId) ?? -1;
+        if (shinies > cur) {
+            maxTotalShiniesCache.set(botId, shinies);
+            changed = true;
+        }
+    }
+    if (typeof catches === 'number' && catches >= 0) {
+        const cur = maxTotalCatchesCache.get(botId) ?? -1;
+        if (catches > cur) {
+            maxTotalCatchesCache.set(botId, catches);
+            changed = true;
+        }
+    }
+    if (changed) saveBotMaxTotalsCaches();
+}
 
 // Bot connection tracking - tracks last successful update and first failure time
 let botConnectionTracking = new Map(); // botId -> { lastSuccess: timestamp, firstFailure: timestamp | null }
 const BOT_OFFLINE_TIMEOUT = 10000; // 10 seconds before considering bot offline
+
+// Last card section cache: keep showing previous Game/Player HTML for this long when current data is empty
+const LAST_CARD_SECTION_TIMEOUT_MS = 60000; // 1 minute (game)
+const LAST_PLAYER_SECTION_TIMEOUT_MS = 300000; // 5 minutes (player) - keep stable, avoid flash
+const LAST_LOCATION_SECTION_TIMEOUT_MS = 60000; // 1 minute (current location)
+const LAST_EMULATOR_SECTION_TIMEOUT_MS = 300000; // 5 minutes (emulator) - keep stable, avoid flash
+const LAST_PHASE_SECTION_TIMEOUT_MS = 60000; // 1 minute (current phase)
+const LAST_TOTAL_STATS_SECTION_TIMEOUT_MS = 60000; // 1 minute (total stats)
+const lastGameSectionCache = new Map();   // botId -> { html, time }
+const lastPlayerSectionCache = new Map(); // botId -> { html, time }
+const lastLocationSectionCache = new Map(); // botId -> { html, time }
+const lastEmulatorSectionCache = new Map(); // botId -> { html, time }
+const lastPhaseSectionCache = new Map(); // botId -> { html, time }
+const lastTotalStatsSectionCache = new Map(); // botId -> { html, time }
+
+// Database Statistics modal: cache /stats per bot so offline bots still show last known data
+const botStatsCache = new Map(); // botId -> { stats, time }
 
 // Live encounter rate history - only in-memory, not persisted (for combined graph)
 let liveEncounterRateHistory = new Map(); // botId -> [{ time, rate }, ...]
@@ -250,6 +366,9 @@ const showParty = document.getElementById('showParty');
 const showEncounters = document.getElementById('showEncounters');
 const showStats = document.getElementById('showStats');
 const showMap = document.getElementById('showMap');
+const showControls = document.getElementById('showControls');
+const showEncounterRateSectionEl = document.getElementById('showEncounterRateSection');
+const showTargetPokemonSectionEl = document.getElementById('showTargetPokemonSection');
 const showCurrentEncounter = document.getElementById('showCurrentEncounter');
 const showEmulator = document.getElementById('showEmulator');
 const showGameState = document.getElementById('showGameState');
@@ -303,6 +422,8 @@ function applyBotAccentColor(color) {
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Dashboard] DOMContentLoaded - initializing...');
+    loadBotMaxTotalsCaches();
+    loadBotStatsCache();
     
     try {
         // Load bot targets from server (non-blocking - continue even if it fails)
@@ -620,6 +741,33 @@ function loadDashboardSettings() {
         });
     }
     
+    if (showControls) {
+        showControls.checked = dashboardSettings.showControls !== false;
+        showControls.addEventListener('change', (e) => {
+            dashboardSettings.showControls = e.target.checked;
+            saveDashboardSettings();
+            applyDashboardSectionVisibility();
+        });
+    }
+    
+    if (showEncounterRateSectionEl) {
+        showEncounterRateSectionEl.checked = dashboardSettings.showEncounterRateSection !== false;
+        showEncounterRateSectionEl.addEventListener('change', (e) => {
+            dashboardSettings.showEncounterRateSection = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
+    }
+    
+    if (showTargetPokemonSectionEl) {
+        showTargetPokemonSectionEl.checked = dashboardSettings.showTargetPokemonSection !== false;
+        showTargetPokemonSectionEl.addEventListener('change', (e) => {
+            dashboardSettings.showTargetPokemonSection = e.target.checked;
+            saveDashboardSettings();
+            refreshAllBotCards();
+        });
+    }
+    
     if (showCurrentEncounter) {
         showCurrentEncounter.checked = dashboardSettings.showCurrentEncounter !== false;
         showCurrentEncounter.addEventListener('change', (e) => {
@@ -804,6 +952,16 @@ function applyLayout() {
     }
 }
 
+function applyDashboardSectionVisibility() {
+    if (!botStatusContainer) return;
+    botStatusContainer.querySelectorAll('.bot-status-card').forEach(card => {
+        const controlsSection = card.querySelector('.bot-controls-section');
+        if (controlsSection) {
+            controlsSection.style.display = dashboardSettings.showControls !== false ? '' : 'none';
+        }
+    });
+}
+
 async function refreshAllBotCards() {
     for (const bot of botInstances) {
         const card = document.getElementById(`bot-status-${bot.id}`);
@@ -875,6 +1033,419 @@ function setupEventListeners() {
             if (e.target === addBotModal) {
                 addBotModal.classList.add('hidden');
                 clearAddBotForm();
+            }
+        });
+    }
+
+    // Bot Dashboard Statistics button and modal
+    const botDashboardStatisticsBtn = document.getElementById('botDashboardStatisticsBtn');
+    const botDashboardStatisticsModal = document.getElementById('botDashboardStatisticsModal');
+    const closeBotDashboardStatistics = document.getElementById('closeBotDashboardStatistics');
+    if (botDashboardStatisticsBtn) {
+        botDashboardStatisticsBtn.addEventListener('click', () => showBotDashboardStatistics());
+    }
+    const botStatsRefreshBtn = document.getElementById('botStatsRefreshBtn');
+    const botStatsWipeBtn = document.getElementById('botStatsWipeBtn');
+    if (botStatsRefreshBtn) {
+        botStatsRefreshBtn.addEventListener('click', () => showBotDashboardStatistics(true)); // refresh fetches new data but never clears cache
+    }
+    if (botStatsWipeBtn) {
+        botStatsWipeBtn.addEventListener('click', () => {
+            botStatsCache.clear();
+            saveBotStatsCache();
+            showBotDashboardStatistics();
+        });
+    }
+    if (closeBotDashboardStatistics) {
+        closeBotDashboardStatistics.addEventListener('click', () => botDashboardStatisticsModal && botDashboardStatisticsModal.classList.add('hidden'));
+    }
+    if (botDashboardStatisticsModal) {
+        botDashboardStatisticsModal.addEventListener('click', (e) => {
+            if (e.target === botDashboardStatisticsModal) botDashboardStatisticsModal.classList.add('hidden');
+        });
+    }
+}
+
+// Show Database Statistics modal with /stats content and combined per-species data
+// forceRefresh: if true, always fetch /stats for all bots; otherwise use cache when < 5 min old
+// Refresh only updates the cache with new data; it never clears or removes existing cache entries.
+async function showBotDashboardStatistics(forceRefresh = false) {
+    const modal = document.getElementById('botDashboardStatisticsModal');
+    const body = document.getElementById('botDashboardStatisticsBody');
+    const loadingOverlay = document.getElementById('botDashboardStatisticsLoading');
+    if (!modal || !body) return;
+
+    // Show loading overlay but keep existing body content (last values) visible underneath
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('hidden');
+        loadingOverlay.setAttribute('aria-hidden', 'false');
+    }
+    modal.classList.remove('hidden');
+
+    function hideLoading() {
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            loadingOverlay.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Include all configured bots (visible and hidden, online and offline) so we always show last known data
+    const botsToShow = botInstances.length ? botInstances : [];
+    if (botsToShow.length === 0) {
+        body.innerHTML = '<p class="no-data">No bot instances configured. Add bots first.</p>';
+        hideLoading();
+        return;
+    }
+
+    const now = Date.now();
+    const results = [];
+    try {
+    for (const bot of botsToShow) {
+        const cached = botStatsCache.get(bot.id);
+        const useCache = !forceRefresh && cached && cached.stats != null && (now - (cached.time || 0)) < BOT_STATS_CACHE_MAX_AGE_MS;
+        if (useCache) {
+            results.push({ bot, stats: cached.stats, error: null, fromCache: true });
+            continue;
+        }
+        try {
+            const statsData = await fetchBotEndpoint(bot, (bot.url || '').replace(/\/$/, ''), '/stats');
+            // Only update cache when we have new data; never clear or overwrite with empty
+            if (statsData != null) botStatsCache.set(bot.id, { stats: statsData, time: Date.now() });
+            results.push({ bot, stats: statsData, error: null, fromCache: false });
+        } catch (e) {
+            // Keep existing cache: use last known data for display; do not remove or clear cache entry
+            let fallback = botStatsCache.get(bot.id);
+            if (!fallback && botDataCache.has(bot.id)) {
+                const botData = botDataCache.get(bot.id);
+                const raw = botData?.data?.stats;
+                const statsFromCard = raw && typeof raw === 'object' && raw.data !== undefined ? raw.data : raw;
+                if (statsFromCard != null) {
+                    fallback = { stats: statsFromCard, time: Date.now() };
+                    botStatsCache.set(bot.id, fallback); // add only when no cache entry yet
+                }
+            }
+            if (fallback && fallback.stats != null) {
+                results.push({ bot, stats: fallback.stats, error: null, fromCache: true });
+            } else {
+                results.push({ bot, stats: null, error: e.message || String(e), fromCache: false });
+            }
+        }
+    }
+    saveBotStatsCache();
+
+    const totals = {
+        total_encounters: 0,
+        shiny_encounters: 0,
+        catches: 0,
+        by_species: {}
+    };
+    const byBot = [];
+
+    // Get pokemon object from /stats (stats.pokemon or stats.data.pokemon)
+    function getPokemonFromStats(stats) {
+        if (!stats) return {};
+        const p = stats.pokemon ?? stats.data?.pokemon ?? stats.species ?? stats.by_species;
+        if (p && typeof p === 'object' && !Array.isArray(p)) return p;
+        return {};
+    }
+
+    // Combined per-species from stats.pokemon: merge across all bots (sum encounters/shinies/catches, best IV/SV, latest time)
+    const combinedPokemon = {}; // key: species_id or species_name
+    for (const { bot, stats } of results) {
+        const pokemonMap = getPokemonFromStats(stats);
+        for (const [nameKey, entry] of Object.entries(pokemonMap)) {
+            if (!entry || typeof entry !== 'object') continue;
+            const id = entry.species_id != null ? entry.species_id : nameKey;
+            const key = String(id);
+            const speciesName = entry.species_name ?? entry.speciesName ?? nameKey;
+            if (!combinedPokemon[key]) {
+                combinedPokemon[key] = {
+                    species_id: entry.species_id,
+                    species_name: speciesName,
+                    total_encounters: 0,
+                    shiny_encounters: 0,
+                    catches: 0,
+                    total_highest_iv_sum: null,
+                    total_lowest_iv_sum: null,
+                    total_highest_sv: null,
+                    total_lowest_sv: null,
+                    last_encounter_time: null
+                };
+            }
+            const c = combinedPokemon[key];
+            c.total_encounters += Number(entry.total_encounters ?? entry.totalEncounters ?? 0) || 0;
+            c.shiny_encounters += Number(entry.shiny_encounters ?? entry.shinyEncounters ?? 0) || 0;
+            c.catches += Number(entry.catches ?? 0) || 0;
+            const hiIv = entry.total_highest_iv_sum != null ? (typeof entry.total_highest_iv_sum === 'object' ? entry.total_highest_iv_sum.value : Number(entry.total_highest_iv_sum)) : null;
+            if (hiIv != null && (c.total_highest_iv_sum == null || hiIv > c.total_highest_iv_sum)) c.total_highest_iv_sum = hiIv;
+            const loIv = entry.total_lowest_iv_sum != null ? (typeof entry.total_lowest_iv_sum === 'object' ? entry.total_lowest_iv_sum.value : Number(entry.total_lowest_iv_sum)) : null;
+            if (loIv != null && (c.total_lowest_iv_sum == null || loIv < c.total_lowest_iv_sum)) c.total_lowest_iv_sum = loIv;
+            const hiSv = entry.total_highest_sv != null ? (typeof entry.total_highest_sv === 'object' ? entry.total_highest_sv.value : Number(entry.total_highest_sv)) : null;
+            if (hiSv != null && (c.total_highest_sv == null || hiSv > c.total_highest_sv)) c.total_highest_sv = hiSv;
+            const loSv = entry.total_lowest_sv != null ? (typeof entry.total_lowest_sv === 'object' ? entry.total_lowest_sv.value : Number(entry.total_lowest_sv)) : null;
+            if (loSv != null && (c.total_lowest_sv == null || loSv < c.total_lowest_sv)) c.total_lowest_sv = loSv;
+            const lastTime = entry.last_encounter_time ?? entry.lastEncounterTime;
+            if (lastTime && (c.last_encounter_time == null || String(lastTime) > String(c.last_encounter_time))) c.last_encounter_time = lastTime;
+        }
+    }
+
+    // Extract per-species count from various API shapes (for backwards compatibility)
+    function getSpeciesCount(value) {
+        if (value == null) return 0;
+        if (typeof value === 'number') return value;
+        return Number(value.encounters ?? value.total_encounters ?? value.count ?? value.total ?? 0) || 0;
+    }
+    function getBySpeciesFromStats(stats) {
+        if (!stats) return {};
+        const out = {};
+        const pokemonMap = getPokemonFromStats(stats);
+        if (Object.keys(pokemonMap).length > 0) {
+            for (const [key, value] of Object.entries(pokemonMap)) {
+                const c = getSpeciesCount(value);
+                if (c > 0) out[key] = c;
+            }
+            return out;
+        }
+        const sources = [stats.species, stats.by_species, stats.totals?.by_species, stats.totals?.species];
+        const src = sources.find(s => s && typeof s === 'object' && Object.keys(s).length > 0);
+        if (!src) return {};
+        for (const [k, v] of Object.entries(src)) {
+            const c = getSpeciesCount(v);
+            if (c > 0) out[k] = c;
+        }
+        return out;
+    }
+
+    for (const { bot, stats, error, fromCache } of results) {
+        const totalsObj = (stats && stats.totals) ? stats.totals : {};
+        const encounters = totalsObj.total_encounters ?? totalsObj.totalEncounters ?? 0;
+        const shinies = totalsObj.shiny_encounters ?? totalsObj.shinyEncounters ?? 0;
+        const catches = totalsObj.catches ?? 0;
+        totals.total_encounters += Number(encounters) || 0;
+        totals.shiny_encounters += Number(shinies) || 0;
+        totals.catches += Number(catches) || 0;
+
+        const bySpecies = getBySpeciesFromStats(stats);
+        for (const [speciesKey, count] of Object.entries(bySpecies)) {
+            if (count > 0) totals.by_species[speciesKey] = (totals.by_species[speciesKey] || 0) + count;
+        }
+
+        byBot.push({
+            name: bot.name || bot.url || bot.id,
+            error,
+            fromCache: fromCache || false,
+            totals: totalsObj,
+            by_species: bySpecies,
+            total_highest_iv_sum: stats?.totals?.total_highest_iv_sum,
+            total_lowest_iv_sum: stats?.totals?.total_lowest_iv_sum,
+            total_highest_sv: stats?.totals?.total_highest_sv,
+            total_lowest_sv: stats?.totals?.total_lowest_sv
+        });
+    }
+
+    // If we have full /stats pokemon data, use it for combined totals and by_species so UI is consistent
+    const combinedEntries = Object.values(combinedPokemon);
+    if (combinedEntries.length > 0) {
+        totals.total_encounters = combinedEntries.reduce((s, r) => s + (r.total_encounters || 0), 0);
+        totals.shiny_encounters = combinedEntries.reduce((s, r) => s + (r.shiny_encounters || 0), 0);
+        totals.catches = combinedEntries.reduce((s, r) => s + (r.catches || 0), 0);
+        totals.by_species = {};
+        combinedEntries.forEach(r => {
+            const name = r.species_name || '';
+            if (name) totals.by_species[name] = r.total_encounters || 0;
+        });
+    }
+
+    let html = '<div class="statistics-container">';
+
+    // Combined overview – clear summary cards (no inline breakdown)
+    html += '<div class="statistics-section">';
+    html += '<h3>Combined totals</h3>';
+    html += '<div class="statistics-grid statistics-totals-grid">';
+    const oneInX = totals.shiny_encounters > 0 && totals.total_encounters > 0
+        ? Math.round(totals.total_encounters / totals.shiny_encounters)
+        : null;
+    const shinyRateDisplay = oneInX != null ? `1 in ${oneInX.toLocaleString()}` : '—';
+    html += `<div class="statistic-card"><div class="statistic-value">${totals.total_encounters.toLocaleString()}</div><div class="statistic-label">Total Encounters</div></div>`;
+    html += `<div class="statistic-card"><div class="statistic-value">${totals.shiny_encounters.toLocaleString()}</div><div class="statistic-label">Shiny Encounters</div></div>`;
+    html += `<div class="statistic-card"><div class="statistic-value">${totals.catches.toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
+    html += `<div class="statistic-card"><div class="statistic-value">${shinyRateDisplay}</div><div class="statistic-label">Shiny Rate</div></div>`;
+    html += '</div>';
+
+    // Per-instance table: one row per bot, columns = Instance | Encounters | Shinies | Catches | Shiny Rate
+    html += '<div class="statistics-totals-by-instance">';
+    html += '<h4 class="statistics-totals-table-title">By instance</h4>';
+    html += '<div class="statistics-table-wrapper"><table class="statistics-table statistics-totals-table">';
+    html += '<thead><tr><th>Instance</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Shiny Rate</th></tr></thead><tbody>';
+    for (const row of byBot) {
+        const enc = Number(row.totals?.total_encounters ?? row.totals?.totalEncounters ?? 0) || 0;
+        const sh = Number(row.totals?.shiny_encounters ?? row.totals?.shinyEncounters ?? 0) || 0;
+        const cat = Number(row.totals?.catches ?? 0) || 0;
+        const botOneInX = sh > 0 && enc > 0 ? Math.round(enc / sh) : null;
+        const rateDisplay = botOneInX != null ? `1 in ${botOneInX.toLocaleString()}` : '—';
+        html += `<tr>
+            <td class="statistics-instance-name">${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</td>
+            <td>${enc.toLocaleString()}</td>
+            <td>${sh.toLocaleString()}</td>
+            <td>${cat.toLocaleString()}</td>
+            <td>${rateDisplay}</td>
+        </tr>`;
+    }
+    html += '<tr class="statistics-totals-table-footer"><td><strong>Total</strong></td>';
+    html += `<td><strong>${totals.total_encounters.toLocaleString()}</strong></td>`;
+    html += `<td><strong>${totals.shiny_encounters.toLocaleString()}</strong></td>`;
+    html += `<td><strong>${totals.catches.toLocaleString()}</strong></td>`;
+    html += `<td><strong>${shinyRateDisplay}</strong></td></tr>`;
+    html += '</tbody></table></div></div>';
+    html += '</div>';
+
+    // Combined by species (top species)
+    const speciesEntries = Object.entries(totals.by_species).sort((a, b) => b[1] - a[1]).slice(0, 30);
+    if (speciesEntries.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Most common species (combined)</h3>';
+        html += '<div class="statistics-list">';
+        speciesEntries.forEach(([species, count], idx) => {
+            const pct = totals.total_encounters > 0 ? ((count / totals.total_encounters) * 100).toFixed(1) : '0';
+            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${escapeHtml(species)}</span><span class="statistics-count">${Number(count).toLocaleString()} (${pct}%)</span></div>`;
+        });
+        html += '</div></div>';
+    }
+
+    // Per-species statistics (combined from /stats pokemon data) – full stats per species
+    const sortedPokemon = Object.values(combinedPokemon).sort((a, b) => (b.total_encounters || 0) - (a.total_encounters || 0));
+    if (sortedPokemon.length > 0) {
+        html += '<div class="statistics-section">';
+        html += '<h3>Per-species statistics (combined)</h3>';
+        html += '<p class="statistics-subtitle">From /stats pokemon data across all instances. Search by name or number.</p>';
+        html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
+        html += '<div class="statistics-table-wrapper"><table class="statistics-table"><thead><tr>';
+        html += '<th>Species</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Best IV</th><th>Lowest IV</th><th>Best SV</th><th>Lowest SV</th><th>Last encounter</th></tr></thead><tbody id="botStatsPerMonList">';
+        sortedPokemon.forEach((r) => {
+            const name = r.species_name || '—';
+            const id = r.species_id != null ? r.species_id : '';
+            const lastTime = r.last_encounter_time ? (() => {
+                try {
+                    const d = new Date(r.last_encounter_time);
+                    return isNaN(d.getTime()) ? r.last_encounter_time : d.toLocaleString();
+                } catch (_) { return r.last_encounter_time; }
+            })() : '—';
+            html += `<tr class="statistics-per-mon-item" data-species-key="${escapeHtml(String(name))}" data-species-id="${escapeHtml(String(id))}">
+                <td class="statistics-name">${escapeHtml(name)}</td>
+                <td>${Number(r.total_encounters || 0).toLocaleString()}</td>
+                <td>${Number(r.shiny_encounters || 0).toLocaleString()}</td>
+                <td>${Number(r.catches || 0).toLocaleString()}</td>
+                <td>${r.total_highest_iv_sum != null ? r.total_highest_iv_sum : '—'}</td>
+                <td>${r.total_lowest_iv_sum != null ? r.total_lowest_iv_sum : '—'}</td>
+                <td>${r.total_highest_sv != null ? r.total_highest_sv.toLocaleString() : '—'}</td>
+                <td>${r.total_lowest_sv != null ? r.total_lowest_sv.toLocaleString() : '—'}</td>
+                <td class="statistics-last-time">${escapeHtml(lastTime)}</td>
+            </tr>`;
+        });
+        html += '</tbody></table></div></div>';
+    }
+
+    // Legacy: total statistics per Pokémon (by_species count only) if no pokemon table was built
+    if (sortedPokemon.length === 0) {
+        const allSpeciesEntries = Object.entries(totals.by_species).sort((a, b) => b[1] - a[1]);
+        if (allSpeciesEntries.length > 0) {
+            html += '<div class="statistics-section">';
+            html += '<h3>Total statistics per Pokémon</h3>';
+            html += '<p class="statistics-subtitle">Combined encounter count across all instances. Search by name or number.</p>';
+            html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
+            html += '<div class="statistics-per-mon-list" id="botStatsPerMonList">';
+            allSpeciesEntries.forEach(([species, count], idx) => {
+                const pct = totals.total_encounters > 0 ? ((count / totals.total_encounters) * 100).toFixed(1) : '0';
+                const displayName = /^\d+$/.test(String(species)) ? `#${species}` : species;
+                html += `<div class="statistics-item statistics-per-mon-item" data-species-key="${escapeHtml(species)}" data-species-display="${escapeHtml(displayName)}" data-species-count="${Number(count).toLocaleString()}" data-species-pct="${pct}" title="Total encounters for this species. Click to show details." role="button" tabindex="0">
+                    <span class="statistics-rank">${idx + 1}.</span>
+                    <span class="statistics-name">${escapeHtml(displayName)}</span>
+                    <span class="statistics-count">${Number(count).toLocaleString()} (${pct}%)</span>
+                    <div class="statistics-per-mon-detail hidden" aria-live="polite">Encounters: <strong>${Number(count).toLocaleString()}</strong> (${pct}% of total)</div>
+                </div>`;
+            });
+            html += '</div></div>';
+        }
+    }
+
+    // Per-bot sections
+    html += '<div class="statistics-section"><h3>By instance</h3>';
+    for (const row of byBot) {
+        html += '<div class="statistics-subsection">';
+        html += `<h4>${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</h4>`;
+        if (row.error && !row.fromCache) {
+            html += `<p class="no-data">Failed to load: ${escapeHtml(row.error)}</p>`;
+        } else {
+            const t = row.totals || {};
+            const enc = t.total_encounters ?? t.totalEncounters ?? 0;
+            const sh = t.shiny_encounters ?? t.shinyEncounters ?? 0;
+            const cat = t.catches ?? 0;
+            html += '<div class="statistics-grid">';
+            html += `<div class="statistic-card"><div class="statistic-value">${Number(enc).toLocaleString()}</div><div class="statistic-label">Encounters</div></div>`;
+            html += `<div class="statistic-card"><div class="statistic-value">${Number(sh).toLocaleString()}</div><div class="statistic-label">Shinies</div></div>`;
+            html += `<div class="statistic-card"><div class="statistic-value">${Number(cat).toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
+            html += '</div>';
+            if (t.total_highest_iv_sum && typeof t.total_highest_iv_sum === 'object') {
+                html += `<p class="statistics-detail">Highest IV: ${t.total_highest_iv_sum.value} (${t.total_highest_iv_sum.species_name || '—'})</p>`;
+            }
+            if (t.total_highest_sv && typeof t.total_highest_sv === 'object') {
+                html += `<p class="statistics-detail">Highest SV: ${t.total_highest_sv.value} (${t.total_highest_sv.species_name || '—'})</p>`;
+            }
+            const botSpeciesEntries = Object.entries(row.by_species || {}).map(([s, d]) => [s, typeof d === 'number' ? d : (d?.count ?? d?.encounters ?? 0)]).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            if (botSpeciesEntries.length > 0) {
+                html += '<div class="statistics-list">';
+                botSpeciesEntries.forEach(([species, c]) => {
+                    html += `<div class="statistics-item"><span class="statistics-name">${escapeHtml(species)}</span><span class="statistics-count">${Number(c).toLocaleString()}</span></div>`;
+                });
+                html += '</div>';
+            }
+        }
+        html += '</div>';
+    }
+    html += '</div>';
+
+    html += '</div>';
+    body.innerHTML = html;
+    } finally {
+        hideLoading();
+    }
+
+    // Wire species filter for per-species list or table
+    const filterInput = document.getElementById('botStatsSpeciesFilter');
+    const perMonList = document.getElementById('botStatsPerMonList');
+    if (filterInput && perMonList) {
+        filterInput.addEventListener('input', () => {
+            const q = (filterInput.value || '').trim().toLowerCase();
+            perMonList.querySelectorAll('.statistics-per-mon-item').forEach(el => {
+                const key = (el.dataset.speciesKey || '').toLowerCase();
+                const display = (el.dataset.speciesDisplay || '').toLowerCase();
+                const id = (el.dataset.speciesId || '').toLowerCase();
+                const nameCell = el.querySelector('.statistics-name');
+                const cellText = nameCell ? (nameCell.textContent || '').toLowerCase() : '';
+                const match = !q || key.includes(q) || display.includes(q) || id.includes(q) || cellText.includes(q);
+                el.style.display = match ? '' : 'none';
+            });
+        });
+        // Click (or Enter) toggles detail for list items (not used in table view)
+        perMonList.addEventListener('click', (e) => {
+            const row = e.target.closest('.statistics-per-mon-item');
+            if (row && row.querySelector('.statistics-per-mon-detail')) {
+                const detail = row.querySelector('.statistics-per-mon-detail');
+                if (detail) detail.classList.toggle('hidden');
+            }
+        });
+        perMonList.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const row = e.target.closest('.statistics-per-mon-item');
+            if (row && row.querySelector('.statistics-per-mon-detail')) {
+                e.preventDefault();
+                const detail = row.querySelector('.statistics-per-mon-detail');
+                if (detail) detail.classList.toggle('hidden');
             }
         });
     }
@@ -1240,7 +1811,7 @@ async function fetchBotData(bot, testOnly = false) {
                         headers: {
                             'Accept': 'application/json'
                         },
-                        signal: AbortSignal.timeout(10000) // 10 second timeout
+                        signal: AbortSignal.timeout(5000) // 5s per endpoint so we don't block other bots
                     });
                 } catch (proxyErr) {
                     // If proxy fails, try direct connection
@@ -1250,7 +1821,7 @@ async function fetchBotData(bot, testOnly = false) {
                             headers: {
                                 'Accept': 'application/json'
                             },
-                            signal: AbortSignal.timeout(10000)
+                            signal: AbortSignal.timeout(5000)
                         });
                     } catch (directErr) {
                         continue;
@@ -1292,9 +1863,11 @@ async function fetchBotData(bot, testOnly = false) {
         const needsEmulatorData = workingEndpoint !== '/emulator';
         const needsGameStateData = workingEndpoint !== '/game_state';
         
+        // Stats are fetched on a slower interval (updateBotStatsOnly); use cache here so UI poll stays light
+        const cachedStats = botDataCache.get(bot.id)?.data?.stats;
+        
         const fetchPromises = [
             fetchBotEndpoint(bot, baseUrl, '/party'),
-            fetchBotEndpoint(bot, baseUrl, '/stats'),
             fetchBotEndpoint(bot, baseUrl, '/encounter_rate'),
             fetchBotEndpoint(bot, baseUrl, '/map')
         ];
@@ -1317,7 +1890,10 @@ async function fetchBotData(bot, testOnly = false) {
             fetchPromises.push(Promise.resolve(null)); // Placeholder
         }
         
-        const [partyData, statsData, encounterRateData, mapData, emulatorData, playerData, gameStateData] = await Promise.all(fetchPromises);
+        const [partyData, encounterRateData, mapData, emulatorData, playerData, gameStateData] = await Promise.all(fetchPromises);
+        
+        // Use cached or empty stats (stats are updated by the slower stats-only poll)
+        const statsData = cachedStats && typeof cachedStats === 'object' ? cachedStats : {};
         
         // Ensure partyData is always an array (handle null/undefined/errors)
         const finalPartyData = Array.isArray(partyData) ? partyData : [];
@@ -1761,7 +2337,7 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                                 headers: {
                                     'Accept': 'application/json'
                                 },
-                                signal: AbortSignal.timeout(8000)
+                                signal: AbortSignal.timeout(5000)
                             });
                             
                             if (response && response.ok) {
@@ -1816,7 +2392,7 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                         headers: {
                             'Accept': 'application/json'
                         },
-                        signal: AbortSignal.timeout(8000)
+                        signal: AbortSignal.timeout(5000)
                     });
                 }
             } catch (proxyErr) {
@@ -1833,7 +2409,7 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                         headers: {
                             'Accept': 'application/json'
                         },
-                        signal: AbortSignal.timeout(8000)
+                        signal: AbortSignal.timeout(5000)
                     });
                 } catch (directErr) {
                     continue;
@@ -1941,60 +2517,63 @@ function updateDashboardSummary() {
         }
     });
     
-    // Calculate total encounters from cached bot data (only visible bots)
+    // Calculate totals from cached bot data and update per-bot max caches (only visible bots)
     const visibleBotIds = new Set(visibleBots.map(b => b.id));
+    let totalShinies = 0;
+    let totalCatches = 0;
     botDataCache.forEach((botData, botId) => {
-        // Only count visible bots
-        if (!visibleBotIds.has(botId)) {
-            return;
-        }
-        if (botData && botData.success && botData.data) {
-            const stats = botData.data.stats || {};
-            const totals = stats.totals || {};
-            
-            // Try to get total encounters from multiple sources
-            let encounters = 0;
-            
-            // First try totals.total_encounters (new API format)
-            if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
-                encounters = totals.total_encounters;
-            }
-            // Then try stats.total_encounters
-            else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
-                encounters = stats.total_encounters;
-            }
-            // Then try stats.totalEncounters (camelCase)
-            else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
-                encounters = stats.totalEncounters;
-            }
-            
+        if (!visibleBotIds.has(botId)) return;
+        if (!botData || !botData.success || !botData.data) return;
+        const stats = botData.data.stats || {};
+        const totals = (stats.totals && typeof stats.totals === 'object') ? stats.totals : stats;
+            // Encounters
+            let encounters = totals.total_encounters ?? totals.totalEncounters ?? stats.total_encounters ?? stats.totalEncounters;
             if (typeof encounters === 'number' && encounters > 0) {
-                // Update maximum encounters cache for this bot
                 const currentMax = maxTotalEncountersCache.get(botId) || 0;
-                if (encounters > currentMax) {
-                    maxTotalEncountersCache.set(botId, encounters);
-                }
+                if (encounters > currentMax) maxTotalEncountersCache.set(botId, encounters);
             }
-        }
+            // Shinies
+            let shinies = totals.shiny_encounters ?? totals.shinyEncounters ?? stats.shiny_encounters ?? stats.shinyEncounters;
+            if (typeof shinies === 'number' && shinies >= 0) {
+                const currentMax = maxTotalShiniesCache.get(botId) ?? -1;
+                if (shinies > currentMax) maxTotalShiniesCache.set(botId, shinies);
+            }
+            // Catches
+            let catches = totals.catches ?? totals.total_caught ?? stats.catches ?? stats.total_caught;
+            if (typeof catches === 'number' && catches >= 0) {
+                const currentMax = maxTotalCatchesCache.get(botId) ?? -1;
+                if (catches > currentMax) maxTotalCatchesCache.set(botId, catches);
+            }
     });
+    saveBotMaxTotalsCaches();
     
-    // Use maximum encounters from cache (even for disconnected bots)
+    // Total statistics include all bots (visible + hidden) using last known max totals so hiding doesn't drop numbers
+    totalEncounters = 0;
+    totalShinies = 0;
+    totalCatches = 0;
     maxTotalEncountersCache.forEach((maxEncounters, botId) => {
-        // Only count visible bots
-        if (visibleBotIds.has(botId)) {
-            totalEncounters += maxEncounters;
-        }
+        totalEncounters += maxEncounters;
+    });
+    maxTotalShiniesCache.forEach((maxVal, botId) => {
+        totalShinies += Math.max(0, maxVal);
+    });
+    maxTotalCatchesCache.forEach((maxVal, botId) => {
+        totalCatches += Math.max(0, maxVal);
     });
     
     const summaryTotalBots = document.getElementById('summaryTotalBots');
     const summaryOnline = document.getElementById('summaryOnline');
     const summaryOffline = document.getElementById('summaryOffline');
     const summaryTotalEncounters = document.getElementById('summaryTotalEncounters');
+    const summaryTotalShinies = document.getElementById('summaryTotalShinies');
+    const summaryTotalCatches = document.getElementById('summaryTotalCatches');
     
     if (summaryTotalBots) summaryTotalBots.textContent = totalBots;
     if (summaryOnline) summaryOnline.textContent = onlineCount;
     if (summaryOffline) summaryOffline.textContent = offlineCount;
     if (summaryTotalEncounters) summaryTotalEncounters.textContent = totalEncounters.toLocaleString();
+    if (summaryTotalShinies) summaryTotalShinies.textContent = totalShinies.toLocaleString();
+    if (summaryTotalCatches) summaryTotalCatches.textContent = totalCatches.toLocaleString();
     
     // Update graphs only every 5 seconds
     const now = Date.now();
@@ -2055,6 +2634,34 @@ function getVisibleBots() {
         });
 }
 
+// Update max-totals caches from a stats object (used by main poll and by stats-only poll)
+function updateMaxTotalsFromStats(botId, stats) {
+    if (!stats || typeof stats !== 'object') return;
+    const totals = stats.totals || {};
+    let encounters = 0;
+    if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
+        encounters = totals.total_encounters;
+    } else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
+        encounters = stats.total_encounters;
+    } else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
+        encounters = stats.totalEncounters;
+    }
+    if (typeof encounters === 'number' && encounters > 0) {
+        const currentMax = maxTotalEncountersCache.get(botId) || 0;
+        if (encounters > currentMax) maxTotalEncountersCache.set(botId, encounters);
+    }
+    const shinies = totals.shiny_encounters ?? totals.shinyEncounters;
+    if (typeof shinies === 'number' && shinies >= 0) {
+        const currentMax = maxTotalShiniesCache.get(botId) ?? -1;
+        if (shinies > currentMax) maxTotalShiniesCache.set(botId, shinies);
+    }
+    const catches = totals.catches ?? totals.total_caught;
+    if (typeof catches === 'number' && catches >= 0) {
+        const currentMax = maxTotalCatchesCache.get(botId) ?? -1;
+        if (catches > currentMax) maxTotalCatchesCache.set(botId, catches);
+    }
+}
+
 // Update bot status display
 // showLoading: only show loading state on initial load, not on SSE updates
 function updateBotStatus(showLoading = false) {
@@ -2068,13 +2675,36 @@ function updateBotStatus(showLoading = false) {
         return;
     }
 
+    // Prevent overlapping runs: if a previous update is still in progress, skip this cycle
+    if (updateBotStatusInProgress && !showLoading) {
+        console.log('[updateBotStatus] Skipping - previous update still in progress');
+        return;
+    }
+
     // Get visible bots in correct order
     const visibleBots = getVisibleBots();
     console.log('[updateBotStatus] Processing', visibleBots.length, 'visible bots out of', botInstances.length, 'total');
 
+    // Remove status cards for bots that are no longer in the visible list
+    const visibleIds = new Set(visibleBots.map(b => b.id));
+    if (botStatusContainer) {
+        botStatusContainer.querySelectorAll('[id^="bot-status-"]').forEach(el => {
+            const id = el.id.replace('bot-status-', '');
+            if (!visibleIds.has(id)) el.remove();
+        });
+    }
+
     // Process bots sequentially to avoid overwhelming the API
     (async () => {
+        updateBotStatusInProgress = true;
+        const cycleStartTime = Date.now();
+        try {
         for (const bot of visibleBots) {
+            // Don't start another bot if we've already used too much time this cycle
+            if (Date.now() - cycleStartTime > UPDATE_BOT_STATUS_CYCLE_TIMEOUT_MS) {
+                console.warn('[updateBotStatus] Cycle timeout - stopping to allow next poll');
+                break;
+            }
             try {
                 // Check if card already exists
                 let statusCard = document.getElementById(`bot-status-${bot.id}`);
@@ -2094,12 +2724,26 @@ function updateBotStatus(showLoading = false) {
                     }
                 }
 
-                // Fetch and update data
-                console.log(`[updateBotStatus] Fetching data for ${bot.name}...`);
-                const result = await fetchBotData(bot);
-                console.log(`[updateBotStatus] Got result for ${bot.name}:`, result.success ? 'success' : 'failed', result.error || '');
+                // Fetch and update data (with per-bot timeout so one slow bot doesn't block the rest)
+                if (visibleBots.length <= 6) console.log(`[updateBotStatus] Fetching data for ${bot.name}...`);
+                let result;
+                try {
+                    result = await Promise.race([
+                        fetchBotData(bot),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), UPDATE_BOT_STATUS_PER_BOT_TIMEOUT_MS))
+                    ]);
+                } catch (timeoutOrErr) {
+                    const msg = timeoutOrErr && timeoutOrErr.message === 'Timeout' ? 'Request timed out' : (timeoutOrErr?.message || String(timeoutOrErr));
+                    console.warn(`[updateBotStatus] ${bot.name} failed or timed out:`, msg);
+                    result = { success: false, error: msg };
+                }
+                if (visibleBots.length <= 6) {
+                    console.log(`[updateBotStatus] Got result for ${bot.name}:`, result.success ? 'success' : 'failed', result.error || '');
+                }
                 if (result.success && result.data) {
-                    console.log(`[updateBotStatus] Result data for ${bot.name} - encounter_rate:`, result.data.encounter_rate, 'data keys:', Object.keys(result.data));
+                    if (visibleBots.length <= 6) {
+                        console.log(`[updateBotStatus] Result data for ${bot.name} - encounter_rate:`, result.data.encounter_rate, 'data keys:', Object.keys(result.data));
+                    }
                     // Cache bot data for summary calculations
                     botDataCache.set(bot.id, result);
                     
@@ -2111,22 +2755,7 @@ function updateBotStatus(showLoading = false) {
                     
                     // Update maximum encounters cache
                     if (result && result.success && result.data) {
-                        const stats = result.data.stats || {};
-                        const totals = stats.totals || {};
-                        let encounters = 0;
-                        if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
-                            encounters = totals.total_encounters;
-                        } else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
-                            encounters = stats.total_encounters;
-                        } else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
-                            encounters = stats.totalEncounters;
-                        }
-                        if (typeof encounters === 'number' && encounters > 0) {
-                            const currentMax = maxTotalEncountersCache.get(bot.id) || 0;
-                            if (encounters > currentMax) {
-                                maxTotalEncountersCache.set(bot.id, encounters);
-                            }
-                        }
+                        updateMaxTotalsFromStats(bot.id, result.data.stats || {});
                     }
                     
                     // Update live encounter rate history (in-memory only)
@@ -2160,28 +2789,29 @@ function updateBotStatus(showLoading = false) {
                         });
                     }
                     
-                    // Check if bot has been offline for 10+ seconds
+                    // Check if bot has been offline for 10+ seconds – keep last known data, only stop treating as temporarily offline
                     const failureTime = botConnectionTracking.get(bot.id)?.firstFailure;
                     if (failureTime && (now - failureTime) >= BOT_OFFLINE_TIMEOUT) {
-                        // Bot has been offline for 10+ seconds - remove from cache
-                        botDataCache.delete(bot.id);
-                        liveEncounterRateHistory.delete(bot.id);
-                        botConnectionTracking.delete(bot.id);
-                    } else {
-                        // Bot is temporarily offline - keep showing last known data
-                        // Use the last successful data from cache if available
-                        const cachedData = botDataCache.get(bot.id);
-                        if (cachedData) {
-                            result = cachedData; // Use cached data instead of failed result
-                        }
+                        // Keep botDataCache and liveEncounterRateHistory so we always remember last values for totals and Bot Statistics
+                        // Only use cached data for this card update
+                    }
+                    // Use the last successful data from cache if available (whether temporarily or long-term offline)
+                    const cachedData = botDataCache.get(bot.id);
+                    if (cachedData) {
+                        result = cachedData; // Use cached data instead of failed result
                     }
                 }
                 if (statusCard) {
                     updateStatusCard(statusCard, bot, result);
                 }
+                // Yield to main thread so UI stays responsive with many bots
+                await new Promise(r => setTimeout(r, 0));
             } catch (err) {
                 console.error(`[updateBotStatus] Error updating bot ${bot.name}:`, err);
             }
+        }
+        } finally {
+            updateBotStatusInProgress = false;
         }
         
         // Update summary after all bots are processed
@@ -2268,6 +2898,7 @@ function createStatusCard(bot) {
         card.style.display = 'none';
     }
     
+    applyDashboardSectionVisibility();
     return card;
 }
 
@@ -2371,12 +3002,8 @@ function toggleBotVisibility(botId) {
     // Reorder to update display
     reorderBotCards();
     
-    // Stop updating hidden bots
-    if (botOrderConfig[botId].hidden) {
-        // Remove from cache and live history
-        botDataCache.delete(botId);
-        liveEncounterRateHistory.delete(botId);
-    }
+    // When hiding: keep last data in cache so total statistics still include it; we just stop polling (visible bots only)
+    // Do not delete botDataCache or liveEncounterRateHistory for hidden bots.
     
     // Update summary
     updateDashboardSummary();
@@ -2803,42 +3430,101 @@ function updateStatusCard(card, bot, result) {
                 return;
             }
         } else {
-            // Bot has been offline for 10+ seconds or no tracking data - show offline
-            if (indicator) {
-                indicator.textContent = 'Offline';
-                indicator.className = 'status-indicator offline';
+            // Bot has been offline for 10+ seconds – still show last known data if we have it
+            const cachedData = botDataCache.get(bot.id);
+            if (cachedData && cachedData.success && cachedData.data) {
+                result = cachedData;
+                usingCachedData = true;
+                // Fall through to render full card with cached data and "Offline" indicator
+            } else {
+                // No cached data – show offline error only
+                if (indicator) {
+                    indicator.textContent = 'Offline';
+                    indicator.className = 'status-indicator offline';
+                }
+                content.innerHTML = `
+                    <div class="error-message">
+                        <p><strong>Error:</strong> ${result.error || 'Could not connect to bot'}</p>
+                        <p class="bot-url-display">${bot.url}</p>
+                    </div>
+                `;
+                return;
             }
-            content.innerHTML = `
-                <div class="error-message">
-                    <p><strong>Error:</strong> ${result.error || 'Could not connect to bot'}</p>
-                    <p class="bot-url-display">${bot.url}</p>
-                </div>
-            `;
-            return;
         }
     }
 
-    // Set status indicator - show "Updating..." if using cached data, "Online" if fresh data
-    if (indicator) {
-        if (usingCachedData) {
-            indicator.textContent = 'Updating...';
-            indicator.className = 'status-indicator loading';
-        } else {
+    // When we're showing cached data for an offline bot, show "Offline" in the indicator
+    if (usingCachedData && result && !result.success) {
+        if (indicator) {
+            indicator.textContent = 'Offline';
+            indicator.className = 'status-indicator offline';
+        }
+    } else if (!usingCachedData) {
+        if (indicator) {
             indicator.textContent = 'Online';
             indicator.className = 'status-indicator online';
+        }
+    } else {
+        // usingCachedData && result.success (temporarily offline)
+        if (indicator) {
+            indicator.textContent = 'Updating...';
+            indicator.className = 'status-indicator loading';
         }
     }
 
     const data = result.data || {};
     const status = data.status || {};
     const emulator = data.emulator || status.emulator || {};
-    const player = data.player || status.player || {};
+    let player = data.player || status.player || {};
     const gameState = data.gameState || status.gameState || {};
     const party = data.party || [];
     const encounters = data.encounters || [];
-    const stats = data.stats || {};
+    let stats = data.stats || {};
+
+    // Unwrap common API response shapes: { data: { totals: {} } } or { data: { name, trainer_id } }
+    if (stats && typeof stats === 'object' && stats.data !== undefined) {
+        stats = stats.data;
+    }
+    if (player && typeof player === 'object' && player.data !== undefined) {
+        player = player.data;
+    }
+
+    // When data comes from stream or has empty stats/player, merge in cached data so we don't lose stats/trainer info
+    const cached = botDataCache.get(bot.id);
+    if (cached && cached.success && cached.data) {
+        const cachedStats = cached.data.stats;
+        if (cachedStats && typeof cachedStats === 'object' && Object.keys(cachedStats).length > 0) {
+            const unwrapped = (cachedStats.data !== undefined) ? cachedStats.data : cachedStats;
+            if (!stats || typeof stats !== 'object' || Object.keys(stats).length === 0) {
+                stats = unwrapped;
+            }
+        }
+        const cachedPlayer = cached.data.player;
+        if (cachedPlayer && typeof cachedPlayer === 'object' && Object.keys(cachedPlayer).length > 0) {
+            const unwrapped = (cachedPlayer.data !== undefined) ? cachedPlayer.data : cachedPlayer;
+            if (!player || typeof player !== 'object' || Object.keys(player).length === 0) {
+                player = unwrapped;
+            }
+        }
+    }
+    // Build a single player source from status spread (trainer fields may be at top level of status)
+    const playerFromStatus = (status && (status.name !== undefined || status.trainer_id !== undefined || status.trainer_name !== undefined)) ? status : {};
+    if (Object.keys(playerFromStatus).length > 0) {
+        player = Object.assign({}, player, playerFromStatus);
+    }
+
     const map = data.map || {};
     const currentEncounter = data.currentEncounter || {};
+    
+    // Use cached encounter_rate when current is missing/0 so we don't show "0/hr"
+    let encounterRateForDisplay = data.encounter_rate;
+    if ((encounterRateForDisplay == null || encounterRateForDisplay === 0) && cached && cached.success && cached.data && (cached.data.encounter_rate != null && cached.data.encounter_rate !== 0)) {
+        encounterRateForDisplay = cached.data.encounter_rate;
+    }
+    if ((encounterRateForDisplay == null || encounterRateForDisplay === 0) && liveEncounterRateHistory.has(bot.id)) {
+        const hist = liveEncounterRateHistory.get(bot.id);
+        if (hist && hist.length > 0) encounterRateForDisplay = hist[hist.length - 1].rate;
+    }
     
     // Debug: log data structures
     if (emulator && Object.keys(emulator).length > 0) {
@@ -2865,11 +3551,33 @@ function updateStatusCard(card, bot, result) {
     // Build status card content
     let html = '';
 
+    // Use cached stats when current response has none so Total Stats etc. don't go empty
+    let statsForCard = stats;
+    if ((!statsForCard || Object.keys(statsForCard).length === 0) && cached && cached.success && cached.data && cached.data.stats) {
+        const s = cached.data.stats;
+        statsForCard = (s && s.data !== undefined) ? s.data : s;
+    }
+    if (!statsForCard) statsForCard = {};
+
     // Encounter Rate - display at the top
-    const statsData = stats || {};
+    // Normalize stats: support stats.totals.X, stats.data.totals.X, or flat stats.X
+    const rawStats = statsForCard;
+    const statsTotalsObj = rawStats.totals && typeof rawStats.totals === 'object' ? rawStats.totals : rawStats;
+    const statsData = {
+        totals: statsTotalsObj,
+        total_encounters: rawStats.total_encounters ?? statsTotalsObj.total_encounters ?? statsTotalsObj.totalEncounters,
+        totalEncounters: rawStats.totalEncounters ?? statsTotalsObj.totalEncounters ?? statsTotalsObj.total_encounters,
+        shiny_encounters: rawStats.shiny_encounters ?? statsTotalsObj.shiny_encounters ?? statsTotalsObj.shinyEncounters,
+        shinyEncounters: rawStats.shinyEncounters ?? statsTotalsObj.shinyEncounters ?? statsTotalsObj.shiny_encounters,
+        catches: rawStats.catches ?? statsTotalsObj.catches ?? statsTotalsObj.total_caught,
+        play_time: rawStats.play_time ?? statsTotalsObj.play_time ?? statsTotalsObj.playTime,
+        playTime: rawStats.playTime ?? statsTotalsObj.playTime ?? statsTotalsObj.play_time,
+        current_phase: rawStats.current_phase ?? rawStats.currentPhase,
+        currentPhase: rawStats.currentPhase ?? rawStats.current_phase
+    };
     const encounterRate = data.encounter_rate;
     
-    // Save to history for graph
+    // Save to history for graph (only when we have a real current rate)
     if (dashboardSettings.showEncounterRateSection !== false && encounterRate !== undefined && encounterRate !== null) {
         encounterRateHistory = JSON.parse(localStorage.getItem('botEncounterRateHistory') || '{}');
         if (!encounterRateHistory[bot.id]) {
@@ -2885,16 +3593,24 @@ function updateStatusCard(card, bot, result) {
         }
     }
     
-    if (encounterRate !== undefined && encounterRate !== null) {
-        if (dashboardSettings.showEncounterRateAsGraph) {
-            html += `<div class="status-section encounter-rate-card">
-                <h4>Encounter Rate</h4>
-                <canvas id="encounter-rate-chart-${bot.id}" class="encounter-rate-mini-chart"></canvas>
-            </div>`;
+    if (dashboardSettings.showEncounterRateSection !== false) {
+        const rateToShow = encounterRateForDisplay != null ? encounterRateForDisplay : (encounterRate != null ? encounterRate : null);
+        if (rateToShow !== undefined && rateToShow !== null) {
+            if (dashboardSettings.showEncounterRateAsGraph) {
+                html += `<div class="status-section encounter-rate-card">
+                    <h4>Encounter Rate</h4>
+                    <canvas id="encounter-rate-chart-${bot.id}" class="encounter-rate-mini-chart"></canvas>
+                </div>`;
+            } else {
+                html += `<div class="status-section encounter-rate-card">
+                    <h4>Encounter Rate</h4>
+                    <p>${rateToShow}/hr</p>
+                </div>`;
+            }
         } else {
             html += `<div class="status-section encounter-rate-card">
                 <h4>Encounter Rate</h4>
-                <p>${encounterRate}/hr</p>
+                <p>—/hr</p>
             </div>`;
         }
     }
@@ -2914,12 +3630,12 @@ function updateStatusCard(card, bot, result) {
         
         // Get species-specific encounter count from stats
         let speciesEncounters = null;
-        if (stats && stats.species) {
+        if (rawStats && rawStats.species) {
             // Check if stats has per-species data
-            const speciesData = stats.species[targetPokemon.speciesId] || 
-                              stats.species[targetPokemon.speciesId.toString()] ||
-                              stats.by_species?.[targetPokemon.speciesId] ||
-                              stats.by_species?.[targetPokemon.speciesId.toString()];
+            const speciesData = rawStats.species[targetPokemon.speciesId] || 
+                              rawStats.species[targetPokemon.speciesId.toString()] ||
+                              rawStats.by_species?.[targetPokemon.speciesId] ||
+                              rawStats.by_species?.[targetPokemon.speciesId.toString()];
             if (speciesData) {
                 speciesEncounters = speciesData.encounters || 
                                   speciesData.total_encounters || 
@@ -2928,8 +3644,8 @@ function updateStatusCard(card, bot, result) {
             }
         }
         // Also check if stats has a nested structure like stats.totals.by_species
-        if (speciesEncounters === null && stats && stats.totals) {
-            const totalsBySpecies = stats.totals.by_species || stats.totals.species;
+        if (speciesEncounters === null && rawStats && rawStats.totals) {
+            const totalsBySpecies = rawStats.totals.by_species || rawStats.totals.species;
             if (totalsBySpecies) {
                 const speciesData = totalsBySpecies[targetPokemon.speciesId] || 
                                   totalsBySpecies[targetPokemon.speciesId.toString()];
@@ -2967,37 +3683,38 @@ function updateStatusCard(card, bot, result) {
         html += `</div>`;
     }
 
-    // Current Location/Map
+    // Current Location/Map - always show section when enabled to avoid pop in/out; use cache when no current data
     if (dashboardSettings.showMap) {
         let mapName = null;
         let mapType = null;
         
-        // Try different map data structures
         if (map && map.map && map.map.name) {
-            // Structure: { map: { name: "...", type: "..." } }
             mapName = map.map.name;
             mapType = map.map.type;
         } else if (map && map.name) {
-            // Structure: { name: "...", type: "..." }
             mapName = map.name;
             mapType = map.type;
         } else if (status.location) {
-            // Fallback to status.location
             mapName = status.location;
         } else if (status.currentLocation) {
-            // Fallback to status.currentLocation
             mapName = status.currentLocation;
         } else if (map && typeof map === 'object' && Object.keys(map).length > 0) {
-            // Try to find name in any property
             mapName = map.name || map.map_name || map.location || map.current_map;
             mapType = map.type || map.map_type;
         }
         
-        if (mapName) {
-            html += `<div class="status-section">
+        let locationSectionHtml = mapName
+            ? `<div class="status-section">
                 <h4>Current Location</h4>
                 <p>${mapName}${mapType ? ` (${mapType})` : ''}</p>
-            </div>`;
+            </div>`
+            : '';
+        if (locationSectionHtml) {
+            lastLocationSectionCache.set(bot.id, { html: locationSectionHtml, time: Date.now() });
+            html += locationSectionHtml;
+        } else {
+            const cached = lastLocationSectionCache.get(bot.id);
+            if (cached) html += cached.html;
         }
     }
 
@@ -3037,7 +3754,8 @@ function updateStatusCard(card, bot, result) {
         html += `</div></div>`;
     }
 
-    // Recent Finds
+    // Recent Finds – only show when enabled; hide the whole card when off
+    if (dashboardSettings.showEncounters) {
     // Handle various API response formats
     let encounterList = [];
     
@@ -3169,6 +3887,7 @@ function updateStatusCard(card, bot, result) {
         
         html += `</div></div>`;
     }
+    }
 
     // Current Encounter/Opponent
     if (dashboardSettings.showCurrentEncounter) {
@@ -3261,6 +3980,7 @@ function updateStatusCard(card, bot, result) {
                 statusWithEmulator.bot_mode ||
                 statusWithEmulator.game_mode ||
                 statusWithEmulator.gameMode ||
+                (typeof statusWithEmulator.game_state === 'string' ? statusWithEmulator.game_state : null) ||
                 'Unknown';
 
             html += `<div class="current-encounter-display current-encounter-empty">
@@ -3277,39 +3997,35 @@ function updateStatusCard(card, bot, result) {
         html += `</div>`;
     }
 
-    // Stats
-    // Show stats section
+    // Stats - only run max-totals update and Current Phase; Statistics cards (Total Encounters, Total Shinies, Total Catches) removed from bot card
     if (dashboardSettings.showStats) {
-        html += `<div class="status-section">
-            <h4>Statistics</h4>
-            <div class="stats-grid">`;
-        
-        // Total encounters (from stats)
-        if (dashboardSettings.showStatsTotalEncounters !== false && (statsData.total_encounters !== undefined || statsData.totalEncounters !== undefined)) {
-            html += `<div class="stat-item">
-                <span class="stat-label">Total Encounters:</span>
-                <span class="stat-value">${statsData.total_encounters || statsData.totalEncounters}</span>
-            </div>`;
-        }
-        
-        // Shiny encounters
-        if (dashboardSettings.showStatsShinyEncounters !== false && (statsData.shiny_encounters !== undefined || statsData.shinyEncounters !== undefined)) {
-            html += `<div class="stat-item">
-                <span class="stat-label">Shiny Encounters:</span>
-                <span class="stat-value">${statsData.shiny_encounters || statsData.shinyEncounters}</span>
-            </div>`;
-        }
-        
-        // Play time
-        if (dashboardSettings.showStatsPlayTime !== false && (statsData.play_time !== undefined || statsData.playTime !== undefined)) {
-            const playTime = statsData.play_time || statsData.playTime;
-            html += `<div class="stat-item">
-                <span class="stat-label">Play Time:</span>
-                <span class="stat-value">${formatPlayTime(playTime)}</span>
-            </div>`;
-        }
-        
-        // Phase - Display detailed phase information
+        const statsTotals = statsData.totals || {};
+        const totalEncounters =
+            statsData.total_encounters ??
+            statsData.totalEncounters ??
+            statsTotals.total_encounters ??
+            statsTotals.totalEncounters;
+        const shinyEncounters =
+            statsData.shiny_encounters ??
+            statsData.shinyEncounters ??
+            statsTotals.shiny_encounters ??
+            statsTotals.shinyEncounters;
+        const playTimeValue =
+            statsData.play_time ??
+            statsData.playTime ??
+            statsTotals.play_time ??
+            statsTotals.playTime;
+        const catchesValue =
+            statsData.catches ??
+            statsTotals.catches ??
+            statsTotals.total_caught ??
+            statsData.total_caught;
+        const numEncountersRaw = totalEncounters != null ? Number(totalEncounters) : undefined;
+        const numShiniesRaw = shinyEncounters != null ? Number(shinyEncounters) : undefined;
+        const numCatchesRaw = catchesValue != null ? Number(catchesValue) : undefined;
+        updateBotMaxTotals(bot.id, numEncountersRaw, numShiniesRaw, numCatchesRaw);
+
+        // Phase - Display detailed phase information (no Statistics cards on card)
         const phaseData = statsData.current_phase || statsData.currentPhase;
         if (phaseData !== undefined) {
             if (typeof phaseData === 'object' && phaseData !== null) {
@@ -3361,15 +4077,13 @@ function updateStatusCard(card, bot, result) {
                 
                 // Display as a formatted list
                 if (phaseInfo.length > 0) {
-                    html += `<div class="status-section">
+                    const phaseSectionHtml = `<div class="status-section">
                         <h4>Current Phase</h4>
-                        <div class="phase-info">`;
-                    
-                    phaseInfo.forEach(info => {
-                        html += `<div class="phase-info-item">${info}</div>`;
-                    });
-                    
-                    html += `</div></div>`;
+                        <div class="phase-info">${
+                            phaseInfo.map(info => `<div class="phase-info-item">${info}</div>`).join('')
+                        }</div></div>`;
+                    lastPhaseSectionCache.set(bot.id, { html: phaseSectionHtml, time: Date.now() });
+                    html += phaseSectionHtml;
                 } else {
                     // Fallback to JSON if no recognized structure
                     html += `<div class="stat-item">
@@ -3387,80 +4101,72 @@ function updateStatusCard(card, bot, result) {
                     <span class="stat-value">${String(phaseData)}</span>
                 </div>`;
             }
+        } else {
+            // No phase data: show last cached Current Phase section if we have real data (ignore empty messages)
+            const phaseCached = lastPhaseSectionCache.get(bot.id);
+            if (phaseCached) html += phaseCached.html;
         }
-        
-        html += `</div></div>`;
     }
 
-    // Emulator Info - check both emulator object and status for emulator data
+    // Emulator Info - always show section when enabled to avoid pop in/out; use cached content when no current data
     const emulatorData = emulator && Object.keys(emulator).length > 0 ? emulator : 
                         (status.emulator && Object.keys(status.emulator).length > 0 ? status.emulator : 
                         (status.frame_rate !== undefined || status.frameRate !== undefined ? status : null));
     
-    if (dashboardSettings.showEmulator && emulatorData) {
+    if (dashboardSettings.showEmulator) {
         html += `<div class="status-section">
             <h4>Emulator Info</h4>
             <div class="phase-info">`;
-        
-        // Build list of emulator info items (like Current Phase format)
-        const emulatorInfo = [];
-        
-        // Helper to get value from multiple possible locations
-        const getEmulatorValue = (...keys) => {
-            for (const key of keys) {
-                if (emulatorData[key] !== undefined && emulatorData[key] !== null) {
-                    return emulatorData[key];
+        let emulatorInnerHtml = '';
+        if (emulatorData) {
+            const emulatorInfo = [];
+            const getEmulatorValue = (...keys) => {
+                for (const key of keys) {
+                    if (emulatorData[key] !== undefined && emulatorData[key] !== null) return emulatorData[key];
+                }
+                return undefined;
+            };
+            if (dashboardSettings.showEmulatorFrameRate !== false && getEmulatorValue('frame_rate', 'frameRate', 'fps', 'FPS', 'current_fps') !== undefined) {
+                emulatorInfo.push(`FPS: ${getEmulatorValue('frame_rate', 'frameRate', 'fps', 'FPS', 'current_fps')}`);
+            }
+            if (dashboardSettings.showEmulatorFastForward !== false && getEmulatorValue('fast_forward', 'fastForward', 'fast_forward_enabled', 'fastForwardEnabled') !== undefined) {
+                emulatorInfo.push(`Fast Forward: ${getEmulatorValue('fast_forward', 'fastForward', 'fast_forward_enabled', 'fastForwardEnabled') ? 'On' : 'Off'}`);
+            }
+            if (dashboardSettings.showEmulatorPaused !== false && getEmulatorValue('paused', 'is_paused', 'isPaused') !== undefined) {
+                emulatorInfo.push(`Paused: ${getEmulatorValue('paused', 'is_paused', 'isPaused') ? 'Yes' : 'No'}`);
+            }
+            if (dashboardSettings.showEmulatorUptime !== false) {
+                const uptime = getEmulatorValue('uptime', 'up_time', 'upTime', 'runtime', 'run_time', 'runTime');
+                if (uptime !== undefined) {
+                    emulatorInfo.push(`Uptime: ${typeof uptime === 'number' ? formatPlayTime(uptime) : uptime}`);
                 }
             }
-            return undefined;
-        };
-        
-        const frameRate = getEmulatorValue('frame_rate', 'frameRate', 'fps', 'FPS');
-        if (dashboardSettings.showEmulatorFrameRate !== false && frameRate !== undefined) {
-            emulatorInfo.push(`Frame Rate: ${frameRate} FPS`);
-        }
-        
-        const fastForward = getEmulatorValue('fast_forward', 'fastForward', 'fast_forward_enabled', 'fastForwardEnabled');
-        if (dashboardSettings.showEmulatorFastForward !== false && fastForward !== undefined) {
-            emulatorInfo.push(`Fast Forward: ${fastForward ? 'On' : 'Off'}`);
-        }
-        
-        const paused = getEmulatorValue('paused', 'is_paused', 'isPaused');
-        if (dashboardSettings.showEmulatorPaused !== false && paused !== undefined) {
-            emulatorInfo.push(`Paused: ${paused ? 'Yes' : 'No'}`);
-        }
-        
-        const uptime = getEmulatorValue('uptime', 'up_time', 'upTime', 'runtime', 'run_time', 'runTime');
-        if (dashboardSettings.showEmulatorUptime !== false && uptime !== undefined) {
-            emulatorInfo.push(`Uptime: ${typeof uptime === 'number' ? formatPlayTime(uptime) : uptime}`);
-        }
-        
-        // Display any other emulator fields (excluding excluded ones)
-        const excludedKeys = ['frame_rate', 'frameRate', 'fps', 'FPS', 'speed', 'speed_multiplier', 'speedMultiplier', 
-                              'emulation_speed', 'emulationSpeed', 'fast_forward', 'fastForward', 'paused', 
-                              'is_paused', 'isPaused', 'uptime', 'up_time', 'upTime', 'runtime', 'run_time', 
-                              'runTime', 'video_enabled', 'videoEnabled', 'video', 'audio_enabled', 'audioEnabled', 
-                              'audio', 'bot_mode', 'botMode', 'mode'];
-        for (const [key, value] of Object.entries(emulatorData)) {
-            if (excludedKeys.includes(key)) {
-                continue; // Skip excluded fields
+            const excludedKeys = ['frame_rate', 'frameRate', 'fps', 'FPS', 'current_fps', 'current_time_spent_in_bot_fraction', 'currentTimeSpentInBotFraction',
+                                  'speed', 'speed_multiplier', 'speedMultiplier', 
+                                  'emulation_speed', 'emulationSpeed', 'fast_forward', 'fastForward', 'paused', 
+                                  'is_paused', 'isPaused', 'uptime', 'up_time', 'upTime', 'runtime', 'run_time', 
+                                  'runTime', 'video_enabled', 'videoEnabled', 'video', 'audio_enabled', 'audioEnabled', 
+                                  'audio', 'bot_mode', 'botMode', 'mode'];
+            for (const [key, value] of Object.entries(emulatorData)) {
+                if (excludedKeys.includes(key)) continue;
+                if (value !== null && value !== undefined && typeof value !== 'object') {
+                    const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')
+                        .split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                    emulatorInfo.push(`${label}: ${value}`);
+                }
             }
-            if (value !== null && value !== undefined && typeof value !== 'object') {
-                const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')
-                    .split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-                emulatorInfo.push(`${label}: ${value}`);
+            if (emulatorInfo.length > 0) {
+                emulatorInnerHtml = emulatorInfo.map(info => `<div class="phase-info-item">${info}</div>`).join('');
+                lastEmulatorSectionCache.set(bot.id, { html: emulatorInnerHtml, time: Date.now() });
             }
         }
-        
-        // Display all emulator info items in phase-info format
-        if (emulatorInfo.length > 0) {
-            emulatorInfo.forEach(info => {
-                html += `<div class="phase-info-item">${info}</div>`;
-            });
+        if (emulatorInnerHtml) {
+            html += emulatorInnerHtml;
         } else {
-            html += `<div class="phase-info-item">No emulator data available</div>`;
+            const cached = lastEmulatorSectionCache.get(bot.id);
+            if (cached) html += cached.html;
+            else html += `<div class="phase-info-item">No emulator data available</div>`;
         }
-        
         html += `</div></div>`;
     }
 
@@ -3495,6 +4201,10 @@ function updateStatusCard(card, bot, result) {
             }
             return undefined;
         };
+        
+        // Mode - always add when we have status so we never show "No game data available"
+        const gameMode = status.mode || status.bot_mode || status.game_mode || status.gameMode || (typeof status.game_state === 'string' ? status.game_state : null) || 'Unknown';
+        gameInfo.push(`Mode: ${gameMode}`);
         
         // Badges
         const badges = getValue(status, 'badges', 'badge_count', 'badges.count');
@@ -3574,299 +4284,283 @@ function updateStatusCard(card, bot, result) {
         
         // Display all game info items in phase-info format
         if (gameInfo.length > 0) {
+            let gameSectionHtml = '';
             gameInfo.forEach(info => {
-                html += `<div class="phase-info-item">${info}</div>`;
+                gameSectionHtml += `<div class="phase-info-item">${info}</div>`;
             });
+            lastGameSectionCache.set(bot.id, { html: gameSectionHtml, time: Date.now() });
+            html += gameSectionHtml;
         } else {
-            html += `<div class="phase-info-item">No game data available</div>`;
+            const cached = lastGameSectionCache.get(bot.id);
+            if (cached) {
+                html += cached.html;
+            } else {
+                html += `<div class="phase-info-item">No game data available</div>`;
+            }
         }
         
         html += `</div></div>`;
     }
 
-    // Player Info - check both player object and status for player data
-    const playerData = player && Object.keys(player).length > 0 ? player : 
-                      (status.player && Object.keys(status.player).length > 0 ? status.player : 
-                      (status.name !== undefined || status.trainer_id !== undefined || status.trainer_name !== undefined ? status : null));
+    // Player Info - always show section when enabled so it doesn't flash in/out; use cache when current data is empty
+    const PLAYER_LIKE_KEYS = ['name', 'player_name', 'trainer_name', 'trainerName', 'ot', 'OT', 'original_trainer', 'originalTrainer',
+        'trainer_id', 'trainerId', 'tid', 'TID', 'secret_id', 'secretId', 'sid', 'SID', 'gender', 'play_time', 'playTime', 'time_played', 'timePlayed',
+        'money', 'coins', 'id32', 'ID32', 'trainerID32', 'trainerId32'];
+    const statusHasPlayerLike = status && typeof status === 'object' && PLAYER_LIKE_KEYS.some(k => status[k] !== undefined && status[k] !== null);
+    const mergedPlayer = Object.assign({}, player || {}, (statusHasPlayerLike ? status : {}));
+    const playerData = (mergedPlayer && Object.keys(mergedPlayer).length > 0) ? mergedPlayer :
+                      (player && Object.keys(player).length > 0 ? player :
+                      (status.player && Object.keys(status.player).length > 0 ? status.player :
+                      (status.name !== undefined || status.trainer_id !== undefined || status.trainer_name !== undefined || statusHasPlayerLike ? status : null)));
     
-    if (dashboardSettings.showPlayerInfo && playerData) {
+    if (dashboardSettings.showPlayerInfo) {
         html += `<div class="status-section">
             <h4>Player Info</h4>
             <div class="phase-info">`;
         
-        // Build list of player info items (like Current Phase format)
-        const playerInfo = [];
-        
-        // Helper function to safely extract nested values from multiple sources
-        const getPlayerValue = (...keys) => {
-            for (const key of keys) {
-                // Check direct key
-                if (playerData[key] !== undefined && playerData[key] !== null) {
-                    return playerData[key];
-                }
-                // Check nested paths
-                const pathParts = key.split('.');
-                let value = playerData;
-                for (const part of pathParts) {
-                    if (value && typeof value === 'object' && part in value) {
-                        value = value[part];
-                    } else {
-                        value = undefined;
-                        break;
+        let playerSectionContent = '';
+        if (playerData) {
+            const playerInfo = [];
+            const getPlayerValue = (...keys) => {
+                for (const key of keys) {
+                    if (playerData[key] !== undefined && playerData[key] !== null) return playerData[key];
+                    const pathParts = key.split('.');
+                    let value = playerData;
+                    for (const part of pathParts) {
+                        if (value && typeof value === 'object' && part in value) value = value[part];
+                        else { value = undefined; break; }
                     }
+                    if (value !== undefined && value !== null) return value;
                 }
-                if (value !== undefined && value !== null) {
-                    return value;
+                for (const key of keys) {
+                    if (status[key] !== undefined && status[key] !== null) return status[key];
+                }
+                return undefined;
+            };
+            if (dashboardSettings.showPlayerName !== false) {
+                const playerName = getPlayerValue('name', 'player_name', 'trainer_name', 'player.name', 'trainer.name', 'ot', 'OT', 'original_trainer', 'originalTrainer');
+                if (playerName !== undefined && String(playerName).trim() !== '') playerInfo.push(`Name: ${String(playerName).trim()}`);
+            }
+            if (dashboardSettings.showPlayerTID !== false) {
+                const tid = getPlayerValue('trainer_id', 'tid', 'TID', 'player.trainer_id', 'trainer.id', 'trainer.tid', 'trainerID', 'trainerId');
+                if (tid !== undefined && (typeof tid === 'number' || typeof tid === 'string')) playerInfo.push(`Trainer ID: ${tid}`);
+            }
+            if (dashboardSettings.showPlayerSID !== false) {
+                const sid = getPlayerValue('secret_id', 'sid', 'SID', 'player.secret_id', 'trainer.secret_id', 'trainer.sid', 'secretID', 'secretId');
+                if (sid !== undefined && (typeof sid === 'number' || typeof sid === 'string')) playerInfo.push(`Secret ID: ${sid}`);
+            }
+            if (dashboardSettings.showPlayerGender !== false) {
+                const gender = getPlayerValue('gender', 'player.gender', 'trainer.gender', 'is_male', 'isMale');
+                if (gender !== undefined) {
+                    let genderText = 'Unknown';
+                    if (typeof gender === 'string') genderText = gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+                    else if (typeof gender === 'number') genderText = gender === 0 ? 'Male' : gender === 1 ? 'Female' : String(gender);
+                    else if (typeof gender === 'boolean') genderText = gender ? 'Female' : 'Male';
+                    playerInfo.push(`Gender: ${genderText}`);
                 }
             }
-            // Also check status object
-            for (const key of keys) {
-                if (status[key] !== undefined && status[key] !== null) {
-                    return status[key];
+            if (dashboardSettings.showPlayerPlayTime !== false) {
+                const playTime = getPlayerValue('play_time', 'playTime', 'player.play_time', 'time_played', 'timePlayed');
+                if (playTime !== undefined && typeof playTime === 'number') playerInfo.push(`Play Time: ${formatPlayTime(playTime)}`);
+            }
+            const money = getPlayerValue('money', 'player.money', 'trainer.money');
+            if (money !== undefined && (typeof money === 'number' || typeof money === 'string')) playerInfo.push(`Money: $${Number(money).toLocaleString()}`);
+            const coins = getPlayerValue('coins', 'player.coins', 'trainer.coins');
+            if (coins !== undefined && (typeof coins === 'number' || typeof coins === 'string')) playerInfo.push(`Coins: ${Number(coins).toLocaleString()}`);
+            if (dashboardSettings.showPlayerID32 !== false) {
+                const id32 = getPlayerValue('id32', 'ID32', 'player.id32', 'trainer.id32', 'trainerID32', 'trainerId32');
+                if (id32 !== undefined && typeof id32 === 'number') playerInfo.push(`ID32: ${id32}`);
+            }
+            const knownKeys = ['name', 'player_name', 'trainer_name', 'ot', 'OT', 'trainer_id', 'tid', 'TID', 'secret_id', 'sid', 'SID', 'gender', 'play_time', 'playTime', 'id32', 'ID32', 'money', 'coins', 'registered_item', 'emulation_speed', 'emulationSpeed'];
+            for (const [key, value] of Object.entries(playerData)) {
+                if (knownKeys.includes(key)) continue;
+                if (/^\d+$/.test(String(key))) continue; // skip numeric keys (e.g. 0,1,2 from string/array-like)
+                if (value !== null && value !== undefined && typeof value !== 'object') {
+                    const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+                    playerInfo.push(`${label}: ${value}`);
                 }
             }
-            return undefined;
-        };
-        
-        // Player name
-        const playerName = getPlayerValue('name', 'player_name', 'trainer_name', 'player.name', 'trainer.name', 'ot', 'OT', 'original_trainer', 'originalTrainer');
-        if (dashboardSettings.showPlayerName !== false && playerName !== undefined && typeof playerName === 'string' && playerName.trim() !== '') {
-            playerInfo.push(`Name: ${playerName}`);
-        }
-        
-        // Trainer ID
-        const tid = getPlayerValue('trainer_id', 'tid', 'TID', 'player.trainer_id', 'trainer.id', 'trainer.tid', 'trainerID', 'trainerId');
-        if (dashboardSettings.showPlayerTID !== false && tid !== undefined && (typeof tid === 'number' || typeof tid === 'string')) {
-            playerInfo.push(`Trainer ID: ${tid}`);
-        }
-        
-        // Secret ID
-        const sid = getPlayerValue('secret_id', 'sid', 'SID', 'player.secret_id', 'trainer.secret_id', 'trainer.sid', 'secretID', 'secretId');
-        if (dashboardSettings.showPlayerSID !== false && sid !== undefined && (typeof sid === 'number' || typeof sid === 'string')) {
-            playerInfo.push(`Secret ID: ${sid}`);
-        }
-        
-        // Gender
-        const gender = getPlayerValue('gender', 'player.gender', 'trainer.gender', 'is_male', 'isMale');
-        if (dashboardSettings.showPlayerGender !== false && gender !== undefined) {
-            let genderText = 'Unknown';
-            if (typeof gender === 'string') {
-                genderText = gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
-            } else if (typeof gender === 'number') {
-                genderText = gender === 0 ? 'Male' : gender === 1 ? 'Female' : String(gender);
-            } else if (typeof gender === 'boolean') {
-                genderText = gender ? 'Female' : 'Male';
-            }
-            playerInfo.push(`Gender: ${genderText}`);
-        }
-        
-        // Play time
-        const playTime = getPlayerValue('play_time', 'playTime', 'player.play_time', 'time_played', 'timePlayed');
-        if (dashboardSettings.showPlayerPlayTime !== false && playTime !== undefined && typeof playTime === 'number') {
-            playerInfo.push(`Play Time: ${formatPlayTime(playTime)}`);
-        }
-        
-        // ID32 (combined TID/SID)
-        const id32 = getPlayerValue('id32', 'ID32', 'player.id32', 'trainer.id32', 'trainerID32', 'trainerId32');
-        if (dashboardSettings.showPlayerID32 !== false && id32 !== undefined && typeof id32 === 'number') {
-            playerInfo.push(`ID32: ${id32}`);
-        }
-        
-        // Display any other player fields
-        for (const [key, value] of Object.entries(playerData)) {
-            if (['name', 'player_name', 'trainer_name', 'ot', 'OT', 'trainer_id', 'tid', 'TID', 
-                 'secret_id', 'sid', 'SID', 'gender', 'play_time', 'playTime', 'id32', 'ID32'].includes(key)) {
-                continue; // Already displayed
-            }
-            if (value !== null && value !== undefined && typeof value !== 'object') {
-                const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1')
-                    .split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-                playerInfo.push(`${label}: ${value}`);
+            if (playerInfo.length > 0) {
+                playerInfo.forEach(info => { playerSectionContent += `<div class="phase-info-item">${info}</div>`; });
+                lastPlayerSectionCache.set(bot.id, { html: playerSectionContent, time: Date.now() });
             }
         }
-        
-        // Display all player info items in phase-info format
-        if (playerInfo.length > 0) {
-            playerInfo.forEach(info => {
-                html += `<div class="phase-info-item">${info}</div>`;
-            });
+        // Prefer cached content when current build is empty to avoid flashing
+        if (playerSectionContent) {
+            html += playerSectionContent;
         } else {
-            html += `<div class="phase-info-item">No player data available</div>`;
+            const cached = lastPlayerSectionCache.get(bot.id);
+            if (cached) html += cached.html;
+            else html += `<div class="phase-info-item">No player data available</div>`;
         }
-        
         html += `</div></div>`;
     }
 
-    // Total Stats - Display all available stats from the API (formatted like Current Phase)
-    if (dashboardSettings.showTotalStats && statsData && Object.keys(statsData).length > 0) {
-        html += `<div class="status-section">
-            <h4>Total Stats</h4>
-            <div class="phase-info">`;
-        
-        // Helper function to format stat values
-        const formatStatValue = (value) => {
-            if (value === null || value === undefined) return 'N/A';
-            if (typeof value === 'number') {
-                return value.toLocaleString();
-            }
-            if (typeof value === 'object') {
-                return JSON.stringify(value);
-            }
-            return String(value);
-        };
-        
-        // Build list of stat info items (like Current Phase format)
-        const statInfo = [];
-        
-        // Check for totals object and add those stats first
-        const totals = statsData.totals || {};
-        if (totals && Object.keys(totals).length > 0) {
-            // Total encounters
-            if (totals.total_encounters !== undefined && dashboardSettings.showTotalStatsTotalEncounters !== false) {
-                statInfo.push(`Total Encounters: ${totals.total_encounters.toLocaleString()}`);
-            }
-            
-            // Shiny encounters
-            if (totals.shiny_encounters !== undefined && dashboardSettings.showTotalStatsShinyEncounters !== false) {
-                statInfo.push(`Shiny Encounters: ${totals.shiny_encounters.toLocaleString()}`);
-            }
-            
-            // Catches
-            if (totals.catches !== undefined && dashboardSettings.showTotalStatsCatches !== false) {
-                statInfo.push(`Catches: ${totals.catches.toLocaleString()}`);
-            }
-            
-            // Total highest IV sum
-            if (totals.total_highest_iv_sum && typeof totals.total_highest_iv_sum === 'object' && dashboardSettings.showTotalStatsHighestIV !== false) {
-                const iv = totals.total_highest_iv_sum;
-                statInfo.push(`Total Highest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
-            }
-            
-            // Total lowest IV sum
-            if (totals.total_lowest_iv_sum && typeof totals.total_lowest_iv_sum === 'object' && dashboardSettings.showTotalStatsLowestIV !== false) {
-                const iv = totals.total_lowest_iv_sum;
-                statInfo.push(`Total Lowest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
-            }
-            
-            // Total highest SV
-            if (totals.total_highest_sv && typeof totals.total_highest_sv === 'object' && dashboardSettings.showTotalStatsHighestSV !== false) {
-                const sv = totals.total_highest_sv;
-                statInfo.push(`Total Highest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
-            }
-            
-            // Total lowest SV
-            if (totals.total_lowest_sv && typeof totals.total_lowest_sv === 'object' && dashboardSettings.showTotalStatsLowestSV !== false) {
-                const sv = totals.total_lowest_sv;
-                statInfo.push(`Total Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
-            }
-            
-            // Phase-related data removed from Total Stats
-        }
-        
-        // Display all stats from the stats object
-        const statFields = [
-            { key: 'total_encounters', label: 'Total Encounters', aliases: ['totalEncounters', 'encounters'] },
-            { key: 'shiny_encounters', label: 'Shiny Encounters', aliases: ['shinyEncounters', 'shinies'] },
-            { key: 'play_time', label: 'Play Time', aliases: ['playTime', 'time_played', 'timePlayed'], formatter: (v) => typeof v === 'number' ? formatPlayTime(v) : v },
-            { key: 'total_runtime', label: 'Total Runtime', aliases: ['totalRuntime', 'runtime'], formatter: (v) => typeof v === 'number' ? formatPlayTime(v) : v },
-            { key: 'total_shinies', label: 'Total Shinies', aliases: ['totalShinies'] },
-            { key: 'total_caught', label: 'Total Caught', aliases: ['totalCaught', 'caught'] },
-            { key: 'total_fainted', label: 'Total Fainted', aliases: ['totalFainted', 'fainted'] },
-            { key: 'total_resets', label: 'Total Resets', aliases: ['totalResets', 'resets'] },
-            { key: 'encounters_per_hour', label: 'Encounters/Hour', aliases: ['encountersPerHour', 'encounter_rate'] },
-            { key: 'shiny_rate', label: 'Shiny Rate', aliases: ['shinyRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(4)}%` : v },
-            { key: 'average_iv_sum', label: 'Average IV Sum', aliases: ['averageIvSum', 'avg_iv_sum', 'avgIvSum'], formatter: (v) => typeof v === 'number' ? v.toFixed(2) : v },
-            { key: 'best_iv_sum', label: 'Best IV Sum', aliases: ['bestIvSum', 'highest_iv_sum', 'highestIvSum'] },
-            // Phase-related fields removed from Total Stats
-            { key: 'total_pokemon_caught', label: 'Pokemon Caught', aliases: ['totalPokemonCaught', 'pokemon_caught'] },
-            { key: 'total_pokemon_seen', label: 'Pokemon Seen', aliases: ['totalPokemonSeen', 'pokemon_seen'] },
-            { key: 'total_battles', label: 'Total Battles', aliases: ['totalBattles', 'battles'] },
-            { key: 'total_wins', label: 'Total Wins', aliases: ['totalWins', 'wins'] },
-            { key: 'total_losses', label: 'Total Losses', aliases: ['totalLosses', 'losses'] },
-            { key: 'win_rate', label: 'Win Rate', aliases: ['winRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(2)}%` : v },
-            { key: 'money_earned', label: 'Money Earned', aliases: ['moneyEarned'], formatter: (v) => typeof v === 'number' ? `₽${v.toLocaleString()}` : v },
-            { key: 'money_spent', label: 'Money Spent', aliases: ['moneySpent'], formatter: (v) => typeof v === 'number' ? `₽${v.toLocaleString()}` : v },
-            { key: 'items_found', label: 'Items Found', aliases: ['itemsFound'] },
-            { key: 'pokeballs_used', label: 'Pokeballs Used', aliases: ['pokeballsUsed'] },
-            { key: 'pokeballs_caught', label: 'Pokeballs Caught', aliases: ['pokeballsCaught'] },
-            { key: 'catch_rate', label: 'Catch Rate', aliases: ['catchRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(2)}%` : v }
-        ];
-        
-        // Track which fields we've displayed
-        const displayedKeys = new Set();
-        
-        // Add totals keys to displayedKeys so they don't show up again
-        if (totals && Object.keys(totals).length > 0) {
-            Object.keys(totals).forEach(key => displayedKeys.add(key));
-        }
-        displayedKeys.add('totals'); // Also skip the totals object itself
-        
-        // Display known stat fields
-        statFields.forEach(field => {
-            let value = statsData[field.key];
-            if (value === undefined || value === null) {
-                // Try aliases
-                for (const alias of field.aliases) {
-                    if (statsData[alias] !== undefined && statsData[alias] !== null) {
-                        value = statsData[alias];
-                        break;
-                    }
+    // Total Stats - remember last values; show section when enabled, use cache when no current data
+    const hasTotals = statsData && statsData.totals && Object.keys(statsData.totals).length > 0;
+    const hasAnyStats = statsData && Object.keys(statsData).length > 0;
+    if (dashboardSettings.showTotalStats) {
+        let totalStatsSectionHtml = '';
+        if (hasAnyStats || hasTotals) {
+            const formatStatValue = (value) => {
+                if (value === null || value === undefined) return null;
+                if (typeof value === 'number') return value.toLocaleString();
+                if (typeof value === 'object') return JSON.stringify(value);
+                return String(value);
+            };
+            const statInfo = [];
+            const totals = statsData.totals || {};
+            if (totals && Object.keys(totals).length > 0) {
+                if (totals.total_encounters !== undefined && dashboardSettings.showTotalStatsTotalEncounters !== false) {
+                    statInfo.push(`Total Encounters: ${Number(totals.total_encounters).toLocaleString()}`);
+                }
+                if (totals.shiny_encounters !== undefined && dashboardSettings.showTotalStatsShinyEncounters !== false) {
+                    statInfo.push(`Shiny Encounters: ${Number(totals.shiny_encounters).toLocaleString()}`);
+                }
+                if (totals.catches !== undefined && dashboardSettings.showTotalStatsCatches !== false) {
+                    statInfo.push(`Catches: ${Number(totals.catches).toLocaleString()}`);
+                }
+                if (totals.total_highest_iv_sum && typeof totals.total_highest_iv_sum === 'object' && dashboardSettings.showTotalStatsHighestIV !== false) {
+                    const iv = totals.total_highest_iv_sum;
+                    statInfo.push(`Total Highest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
+                }
+                if (totals.total_lowest_iv_sum && typeof totals.total_lowest_iv_sum === 'object' && dashboardSettings.showTotalStatsLowestIV !== false) {
+                    const iv = totals.total_lowest_iv_sum;
+                    statInfo.push(`Total Lowest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
+                }
+                if (totals.total_highest_sv && typeof totals.total_highest_sv === 'object' && dashboardSettings.showTotalStatsHighestSV !== false) {
+                    const sv = totals.total_highest_sv;
+                    statInfo.push(`Total Highest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
+                }
+                if (totals.total_lowest_sv && typeof totals.total_lowest_sv === 'object' && dashboardSettings.showTotalStatsLowestSV !== false) {
+                    const sv = totals.total_lowest_sv;
+                    statInfo.push(`Total Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
                 }
             }
-            
-            if (value !== undefined && value !== null) {
-                displayedKeys.add(field.key);
-                field.aliases.forEach(alias => displayedKeys.add(alias));
-                
-                const formattedValue = field.formatter ? field.formatter(value) : formatStatValue(value);
-                statInfo.push(`${field.label}: ${formattedValue}`);
+            const statFields = [
+                { key: 'total_encounters', label: 'Total Encounters', aliases: ['totalEncounters', 'encounters'] },
+                { key: 'shiny_encounters', label: 'Shiny Encounters', aliases: ['shinyEncounters', 'shinies'] },
+                { key: 'play_time', label: 'Play Time', aliases: ['playTime', 'time_played', 'timePlayed'], formatter: (v) => typeof v === 'number' ? formatPlayTime(v) : v },
+                { key: 'total_runtime', label: 'Total Runtime', aliases: ['totalRuntime', 'runtime'], formatter: (v) => typeof v === 'number' ? formatPlayTime(v) : v },
+                { key: 'total_shinies', label: 'Total Shinies', aliases: ['totalShinies'] },
+                { key: 'total_caught', label: 'Total Caught', aliases: ['totalCaught', 'caught'] },
+                { key: 'total_fainted', label: 'Total Fainted', aliases: ['totalFainted', 'fainted'] },
+                { key: 'total_resets', label: 'Total Resets', aliases: ['totalResets', 'resets'] },
+                { key: 'encounters_per_hour', label: 'Encounters/Hour', aliases: ['encountersPerHour', 'encounter_rate'] },
+                { key: 'shiny_rate', label: 'Shiny Rate', aliases: ['shinyRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(4)}%` : v },
+                { key: 'average_iv_sum', label: 'Average IV Sum', aliases: ['averageIvSum', 'avg_iv_sum', 'avgIvSum'], formatter: (v) => typeof v === 'number' ? v.toFixed(2) : v },
+                { key: 'best_iv_sum', label: 'Best IV Sum', aliases: ['bestIvSum', 'highest_iv_sum', 'highestIvSum'] },
+                { key: 'total_pokemon_caught', label: 'Pokemon Caught', aliases: ['totalPokemonCaught', 'pokemon_caught'] },
+                { key: 'total_pokemon_seen', label: 'Pokemon Seen', aliases: ['totalPokemonSeen', 'pokemon_seen'] },
+                { key: 'total_battles', label: 'Total Battles', aliases: ['totalBattles', 'battles'] },
+                { key: 'total_wins', label: 'Total Wins', aliases: ['totalWins', 'wins'] },
+                { key: 'total_losses', label: 'Total Losses', aliases: ['totalLosses', 'losses'] },
+                { key: 'win_rate', label: 'Win Rate', aliases: ['winRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(2)}%` : v },
+                { key: 'money_earned', label: 'Money Earned', aliases: ['moneyEarned'], formatter: (v) => typeof v === 'number' ? `₽${v.toLocaleString()}` : v },
+                { key: 'money_spent', label: 'Money Spent', aliases: ['moneySpent'], formatter: (v) => typeof v === 'number' ? `₽${v.toLocaleString()}` : v },
+                { key: 'items_found', label: 'Items Found', aliases: ['itemsFound'] },
+                { key: 'pokeballs_used', label: 'Pokeballs Used', aliases: ['pokeballsUsed'] },
+                { key: 'pokeballs_caught', label: 'Pokeballs Caught', aliases: ['pokeballsCaught'] },
+                { key: 'catch_rate', label: 'Catch Rate', aliases: ['catchRate'], formatter: (v) => typeof v === 'number' ? `${(v * 100).toFixed(2)}%` : v }
+            ];
+            const displayedKeys = new Set();
+            if (totals && Object.keys(totals).length > 0) {
+                Object.keys(totals).forEach(key => displayedKeys.add(key));
             }
-        });
-        
-        // Display any remaining stats that weren't in our known list
-        for (const [key, value] of Object.entries(statsData)) {
-            // Skip if already displayed or if it's a complex object (we handle those separately)
-            if (displayedKeys.has(key) || 
-                key === 'current_phase' || key === 'currentPhase' ||
-                typeof value === 'object' && value !== null) {
-                continue;
-            }
-            
-            // Skip phase-related fields
-            if (key.toLowerCase().includes('phase') || 
-                key.toLowerCase().includes('fraction') || 
-                key.toLowerCase().includes('time_spent') ||
-                key.toLowerCase().includes('timespent')) {
-                continue;
-            }
-            
-            // Format the key name (convert snake_case to Title Case)
-            const label = key
-                .replace(/_/g, ' ')
-                .replace(/([A-Z])/g, ' $1')
-                .split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-            
-            // Skip if label contains "time spent" or "fraction"
-            if (label.toLowerCase().includes('time spent') || 
-                label.toLowerCase().includes('fraction')) {
-                continue;
-            }
-            
-            statInfo.push(`${label}: ${formatStatValue(value)}`);
-        }
-        
-        // Display all stat info items in phase-info format
-        if (statInfo.length > 0) {
-            statInfo.forEach(info => {
-                html += `<div class="phase-info-item">${info}</div>`;
+            displayedKeys.add('totals');
+            statFields.forEach(field => {
+                let value = statsData[field.key];
+                if (value === undefined || value === null) {
+                    for (const alias of field.aliases) {
+                        if (statsData[alias] !== undefined && statsData[alias] !== null) {
+                            value = statsData[alias];
+                            break;
+                        }
+                    }
+                }
+                if (value !== undefined && value !== null) {
+                    displayedKeys.add(field.key);
+                    field.aliases.forEach(alias => displayedKeys.add(alias));
+                    const formattedValue = field.formatter ? field.formatter(value) : formatStatValue(value);
+                    if (formattedValue != null) statInfo.push(`${field.label}: ${formattedValue}`);
+                }
             });
+            for (const [key, value] of Object.entries(statsData)) {
+                if (displayedKeys.has(key) || key === 'current_phase' || key === 'currentPhase' ||
+                    (typeof value === 'object' && value !== null)) continue;
+                if (key.toLowerCase().includes('phase') || key.toLowerCase().includes('fraction') ||
+                    key.toLowerCase().includes('time_spent') || key.toLowerCase().includes('timespent')) continue;
+                const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').split(' ')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+                if (label.toLowerCase().includes('time spent') || label.toLowerCase().includes('fraction')) continue;
+                const fv = formatStatValue(value);
+                if (fv != null) statInfo.push(`${label}: ${fv}`);
+            }
+            // If no items from API, use remembered max totals so we don't show "No stats available"
+            if (statInfo.length === 0) {
+                const maxEnc = maxTotalEncountersCache.get(bot.id);
+                const maxShinies = maxTotalShiniesCache.get(bot.id);
+                const maxCatches = maxTotalCatchesCache.get(bot.id);
+                if (maxEnc != null && dashboardSettings.showTotalStatsTotalEncounters !== false) {
+                    statInfo.push(`Total Encounters: ${Number(maxEnc).toLocaleString()}`);
+                }
+                if (maxShinies != null && dashboardSettings.showTotalStatsShinyEncounters !== false) {
+                    statInfo.push(`Shiny Encounters: ${Number(maxShinies).toLocaleString()}`);
+                }
+                if (maxCatches != null && dashboardSettings.showTotalStatsCatches !== false) {
+                    statInfo.push(`Catches: ${Number(maxCatches).toLocaleString()}`);
+                }
+                // If still empty, show zeros so we never show "No stats available"
+                if (statInfo.length === 0) {
+                    if (dashboardSettings.showTotalStatsTotalEncounters !== false) statInfo.push('Total Encounters: 0');
+                    if (dashboardSettings.showTotalStatsShinyEncounters !== false) statInfo.push('Shiny Encounters: 0');
+                    if (dashboardSettings.showTotalStatsCatches !== false) statInfo.push('Catches: 0');
+                }
+            }
+            const innerItems = statInfo.length > 0
+                ? statInfo.map(info => `<div class="phase-info-item">${info}</div>`).join('')
+                : '<div class="phase-info-item">No stats available</div>';
+            const botNameEsc = String(bot.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            totalStatsSectionHtml = `<div class="status-section">
+                <h4>Total Stats — ${botNameEsc}</h4>
+                <div class="phase-info">${innerItems}</div></div>`;
+            if (statInfo.length > 0) {
+                lastTotalStatsSectionCache.set(bot.id, { html: totalStatsSectionHtml, time: Date.now() });
+            }
         } else {
-            html += `<div class="phase-info-item">No stats available</div>`;
+            const totalStatsCached = lastTotalStatsSectionCache.get(bot.id);
+            if (totalStatsCached) {
+                totalStatsSectionHtml = totalStatsCached.html;
+            } else {
+                // No API stats and no cache: show at least remembered max totals or zeros
+                const maxEnc = maxTotalEncountersCache.get(bot.id);
+                const maxShinies = maxTotalShiniesCache.get(bot.id);
+                const maxCatches = maxTotalCatchesCache.get(bot.id);
+                const fallbackItems = [];
+                if (maxEnc != null && dashboardSettings.showTotalStatsTotalEncounters !== false) {
+                    fallbackItems.push(`<div class="phase-info-item">Total Encounters: ${Number(maxEnc).toLocaleString()}</div>`);
+                } else if (dashboardSettings.showTotalStatsTotalEncounters !== false) {
+                    fallbackItems.push(`<div class="phase-info-item">Total Encounters: 0</div>`);
+                }
+                if (maxShinies != null && dashboardSettings.showTotalStatsShinyEncounters !== false) {
+                    fallbackItems.push(`<div class="phase-info-item">Shiny Encounters: ${Number(maxShinies).toLocaleString()}</div>`);
+                } else if (dashboardSettings.showTotalStatsShinyEncounters !== false) {
+                    fallbackItems.push(`<div class="phase-info-item">Shiny Encounters: 0</div>`);
+                }
+                if (maxCatches != null && dashboardSettings.showTotalStatsCatches !== false) {
+                    fallbackItems.push(`<div class="phase-info-item">Catches: ${Number(maxCatches).toLocaleString()}</div>`);
+                } else if (dashboardSettings.showTotalStatsCatches !== false) {
+                    fallbackItems.push(`<div class="phase-info-item">Catches: 0</div>`);
+                }
+                if (fallbackItems.length > 0) {
+                    const botNameEsc = String(bot.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    totalStatsSectionHtml = `<div class="status-section">
+                        <h4>Total Stats — ${botNameEsc}</h4>
+                        <div class="phase-info">${fallbackItems.join('')}</div></div>`;
+                }
+            }
         }
-        
-        html += `</div></div>`;
+        if (totalStatsSectionHtml) html += totalStatsSectionHtml;
     }
 
     if (!html) {
@@ -4476,6 +5170,7 @@ function updateOptionsModalCheckboxes() {
     
     if (optShowEncounterRateSection) optShowEncounterRateSection.checked = dashboardSettings.showEncounterRateSection !== false;
     if (optShowTargetPokemonSection) optShowTargetPokemonSection.checked = dashboardSettings.showTargetPokemonSection !== false;
+    if (optShowControls) optShowControls.checked = dashboardSettings.showControls !== false;
     if (optShowMap) optShowMap.checked = dashboardSettings.showMap !== false;
     if (optShowParty) optShowParty.checked = dashboardSettings.showParty !== false;
     if (optShowCurrentEncounter) optShowCurrentEncounter.checked = dashboardSettings.showCurrentEncounter !== false;
@@ -4545,6 +5240,7 @@ function updateOptionsModalCheckboxes() {
 
 // Save options from modal to dashboard settings
 function saveOptionsFromModal() {
+    const optShowControls = document.getElementById('optShowControls');
     const optShowEncounterRateSection = document.getElementById('optShowEncounterRateSection');
     const optShowTargetPokemonSection = document.getElementById('optShowTargetPokemonSection');
     const optShowMap = document.getElementById('optShowMap');
@@ -4614,6 +5310,7 @@ function saveOptionsFromModal() {
     const botSectionOrderList = document.getElementById('botSectionOrderList');
     
     // Update dashboard settings
+    if (optShowControls) dashboardSettings.showControls = optShowControls.checked;
     if (optShowEncounterRateSection) dashboardSettings.showEncounterRateSection = optShowEncounterRateSection.checked;
     if (optShowTargetPokemonSection) dashboardSettings.showTargetPokemonSection = optShowTargetPokemonSection.checked;
     if (optShowMap) dashboardSettings.showMap = optShowMap.checked;
@@ -4693,6 +5390,9 @@ function saveOptionsFromModal() {
     applyBotLogoVisibility(dashboardSettings.showLogo !== false);
     
     // Update main dashboard checkboxes to match
+    if (showControls) showControls.checked = dashboardSettings.showControls;
+    if (showEncounterRateSectionEl) showEncounterRateSectionEl.checked = dashboardSettings.showEncounterRateSection;
+    if (showTargetPokemonSectionEl) showTargetPokemonSectionEl.checked = dashboardSettings.showTargetPokemonSection;
     if (showMap) showMap.checked = dashboardSettings.showMap;
     if (showParty) showParty.checked = dashboardSettings.showParty;
     if (showCurrentEncounter) showCurrentEncounter.checked = dashboardSettings.showCurrentEncounter;
@@ -4704,6 +5404,7 @@ function saveOptionsFromModal() {
     if (showTotalStats) showTotalStats.checked = dashboardSettings.showTotalStats;
     if (showEncounterRateAsGraph) showEncounterRateAsGraph.checked = dashboardSettings.showEncounterRateAsGraph;
     
+    applyDashboardSectionVisibility();
     // Refresh all bot cards
     refreshAllBotCards();
 }
@@ -5693,7 +6394,7 @@ function updateBotControls(card, bot, status) {
     // Update bot mode display
     const modeDisplay = card.querySelector(`#bot-mode-${bot.id}`);
     if (modeDisplay) {
-        const mode = status.mode || status.bot_mode || status.game_mode || status.gameMode || 'Unknown';
+        const mode = status.mode || status.bot_mode || status.game_mode || status.gameMode || (typeof status.game_state === 'string' ? status.game_state : null) || 'Unknown';
         modeDisplay.textContent = mode;
         
         // Add/remove red background tint for Manual mode
@@ -5779,8 +6480,67 @@ function updateBotControls(card, bot, status) {
     }
 }
 
-// SSE (Server-Sent Events) for real-time updates - connect directly to bot's /stream_events
+// SSE (Server-Sent Events) for real-time updates - connect to bot's /stream_events
+// Topics must be subscribed per pokebot-gen3 API: https://github.com/40Cakes/pokebot-gen3/blob/main/modules/web/static/index.html#L257-L303
+const STREAM_TOPICS = [
+    'Opponent', 'Party', 'PerformanceData', 'GameState', 'Map', 'MapTile',
+    'Message', 'BotMode', 'EmulatorSettings', 'Player', 'PokenavCall', 'Inputs', 'FishingAttempt'
+];
 const botEventSources = new Map(); // botId -> EventSource
+// Per-bot merged state from stream events (Opponent, Party, etc.)
+const botStreamState = new Map(); // botId -> { party, opponent, encounter_rate, game_state, map, ... }
+
+let updateBotStatusInProgress = false;
+let statsPollInProgress = false;
+
+// Limit time per bot and per cycle so many bots don't block updates forever
+const UPDATE_BOT_STATUS_PER_BOT_TIMEOUT_MS = 10000; // 10s max per bot
+const UPDATE_BOT_STATUS_CYCLE_TIMEOUT_MS = 100000; // 100s max per full cycle (~10 bots at 10s each)
+// Stats (totals, per-species) are fetched less often than UI data
+const STATS_POLL_INTERVAL_MS = 30000; // 30s - stats-only poll interval
+const STATS_POLL_INITIAL_DELAY_MS = 2000; // Run first stats poll 2s after load
+// Avoid opening too many SSE connections (browser limit ~6 per origin); use polling only for the rest
+const MAX_STREAM_BOTS = 3;
+
+// Fetch /stats for visible bots only (runs on a slower interval than main UI poll)
+async function updateBotStatsOnly() {
+    if (statsPollInProgress) return;
+    const visibleBots = getVisibleBots();
+    if (visibleBots.length === 0) return;
+    statsPollInProgress = true;
+    try {
+    for (const bot of visibleBots) {
+        try {
+            const statsData = await Promise.race([
+                fetchBotEndpoint(bot, bot.url || '', '/stats'),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+            ]);
+            if (!statsData || typeof statsData !== 'object') continue;
+            const existing = botDataCache.get(bot.id);
+            if (existing && existing.data) {
+                const updated = {
+                    ...existing,
+                    data: { ...existing.data, stats: statsData }
+                };
+                botDataCache.set(bot.id, updated);
+                updateMaxTotalsFromStats(bot.id, statsData);
+                const card = document.getElementById(`bot-status-${bot.id}`);
+                if (card) updateStatusCard(card, bot, updated);
+            } else {
+                updateMaxTotalsFromStats(bot.id, statsData);
+            }
+            // Keep Bot Statistics modal cache in sync when background poll gets new data
+            botStatsCache.set(bot.id, { stats: statsData, time: Date.now() });
+        } catch (e) {
+            console.warn(`[${bot.name}] Stats poll failed:`, e?.message || e);
+        }
+        await new Promise(r => setTimeout(r, 0)); // yield between bots
+    }
+    saveBotStatsCache();
+    } finally {
+        statsPollInProgress = false;
+    }
+}
 
 function startPolling() {
     // Stop existing connections
@@ -5792,25 +6552,42 @@ function startPolling() {
     // Update immediately with current data (only on initial load)
     updateBotStatus(true);
     
-    // Use faster polling for real-time updates
-    const intervalSeconds = Math.min(dashboardSettings.updateInterval || 2, 2); // Max 2 seconds for real-time feel
-    const intervalMs = intervalSeconds * 1000;
+    // Use faster polling for real-time updates; scale interval with bot count so one cycle can finish before the next
+    const intervalSeconds = Math.min(dashboardSettings.updateInterval || 2, 2); // Max 2 seconds base
+    let intervalMs = intervalSeconds * 1000;
+    if (visibleBots.length > 1) {
+        // Allow enough time for one full cycle (per-bot timeout 10s) so we don't stack and kill the tab
+        const minIntervalForBots = 5000 + visibleBots.length * 10000; // 5s + 10s per bot
+        intervalMs = Math.max(intervalMs, Math.min(90000, minIntervalForBots));
+    }
     
-    console.log('Setting up polling interval:', intervalMs, 'ms');
+    console.log('Setting up polling interval:', intervalMs, 'ms (', visibleBots.length, 'bots)');
     
     // Use server-side polling (most reliable)
     const pollingInterval = setInterval(() => {
-        console.log('Polling update triggered');
+        if (visibleBots.length <= 6) console.log('Polling update triggered');
         updateBotStatus(false);
     }, intervalMs);
     
     // Store the main polling interval
     botPollingIntervals.set('main', pollingInterval);
     
-    // Don't try bot streams for now - they're not working reliably
-    // botInstances.forEach(bot => {
-    //     connectToBotStream(bot);
-    // });
+    // Stats-only poll: fetch /stats less frequently than UI (Total Stats, Bot Statistics modal, max totals)
+    const runStatsPoll = () => {
+        updateBotStatsOnly().catch(err => console.warn('[Stats poll]', err));
+    };
+    setTimeout(runStatsPoll, STATS_POLL_INITIAL_DELAY_MS);
+    const statsPollingInterval = setInterval(runStatsPoll, STATS_POLL_INTERVAL_MS);
+    botPollingIntervals.set('stats', statsPollingInterval);
+    
+    // Connect to bot streams only for first N bots to avoid exhausting browser connections (site dies with 5+)
+    const botsToStream = visibleBots.length <= MAX_STREAM_BOTS ? visibleBots : visibleBots.slice(0, MAX_STREAM_BOTS);
+    if (visibleBots.length > MAX_STREAM_BOTS) {
+        console.log('Streams limited to', MAX_STREAM_BOTS, 'bots;', visibleBots.length - MAX_STREAM_BOTS, 'bots use polling only');
+    }
+    botsToStream.forEach(bot => {
+        connectToBotStream(bot);
+    });
 }
 
 function connectToBotStream(bot) {
@@ -5826,11 +6603,15 @@ function connectToBotStream(bot) {
     let hasReceivedData = false;
     
     try {
-        // Connect directly to bot's stream_events endpoint via stream proxy
-        const streamUrl = `/api/bot-stream-proxy?url=${encodeURIComponent(bot.url + '/stream_events')}`;
+        // Build stream URL with topic params (required by pokebot-gen3 /stream_events API)
+        const baseUrl = (bot.url || '').replace(/\/$/, '');
+        const topicParams = STREAM_TOPICS.map(t => 'topic=' + encodeURIComponent(t)).join('&');
+        const streamPath = baseUrl + '/stream_events?' + topicParams;
+        const streamUrl = `/api/bot-stream-proxy?url=${encodeURIComponent(streamPath)}`;
         const eventSource = new EventSource(streamUrl);
         
         botEventSources.set(bot.id, eventSource);
+        botStreamState.set(bot.id, {});
         
         // Set a timeout - if no data received in 10 seconds, fallback to polling
         streamTimeout = setTimeout(() => {
@@ -5838,117 +6619,192 @@ function connectToBotStream(bot) {
                 console.warn(`[${bot.name}] Stream timeout - no data received, falling back to polling`);
                 eventSource.close();
                 botEventSources.delete(bot.id);
+                botStreamState.delete(bot.id);
                 fallbackToPollingForBot(bot);
             }
         }, 10000);
         
-        eventSource.onmessage = (event) => {
-            try {
-                // Skip ping/comment messages
-                if (event.data.startsWith(':')) {
-                    return;
-                }
-                
-                hasReceivedData = true;
-                if (streamTimeout) {
-                    clearTimeout(streamTimeout);
-                    streamTimeout = null;
-                }
-                
-                // Parse the event data from bot
-                const botData = JSON.parse(event.data);
-                console.log(`[${bot.name}] Received stream data:`, Object.keys(botData));
-                
-                // Track current encounter if available - check all possible fields
-                const currentEncounter = botData.opponent || botData.currentEncounter || botData.encounter;
-                if (currentEncounter) {
-                    console.log(`[${bot.name}] Tracking encounter:`, currentEncounter);
-                    trackCurrentEncounter(bot.id, currentEncounter);
-                } else {
-                    console.log(`[${bot.name}] No encounter data in stream:`, Object.keys(botData));
-                }
-                
-                // Get tracked encounters and add them to the data
-                const trackedEncountersForBot = (trackedEncounters[bot.id] || []).slice().reverse();
-                
-                // Build result object similar to fetchBotData format
-                const result = {
-                    success: true,
-                    data: {
-                        status: botData.game_state || botData.emulator || {},
-                        party: botData.party || [],
-                        encounters: trackedEncountersForBot,
-                        currentEncounter: botData.opponent || botData.currentEncounter,
-                        stats: botData.stats || {},
-                        encounter_rate: botData.encounter_rate,
-                        map: botData.map || {},
-                        emulator: botData.emulator || {}
-                    }
-                };
-                
-                // Cache bot data for summary calculations
-                botDataCache.set(bot.id, result);
-                
-                // Update maximum encounters cache
-                if (result && result.success && result.data) {
-                    const stats = result.data.stats || {};
-                    const totals = stats.totals || {};
-                    let encounters = 0;
-                    if (totals.total_encounters !== undefined && totals.total_encounters !== null) {
-                        encounters = totals.total_encounters;
-                    } else if (stats.total_encounters !== undefined && stats.total_encounters !== null) {
-                        encounters = stats.total_encounters;
-                    } else if (stats.totalEncounters !== undefined && stats.totalEncounters !== null) {
-                        encounters = stats.totalEncounters;
-                    }
-                    if (typeof encounters === 'number' && encounters > 0) {
-                        const currentMax = maxTotalEncountersCache.get(bot.id) || 0;
-                        if (encounters > currentMax) {
-                            maxTotalEncountersCache.set(bot.id, encounters);
-                        }
-                    }
-                }
-                
-                // Update live encounter rate history (in-memory only)
-                const encounterRate = result.data.encounter_rate;
-                if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
-                    if (!liveEncounterRateHistory.has(bot.id)) {
-                        liveEncounterRateHistory.set(bot.id, []);
-                    }
-                    const history = liveEncounterRateHistory.get(bot.id);
-                    const now = Date.now();
-                    // Only add if rate changed or enough time has passed (1 second)
-                    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
-                    if (!lastEntry || lastEntry.rate !== encounterRate || (now - lastEntry.time) >= 1000) {
-                        history.push({ time: now, rate: encounterRate });
-                        // Keep only last N points
-                        if (history.length > MAX_LIVE_HISTORY_POINTS) {
-                            history.shift();
-                        }
-                    }
-                }
-                
-                // Update the card
-                const card = document.getElementById(`bot-status-${bot.id}`);
-                if (card) {
-                    // Update card without showing loading state
-                    const indicator = card.querySelector('.status-indicator');
-                    const wasOnline = indicator && indicator.textContent === 'Online';
-                    
-                    updateStatusCard(card, bot, result);
-                    
-                    // Ensure indicator stays online after update
-                    if (indicator && wasOnline) {
-                        indicator.textContent = 'Online';
-                        indicator.className = 'status-indicator online';
-                    }
-                } else {
-                    // Card doesn't exist yet, create it
-                    updateBotStatus(true);
-                }
-            } catch (err) {
-                console.error(`[${bot.name}] Error parsing stream event:`, err, event.data);
+        function markReceivedData() {
+            hasReceivedData = true;
+            if (streamTimeout) {
+                clearTimeout(streamTimeout);
+                streamTimeout = null;
             }
+        }
+        
+        function buildResultFromStreamState() {
+            const state = botStreamState.get(bot.id) || {};
+            const trackedEncountersForBot = (trackedEncounters[bot.id] || []).slice().reverse();
+            return {
+                success: true,
+                data: {
+                    status: { game_state: state.game_state },
+                    party: state.party || [],
+                    encounters: trackedEncountersForBot,
+                    currentEncounter: state.opponent || null,
+                    stats: state.stats || {},
+                    encounter_rate: state.encounter_rate,
+                    map: state.map || {},
+                    emulator: state.emulator || {}
+                }
+            };
+        }
+        
+        function applyStreamUpdate() {
+            const result = buildResultFromStreamState();
+            botDataCache.set(bot.id, result);
+            const encounterRate = result.data.encounter_rate;
+            if (encounterRate !== undefined && encounterRate !== null && typeof encounterRate === 'number' && encounterRate >= 0) {
+                if (!liveEncounterRateHistory.has(bot.id)) {
+                    liveEncounterRateHistory.set(bot.id, []);
+                }
+                const history = liveEncounterRateHistory.get(bot.id);
+                const now = Date.now();
+                const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+                if (!lastEntry || lastEntry.rate !== encounterRate || (now - lastEntry.time) >= 1000) {
+                    history.push({ time: now, rate: encounterRate });
+                    if (history.length > MAX_LIVE_HISTORY_POINTS) history.shift();
+                }
+            }
+            const card = document.getElementById(`bot-status-${bot.id}`);
+            if (card) {
+                const indicator = card.querySelector('.status-indicator');
+                const wasOnline = indicator && indicator.textContent === 'Online';
+                updateStatusCard(card, bot, result);
+                if (indicator && wasOnline) {
+                    indicator.textContent = 'Online';
+                    indicator.className = 'status-indicator online';
+                }
+            } else {
+                updateBotStatus(true);
+            }
+            updateDashboardSummary();
+        }
+        
+        // Handle typed SSE events (pokebot-gen3 sends event type per topic)
+        eventSource.addEventListener('Opponent', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                trackCurrentEncounter(bot.id, data);
+                const state = botStreamState.get(bot.id) || {};
+                state.opponent = data;
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] Opponent parse:`, e); }
+        });
+        eventSource.addEventListener('Party', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                const state = botStreamState.get(bot.id) || {};
+                state.party = Array.isArray(data) ? data : (state.party || []);
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] Party parse:`, e); }
+        });
+        eventSource.addEventListener('PerformanceData', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                if (data && typeof data.encounter_rate === 'number') {
+                    const state = botStreamState.get(bot.id) || {};
+                    state.encounter_rate = data.encounter_rate;
+                    state.emulator = state.emulator || {};
+                    state.emulator.current_fps = data.fps;
+                    state.emulator.current_time_spent_in_bot_fraction = data.current_time_spent_in_bot_fraction;
+                    botStreamState.set(bot.id, state);
+                    applyStreamUpdate();
+                }
+            } catch (e) { console.warn(`[${bot.name}] PerformanceData parse:`, e); }
+        });
+        eventSource.addEventListener('GameState', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data !== undefined ? (typeof event.data === 'string' ? event.data : JSON.parse(event.data)) : '';
+                const state = botStreamState.get(bot.id) || {};
+                state.game_state = typeof data === 'string' ? data : (data && data.game_state) || '';
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] GameState parse:`, e); }
+        });
+        eventSource.addEventListener('Map', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                const state = botStreamState.get(bot.id) || {};
+                state.map = data || state.map || {};
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] Map parse:`, e); }
+        });
+        eventSource.addEventListener('Player', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                const state = botStreamState.get(bot.id) || {};
+                state.player = data;
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] Player parse:`, e); }
+        });
+        eventSource.addEventListener('Message', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data;
+                const state = botStreamState.get(bot.id) || {};
+                state.message = data != null ? String(data) : '';
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] Message parse:`, e); }
+        });
+        eventSource.addEventListener('BotMode', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data !== undefined ? (typeof event.data === 'string' ? event.data : JSON.parse(event.data)) : '';
+                const state = botStreamState.get(bot.id) || {};
+                state.bot_mode = typeof data === 'string' ? data : (data && data.bot_mode) || '';
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] BotMode parse:`, e); }
+        });
+        eventSource.addEventListener('EmulatorSettings', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                const state = botStreamState.get(bot.id) || {};
+                state.emulator = Object.assign(state.emulator || {}, data || {});
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] EmulatorSettings parse:`, e); }
+        });
+        eventSource.addEventListener('MapTile', (event) => {
+            markReceivedData();
+            try {
+                const data = event.data ? JSON.parse(event.data) : null;
+                const state = botStreamState.get(bot.id) || {};
+                if (!state.map) state.map = {};
+                state.map.player_position = data;
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { console.warn(`[${bot.name}] MapTile parse:`, e); }
+        });
+        // Generic message fallback (some servers may send untyped events)
+        eventSource.onmessage = (event) => {
+            if (event.data.startsWith(':')) return;
+            markReceivedData();
+            try {
+                const botData = JSON.parse(event.data);
+                const state = botStreamState.get(bot.id) || {};
+                if (botData.opponent != null) state.opponent = botData.opponent;
+                if (botData.party != null) state.party = botData.party;
+                if (botData.encounter_rate != null) state.encounter_rate = botData.encounter_rate;
+                if (botData.game_state != null) state.game_state = botData.game_state;
+                if (botData.map != null) state.map = botData.map;
+                if (botData.emulator != null) state.emulator = botData.emulator;
+                botStreamState.set(bot.id, state);
+                applyStreamUpdate();
+            } catch (e) { /* ignore */ }
         };
         
         eventSource.onerror = (error) => {
@@ -5963,6 +6819,7 @@ function connectToBotStream(bot) {
             if (eventSource.readyState === EventSource.CLOSED && !hasReceivedData) {
                 console.warn(`[${bot.name}] Stream connection failed, falling back to polling`);
                 botEventSources.delete(bot.id);
+                botStreamState.delete(bot.id);
                 fallbackToPollingForBot(bot);
                 return;
             }
@@ -5979,6 +6836,7 @@ function connectToBotStream(bot) {
             } else {
                 // Never got data, fallback immediately
                 botEventSources.delete(bot.id);
+                botStreamState.delete(bot.id);
                 fallbackToPollingForBot(bot);
             }
         };
@@ -6381,6 +7239,7 @@ function stopPolling() {
         eventSource.close();
     });
     botEventSources.clear();
+    botStreamState.clear();
     
     // Clear all polling intervals
     botPollingIntervals.forEach((intervalId, botId) => {

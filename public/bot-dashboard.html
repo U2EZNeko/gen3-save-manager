@@ -66,6 +66,18 @@
                                 Map/Location
                             </label>
                             <label>
+                                <input type="checkbox" id="showControls" class="checkbox" checked>
+                                Controls
+                            </label>
+                            <label>
+                                <input type="checkbox" id="showEncounterRateSection" class="checkbox" checked>
+                                Encounter Rate
+                            </label>
+                            <label>
+                                <input type="checkbox" id="showTargetPokemonSection" class="checkbox" checked>
+                                Target Pokemon
+                            </label>
+                            <label>
                                 <input type="checkbox" id="showParty" class="checkbox" checked>
                                 Party
                             </label>
@@ -125,8 +137,9 @@
 
                 <!-- Card 3: Dashboard Summary -->
                 <div class="controls-section-3 foldable-card" data-foldable-id="bot-dashboard-summary">
-                    <div class="foldable-header">
+                    <div class="foldable-header section-header">
                         <h3>Dashboard Summary</h3>
+                        <button id="botDashboardStatisticsBtn" class="btn btn-primary" type="button">Bot Statistics</button>
                         <span class="foldable-chevron" aria-hidden="true">▼</span>
                     </div>
                     <div class="foldable-body">
@@ -207,19 +220,21 @@
                 </div>
             </div>
 
-            <!-- Hidden Bots Modal -->
-            <div id="hiddenBotsModal" class="modal hidden">
-                <div class="modal-content" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h2>Hidden Bots</h2>
-                        <span class="modal-close" id="closeHiddenBotsModal">&times;</span>
+            <!-- Bot Dashboard Statistics Modal -->
+            <div id="botDashboardStatisticsModal" class="modal hidden">
+                <div class="modal-content statistics-content">
+                    <span class="modal-close" id="closeBotDashboardStatistics">&times;</span>
+                    <h2>Bot Statistics</h2>
+                    <p class="statistics-subtitle">Combined data from each bot's /stats endpoint</p>
+                    <div class="statistics-modal-actions">
+                        <button id="botStatsRefreshBtn" class="btn btn-primary" type="button">Refresh Statistics</button>
+                        <button id="botStatsWipeBtn" class="btn btn-secondary" type="button">Wipe Statistics</button>
                     </div>
-                    <div class="modal-body">
-                        <div id="hiddenBotsList" class="hidden-bots-list">
-                            <!-- Hidden bots will be listed here -->
-                        </div>
-                        <div class="form-actions">
-                            <button id="closeHiddenBotsBtn" class="btn btn-secondary">Close</button>
+                    <div class="statistics-body-wrapper">
+                        <div id="botDashboardStatisticsBody" class="statistics-body"></div>
+                        <div id="botDashboardStatisticsLoading" class="statistics-loading-overlay hidden" aria-hidden="true">
+                            <div class="loading-spinner" aria-hidden="true"></div>
+                            <p class="statistics-loading-text">Loading statistics…</p>
                         </div>
                     </div>
                 </div>
@@ -244,6 +259,13 @@
                     <h3>Bot Card Sections</h3>
                     <p class="options-description">Enable or disable sections displayed on each bot card:</p>
                     <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowControls" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Controls</span>
+                                <span class="option-description">Emulation speed, video, audio toggles</span>
+                            </div>
+                        </label>
                         <label class="option-checkbox-item">
                             <input type="checkbox" id="optShowEncounterRateSection" class="checkbox" checked>
                             <div class="option-label-group">

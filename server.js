@@ -23,6 +23,18 @@ if (typeof globalThis.fetch === 'function') {
   }
 }
 
+// Prevent body timeout / fetch termination from crashing the process (undici)
+process.on('unhandledRejection', (reason, promise) => {
+  const err = reason && typeof reason === 'object' ? reason : { message: String(reason), cause: null };
+  const code = err.cause?.code || err.code;
+  const isBodyTimeout = code === 'UND_ERR_BODY_TIMEOUT' || err.message === 'terminated' || err.cause?.name === 'BodyTimeoutError';
+  if (isBodyTimeout) {
+    console.warn('[Server] Bot response body timeout (handled to avoid crash):', err.message);
+    return;
+  }
+  console.error('[Server] Unhandled rejection:', err.message || reason);
+});
+
 // Gen 3 box constants
 const COUNT_BOX = 14;
 const COUNT_SLOTSPERBOX = 30;
@@ -4204,16 +4216,17 @@ const botProxyHandler = async (req, res) => {
       
       response = await fetch(finalUrl, fetchOptions);
     } catch (fetchError) {
-      // Handle connection errors gracefully (bot is offline)
+      // Handle connection errors and body timeout (undici) gracefully (bot is offline or slow)
       const errorCode = fetchError.cause?.code || fetchError.code;
       const errorMessage = fetchError.cause?.message || fetchError.message;
+      const isBodyTimeout = errorCode === 'UND_ERR_BODY_TIMEOUT' || fetchError.message === 'terminated' || fetchError.cause?.name === 'BodyTimeoutError';
       
-      // ECONNREFUSED, ETIMEDOUT, ENOTFOUND are expected when bot is offline
-      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+      // ECONNREFUSED, ETIMEDOUT, ENOTFOUND, body timeout are expected when bot is offline or slow
+      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND' || isBodyTimeout) {
         // Return a clean error response without logging (expected behavior)
         return res.status(503).json({ 
-          error: 'Bot is offline or unreachable',
-          code: errorCode
+          error: isBodyTimeout ? 'Bot response timed out' : 'Bot is offline or unreachable',
+          code: errorCode || (isBodyTimeout ? 'BODY_TIMEOUT' : undefined)
         });
       }
       
@@ -4304,19 +4317,23 @@ const botProxyHandler = async (req, res) => {
       });
     }
   } catch (error) {
-    // Check if this is a connection error (expected when bot is offline)
+    // Check if this is a connection error or body timeout (expected when bot is offline or slow)
     const errorCode = error.cause?.code || error.code;
-    const isConnectionError = errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND';
+    const isBodyTimeout = errorCode === 'UND_ERR_BODY_TIMEOUT' || error.message === 'terminated' || error.cause?.name === 'BodyTimeoutError';
+    const isConnectionError = errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND' || isBodyTimeout;
     
-    // Only log unexpected errors
-    if (!isConnectionError) {
-      console.error('[Bot Proxy] Unexpected error:', error.message || error);
+    // Return 503 for connection/timeout errors without crashing
+    if (isConnectionError) {
+      return res.status(503).json({ 
+        error: isBodyTimeout ? 'Bot response timed out' : 'Bot is offline or unreachable',
+        code: errorCode || (isBodyTimeout ? 'BODY_TIMEOUT' : undefined)
+      });
     }
+    // Only log unexpected errors
+    console.error('[Bot Proxy] Unexpected error:', error.message || error);
     
-    // Return appropriate status code
-    const statusCode = isConnectionError ? 503 : 500;
-    res.status(statusCode).json({ 
-      error: isConnectionError ? 'Bot is offline or unreachable' : (error.message || 'Failed to fetch from bot API'),
+    return res.status(500).json({ 
+      error: error.message || 'Failed to fetch from bot API',
       code: errorCode || 'UNKNOWN'
     });
   }
@@ -4366,6 +4383,52 @@ app.get('/api/debug-bot-opponent', async (req, res) => {
     return res.status(404).json({ error: 'No JSON response from ' + endpoints.join(', ') });
   } catch (err) {
     console.error('debug-bot-opponent:', err);
+    return res.status(500).json({ error: String(err.message) });
+  }
+});
+
+// Debug: fetch bot /stats and /player to inspect API response shape (for dashboard stats/trainer display)
+app.get('/api/debug-bot-stats', async (req, res) => {
+  try {
+    let baseUrl = req.query.url;
+    if (!baseUrl) {
+      return res.status(400).json({ error: 'Query parameter "url" is required (e.g. url=http://127.0.0.1:8903)' });
+    }
+    try { baseUrl = decodeURIComponent(baseUrl); } catch (_) {}
+    const urlObj = new URL(baseUrl);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return res.status(400).json({ error: 'Only HTTP/HTTPS allowed' });
+    }
+    const base = urlObj.href.replace(/\/$/, '');
+    const out = { stats: null, player: null, errors: {} };
+    for (const ep of ['/stats', '/player']) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(base + ep, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json', 'User-Agent': 'Gen3-Pokemon-Viewer/1.0' },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const key = ep.slice(1);
+        if (response.ok) {
+          const ct = response.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            out[key] = await response.json();
+          } else {
+            out.errors[key] = 'Response was not JSON (content-type: ' + (response.headers.get('content-type') || 'none') + ')';
+          }
+        } else {
+          out.errors[key] = `HTTP ${response.status} ${response.statusText}`;
+        }
+      } catch (err) {
+        out.errors[ep.slice(1)] = err.message || String(err);
+      }
+    }
+    return res.json(out);
+  } catch (err) {
+    console.error('debug-bot-stats:', err);
     return res.status(500).json({ error: String(err.message) });
   }
 });
@@ -4460,15 +4523,27 @@ app.get('/api/bot-stream-proxy', async (req, res) => {
       });
     } catch (fetchError) {
       const errorCode = fetchError.cause?.code || fetchError.code;
-      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+      const isBodyTimeout = errorCode === 'UND_ERR_BODY_TIMEOUT' || fetchError.message === 'terminated' || fetchError.cause?.name === 'BodyTimeoutError';
+      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND' || isBodyTimeout) {
         return res.status(503).json({ 
-          error: 'Bot is offline or unreachable',
-          code: errorCode
+          error: isBodyTimeout ? 'Bot stream timed out' : 'Bot is offline or unreachable',
+          code: errorCode || (isBodyTimeout ? 'BODY_TIMEOUT' : undefined)
         });
       }
       throw fetchError;
     }
   } catch (error) {
+    const errorCode = error.cause?.code || error.code;
+    const isBodyTimeout = errorCode === 'UND_ERR_BODY_TIMEOUT' || error.message === 'terminated' || error.cause?.name === 'BodyTimeoutError';
+    if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND' || isBodyTimeout) {
+      if (!res.headersSent) {
+        return res.status(503).json({ 
+          error: isBodyTimeout ? 'Bot stream timed out' : 'Bot is offline or unreachable',
+          code: errorCode || (isBodyTimeout ? 'BODY_TIMEOUT' : undefined)
+        });
+      }
+      return res.end();
+    }
     console.error('[Bot Stream Proxy] Unexpected error:', error.message || error);
     if (!res.headersSent) {
       res.status(500).json({ 
@@ -4579,9 +4654,10 @@ app.get('/api/bot-video-proxy', async (req, res) => {
       });
     } catch (fetchError) {
       const errorCode = fetchError.cause?.code || fetchError.code;
-      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+      const isBodyTimeout = errorCode === 'UND_ERR_BODY_TIMEOUT' || fetchError.message === 'terminated' || fetchError.cause?.name === 'BodyTimeoutError';
+      if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND' || isBodyTimeout) {
         return res.status(503).json({ 
-          error: 'Bot is offline or unreachable',
+          error: isBodyTimeout ? 'Video stream timed out' : 'Bot is offline or unreachable',
           code: errorCode
         });
       }
@@ -4593,9 +4669,10 @@ app.get('/api/bot-video-proxy', async (req, res) => {
     }
   } catch (error) {
     const errorCode = error.cause?.code || error.code;
-    if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND') {
+    const isBodyTimeout = errorCode === 'UND_ERR_BODY_TIMEOUT' || error.message === 'terminated' || error.cause?.name === 'BodyTimeoutError';
+    if (errorCode === 'ECONNREFUSED' || errorCode === 'ETIMEDOUT' || errorCode === 'ENOTFOUND' || isBodyTimeout) {
       return res.status(503).json({ 
-        error: 'Bot is offline or unreachable',
+        error: isBodyTimeout ? 'Video stream timed out' : 'Bot is offline or unreachable',
         code: errorCode
       });
     }
@@ -4700,8 +4777,9 @@ async function fetchBotEndpointForSSE(baseUrl, ...endpoints) {
         }
       } catch (fetchErr) {
         clearTimeout(timeoutId);
-        if (fetchErr.name === 'AbortError') {
-          continue; // Timeout, try next endpoint
+        const isTimeout = fetchErr.name === 'AbortError' || fetchErr.cause?.code === 'UND_ERR_BODY_TIMEOUT' || fetchErr.message === 'terminated';
+        if (isTimeout) {
+          continue; // Timeout or body timeout, try next endpoint
         }
         throw fetchErr;
       }
@@ -4829,5 +4907,13 @@ app.listen(PORT, HOST, () => {
   if (scannerConfig && scannerConfig.sourceFolder && scannerConfig.targetDbId) {
     startServerAutoScan(scannerConfig);
   }
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Cannot start server: port ${PORT} is already in use.`);
+    console.error('  Try: change port in server-config.json or set PORT=3001 and restart.');
+  } else {
+    console.error('Server failed to start:', err.message);
+  }
+  process.exit(1);
 });
 
