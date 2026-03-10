@@ -245,6 +245,20 @@
                     <p class="options-description">Enable or disable sections displayed on each bot card:</p>
                     <div class="options-checkbox-grid">
                         <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowEncounterRateSection" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Encounter Rate</span>
+                                <span class="option-description">Per-bot encounters per hour card</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTargetPokemonSection" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Target Pokemon</span>
+                                <span class="option-description">Shiny target and encounters for that species</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
                             <input type="checkbox" id="optShowMap" class="checkbox" checked>
                             <div class="option-label-group">
                                 <span class="option-label">Map/Location</span>
@@ -403,6 +417,61 @@
                             <div class="option-label-group">
                                 <span class="option-label">Pokenav</span>
                                 <span class="option-description">Pokenav calls count in current phase</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="options-section">
+                    <h3>Total Stats Items</h3>
+                    <p class="options-description">Enable or disable individual items in the Total Stats section:</p>
+                    <div class="options-checkbox-grid">
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsTotalEncounters" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Total Encounters</span>
+                                <span class="option-description">Lifetime total encounters across all sessions</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsShinyEncounters" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Shiny Encounters</span>
+                                <span class="option-description">Lifetime total shiny encounters</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsCatches" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Catches</span>
+                                <span class="option-description">Total Pokemon caught</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsHighestIV" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Highest IV</span>
+                                <span class="option-description">Best lifetime IV sum and species</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsLowestIV" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Lowest IV</span>
+                                <span class="option-description">Worst lifetime IV sum and species</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsHighestSV" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Highest SV</span>
+                                <span class="option-description">Best lifetime SV and species</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowTotalStatsLowestSV" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Lowest SV</span>
+                                <span class="option-description">Lowest lifetime SV and species</span>
                             </div>
                         </label>
                     </div>
@@ -621,6 +690,13 @@
                             <div class="option-label-group">
                                 <span class="option-label">Show Encounter Rate as Graph</span>
                                 <span class="option-description">Display encounter rate as a chart instead of a number</span>
+                            </div>
+                        </label>
+                        <label class="option-checkbox-item">
+                            <input type="checkbox" id="optShowCombinedEncounterRate" class="checkbox" checked>
+                            <div class="option-label-group">
+                                <span class="option-label">Combined Encounter Rate Summary</span>
+                                <span class="option-description">Show the combined encounters-per-hour graph and value at the top of the dashboard</span>
                             </div>
                         </label>
                     </div>

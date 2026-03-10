@@ -58,12 +58,18 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     showPlayerInfo: false,
     showTotalStats: false,
     showLogo: true,
+    // Bot card section toggles
+    showEncounterRateSection: true,
+    showTargetPokemonSection: true,
+    // Combined encounter rate summary toggle
+    showCombinedEncounterRate: true,
+    // Encounter rate graph display options
     showEncounterRateGraph: false, // Per-bot graph toggle
     showEncounterRateAsGraph: false, // Show graph instead of number in stats
     updateInterval: 5, // seconds
     recentFindsCount: 5, // number of recent finds to display
     cardWidth: 240, // card width in pixels
-    // Statistics individual toggles
+    // Statistics individual toggles (per-bot Statistics section)
     showStatsTotalEncounters: true,
     showStatsShinyEncounters: true,
     showStatsPlayTime: true,
@@ -104,6 +110,14 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     showPlayerGender: true,
     showPlayerPlayTime: true,
     showPlayerID32: true,
+    // Total Stats individual toggles
+    showTotalStatsTotalEncounters: true,
+    showTotalStatsShinyEncounters: true,
+    showTotalStatsCatches: true,
+    showTotalStatsHighestIV: true,
+    showTotalStatsLowestIV: true,
+    showTotalStatsHighestSV: true,
+    showTotalStatsLowestSV: true,
     sectionOrder: DEFAULT_BOT_CARD_SECTION_ORDER,
     accentColor: DEFAULT_BOT_ACCENT_COLOR
 }));
@@ -2857,7 +2871,7 @@ function updateStatusCard(card, bot, result) {
     const encounterRate = data.encounter_rate;
     
     // Save to history for graph
-    if (encounterRate !== undefined && encounterRate !== null) {
+    if (dashboardSettings.showEncounterRateSection !== false && encounterRate !== undefined && encounterRate !== null) {
         encounterRateHistory = JSON.parse(localStorage.getItem('botEncounterRateHistory') || '{}');
         if (!encounterRateHistory[bot.id]) {
             encounterRateHistory[bot.id] = [];
@@ -2887,10 +2901,11 @@ function updateStatusCard(card, bot, result) {
     }
 
     // Target Pokemon
-    const targetPokemon = getBotTargetPokemon(bot.id);
-    html += `<div class="status-section target-pokemon-section">
+    if (dashboardSettings.showTargetPokemonSection !== false) {
+        const targetPokemon = getBotTargetPokemon(bot.id);
+        html += `<div class="status-section target-pokemon-section">
         <h4>Target Pokemon</h4>`;
-    if (targetPokemon) {
+        if (targetPokemon) {
         const unownForm = (targetPokemon.speciesId === 201) ? getUnownFormFromSpeciesName(targetPokemon.speciesName) : null;
         const spriteUrl = getSpriteUrl(targetPokemon.speciesId, true, unownForm || undefined);
         const fallbackShinyUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${targetPokemon.speciesId === 201 && unownForm ? '201-' + (unownForm.length === 1 ? unownForm : unownForm === '!' ? 'exclamation' : 'question') : targetPokemon.speciesId}.png`;
@@ -2925,7 +2940,7 @@ function updateStatusCard(card, bot, result) {
             }
         }
         
-        html += `
+            html += `
             <div class="target-pokemon-display">
                 <div class="target-pokemon-sprite-container">
                     <img src="${spriteUrl}" alt="${targetPokemon.speciesName}" class="target-pokemon-sprite" 
@@ -2937,17 +2952,18 @@ function updateStatusCard(card, bot, result) {
                     <button class="btn btn-small btn-secondary change-target-btn" data-bot-id="${bot.id}">Change</button>
                 </div>
             </div>
-        `;
-        
-    } else {
-        html += `
+            `;
+            
+        } else {
+            html += `
             <div class="target-pokemon-display">
                 <p class="no-target">No target set</p>
                 <button class="btn btn-small btn-primary set-target-btn" data-bot-id="${bot.id}">Set Target</button>
             </div>
-        `;
+            `;
+        }
+        html += `</div>`;
     }
-    html += `</div>`;
 
     // Current Location/Map
     if (dashboardSettings.showMap) {
@@ -3685,40 +3701,40 @@ function updateStatusCard(card, bot, result) {
         const totals = statsData.totals || {};
         if (totals && Object.keys(totals).length > 0) {
             // Total encounters
-            if (totals.total_encounters !== undefined) {
+            if (totals.total_encounters !== undefined && dashboardSettings.showTotalStatsTotalEncounters !== false) {
                 statInfo.push(`Total Encounters: ${totals.total_encounters.toLocaleString()}`);
             }
             
             // Shiny encounters
-            if (totals.shiny_encounters !== undefined) {
+            if (totals.shiny_encounters !== undefined && dashboardSettings.showTotalStatsShinyEncounters !== false) {
                 statInfo.push(`Shiny Encounters: ${totals.shiny_encounters.toLocaleString()}`);
             }
             
             // Catches
-            if (totals.catches !== undefined) {
+            if (totals.catches !== undefined && dashboardSettings.showTotalStatsCatches !== false) {
                 statInfo.push(`Catches: ${totals.catches.toLocaleString()}`);
             }
             
             // Total highest IV sum
-            if (totals.total_highest_iv_sum && typeof totals.total_highest_iv_sum === 'object') {
+            if (totals.total_highest_iv_sum && typeof totals.total_highest_iv_sum === 'object' && dashboardSettings.showTotalStatsHighestIV !== false) {
                 const iv = totals.total_highest_iv_sum;
                 statInfo.push(`Total Highest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
             }
             
             // Total lowest IV sum
-            if (totals.total_lowest_iv_sum && typeof totals.total_lowest_iv_sum === 'object') {
+            if (totals.total_lowest_iv_sum && typeof totals.total_lowest_iv_sum === 'object' && dashboardSettings.showTotalStatsLowestIV !== false) {
                 const iv = totals.total_lowest_iv_sum;
                 statInfo.push(`Total Lowest IV: ${iv.value} (${iv.species_name || 'Unknown'})`);
             }
             
             // Total highest SV
-            if (totals.total_highest_sv && typeof totals.total_highest_sv === 'object') {
+            if (totals.total_highest_sv && typeof totals.total_highest_sv === 'object' && dashboardSettings.showTotalStatsHighestSV !== false) {
                 const sv = totals.total_highest_sv;
                 statInfo.push(`Total Highest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
             }
             
             // Total lowest SV
-            if (totals.total_lowest_sv && typeof totals.total_lowest_sv === 'object') {
+            if (totals.total_lowest_sv && typeof totals.total_lowest_sv === 'object' && dashboardSettings.showTotalStatsLowestSV !== false) {
                 const sv = totals.total_lowest_sv;
                 statInfo.push(`Total Lowest SV: ${sv.value} (${sv.species_name || 'Unknown'})`);
             }
@@ -3961,6 +3977,25 @@ const botColors = [
 // Update combined encounter rate display and graph
 // Use live data only from in-memory liveEncounterRateHistory
 function updateCombinedEncounterRate() {
+    const combinedContainer = document.querySelector('.combined-encounter-rate');
+    if (!combinedContainer) return;
+
+    if (dashboardSettings.showCombinedEncounterRate === false) {
+        combinedContainer.style.display = 'none';
+        const canvas = document.getElementById('combinedEncounterRateChart');
+        if (canvas && canvas.chart) {
+            canvas.chart.destroy();
+            canvas.chart = null;
+        }
+        const valueElement = document.getElementById('combinedEncounterRateValue');
+        if (valueElement) {
+            valueElement.textContent = '';
+        }
+        return;
+    } else {
+        combinedContainer.style.display = '';
+    }
+
     // Calculate current combined rate from live bot data
     let combinedRate = 0;
     
@@ -4351,6 +4386,8 @@ function setupOptionsModal() {
 
 // Update options modal checkboxes to match current settings
 function updateOptionsModalCheckboxes() {
+    const optShowEncounterRateSection = document.getElementById('optShowEncounterRateSection');
+    const optShowTargetPokemonSection = document.getElementById('optShowTargetPokemonSection');
     const optShowMap = document.getElementById('optShowMap');
     const optShowParty = document.getElementById('optShowParty');
     const optShowCurrentEncounter = document.getElementById('optShowCurrentEncounter');
@@ -4362,6 +4399,7 @@ function updateOptionsModalCheckboxes() {
     const optShowTotalStats = document.getElementById('optShowTotalStats');
     const optShowLogo = document.getElementById('optShowLogo');
     const optShowEncounterRateAsGraph = document.getElementById('optShowEncounterRateAsGraph');
+    const optShowCombinedEncounterRate = document.getElementById('optShowCombinedEncounterRate');
     const botAccentColorPicker = document.getElementById('botAccentColorPicker');
     const botAccentColorText = document.getElementById('botAccentColorText');
     
@@ -4406,7 +4444,17 @@ function updateOptionsModalCheckboxes() {
     const optShowPlayerGender = document.getElementById('optShowPlayerGender');
     const optShowPlayerPlayTime = document.getElementById('optShowPlayerPlayTime');
     const optShowPlayerID32 = document.getElementById('optShowPlayerID32');
+    // Total Stats toggles
+    const optShowTotalStatsTotalEncounters = document.getElementById('optShowTotalStatsTotalEncounters');
+    const optShowTotalStatsShinyEncounters = document.getElementById('optShowTotalStatsShinyEncounters');
+    const optShowTotalStatsCatches = document.getElementById('optShowTotalStatsCatches');
+    const optShowTotalStatsHighestIV = document.getElementById('optShowTotalStatsHighestIV');
+    const optShowTotalStatsLowestIV = document.getElementById('optShowTotalStatsLowestIV');
+    const optShowTotalStatsHighestSV = document.getElementById('optShowTotalStatsHighestSV');
+    const optShowTotalStatsLowestSV = document.getElementById('optShowTotalStatsLowestSV');
     
+    if (optShowEncounterRateSection) optShowEncounterRateSection.checked = dashboardSettings.showEncounterRateSection !== false;
+    if (optShowTargetPokemonSection) optShowTargetPokemonSection.checked = dashboardSettings.showTargetPokemonSection !== false;
     if (optShowMap) optShowMap.checked = dashboardSettings.showMap !== false;
     if (optShowParty) optShowParty.checked = dashboardSettings.showParty !== false;
     if (optShowCurrentEncounter) optShowCurrentEncounter.checked = dashboardSettings.showCurrentEncounter !== false;
@@ -4418,6 +4466,7 @@ function updateOptionsModalCheckboxes() {
     if (optShowTotalStats) optShowTotalStats.checked = dashboardSettings.showTotalStats || false;
     if (optShowLogo) optShowLogo.checked = dashboardSettings.showLogo !== false;
     if (optShowEncounterRateAsGraph) optShowEncounterRateAsGraph.checked = dashboardSettings.showEncounterRateAsGraph || false;
+    if (optShowCombinedEncounterRate) optShowCombinedEncounterRate.checked = dashboardSettings.showCombinedEncounterRate !== false;
     if (botAccentColorPicker) botAccentColorPicker.value = normalizeHexColor(dashboardSettings.accentColor);
     if (botAccentColorText) botAccentColorText.value = normalizeHexColor(dashboardSettings.accentColor);
     
@@ -4462,11 +4511,21 @@ function updateOptionsModalCheckboxes() {
     if (optShowPlayerGender) optShowPlayerGender.checked = dashboardSettings.showPlayerGender !== false;
     if (optShowPlayerPlayTime) optShowPlayerPlayTime.checked = dashboardSettings.showPlayerPlayTime !== false;
     if (optShowPlayerID32) optShowPlayerID32.checked = dashboardSettings.showPlayerID32 !== false;
+    // Total Stats toggles
+    if (optShowTotalStatsTotalEncounters) optShowTotalStatsTotalEncounters.checked = dashboardSettings.showTotalStatsTotalEncounters !== false;
+    if (optShowTotalStatsShinyEncounters) optShowTotalStatsShinyEncounters.checked = dashboardSettings.showTotalStatsShinyEncounters !== false;
+    if (optShowTotalStatsCatches) optShowTotalStatsCatches.checked = dashboardSettings.showTotalStatsCatches !== false;
+    if (optShowTotalStatsHighestIV) optShowTotalStatsHighestIV.checked = dashboardSettings.showTotalStatsHighestIV !== false;
+    if (optShowTotalStatsLowestIV) optShowTotalStatsLowestIV.checked = dashboardSettings.showTotalStatsLowestIV !== false;
+    if (optShowTotalStatsHighestSV) optShowTotalStatsHighestSV.checked = dashboardSettings.showTotalStatsHighestSV !== false;
+    if (optShowTotalStatsLowestSV) optShowTotalStatsLowestSV.checked = dashboardSettings.showTotalStatsLowestSV !== false;
     renderSectionOrderControls();
 }
 
 // Save options from modal to dashboard settings
 function saveOptionsFromModal() {
+    const optShowEncounterRateSection = document.getElementById('optShowEncounterRateSection');
+    const optShowTargetPokemonSection = document.getElementById('optShowTargetPokemonSection');
     const optShowMap = document.getElementById('optShowMap');
     const optShowParty = document.getElementById('optShowParty');
     const optShowCurrentEncounter = document.getElementById('optShowCurrentEncounter');
@@ -4478,6 +4537,7 @@ function saveOptionsFromModal() {
     const optShowTotalStats = document.getElementById('optShowTotalStats');
     const optShowLogo = document.getElementById('optShowLogo');
     const optShowEncounterRateAsGraph = document.getElementById('optShowEncounterRateAsGraph');
+    const optShowCombinedEncounterRate = document.getElementById('optShowCombinedEncounterRate');
     const botAccentColorPicker = document.getElementById('botAccentColorPicker');
     const botAccentColorText = document.getElementById('botAccentColorText');
     
@@ -4522,9 +4582,19 @@ function saveOptionsFromModal() {
     const optShowPlayerGender = document.getElementById('optShowPlayerGender');
     const optShowPlayerPlayTime = document.getElementById('optShowPlayerPlayTime');
     const optShowPlayerID32 = document.getElementById('optShowPlayerID32');
+    // Total Stats toggles
+    const optShowTotalStatsTotalEncounters = document.getElementById('optShowTotalStatsTotalEncounters');
+    const optShowTotalStatsShinyEncounters = document.getElementById('optShowTotalStatsShinyEncounters');
+    const optShowTotalStatsCatches = document.getElementById('optShowTotalStatsCatches');
+    const optShowTotalStatsHighestIV = document.getElementById('optShowTotalStatsHighestIV');
+    const optShowTotalStatsLowestIV = document.getElementById('optShowTotalStatsLowestIV');
+    const optShowTotalStatsHighestSV = document.getElementById('optShowTotalStatsHighestSV');
+    const optShowTotalStatsLowestSV = document.getElementById('optShowTotalStatsLowestSV');
     const botSectionOrderList = document.getElementById('botSectionOrderList');
     
     // Update dashboard settings
+    if (optShowEncounterRateSection) dashboardSettings.showEncounterRateSection = optShowEncounterRateSection.checked;
+    if (optShowTargetPokemonSection) dashboardSettings.showTargetPokemonSection = optShowTargetPokemonSection.checked;
     if (optShowMap) dashboardSettings.showMap = optShowMap.checked;
     if (optShowParty) dashboardSettings.showParty = optShowParty.checked;
     if (optShowCurrentEncounter) dashboardSettings.showCurrentEncounter = optShowCurrentEncounter.checked;
@@ -4536,6 +4606,7 @@ function saveOptionsFromModal() {
     if (optShowTotalStats) dashboardSettings.showTotalStats = optShowTotalStats.checked;
     if (optShowLogo) dashboardSettings.showLogo = optShowLogo.checked;
     if (optShowEncounterRateAsGraph) dashboardSettings.showEncounterRateAsGraph = optShowEncounterRateAsGraph.checked;
+    if (optShowCombinedEncounterRate) dashboardSettings.showCombinedEncounterRate = optShowCombinedEncounterRate.checked;
     dashboardSettings.accentColor = normalizeHexColor(
         botAccentColorText ? botAccentColorText.value : botAccentColorPicker ? botAccentColorPicker.value : dashboardSettings.accentColor
     );
@@ -4581,6 +4652,14 @@ function saveOptionsFromModal() {
     if (optShowPlayerGender) dashboardSettings.showPlayerGender = optShowPlayerGender.checked;
     if (optShowPlayerPlayTime) dashboardSettings.showPlayerPlayTime = optShowPlayerPlayTime.checked;
     if (optShowPlayerID32) dashboardSettings.showPlayerID32 = optShowPlayerID32.checked;
+    // Total Stats toggles
+    if (optShowTotalStatsTotalEncounters) dashboardSettings.showTotalStatsTotalEncounters = optShowTotalStatsTotalEncounters.checked;
+    if (optShowTotalStatsShinyEncounters) dashboardSettings.showTotalStatsShinyEncounters = optShowTotalStatsShinyEncounters.checked;
+    if (optShowTotalStatsCatches) dashboardSettings.showTotalStatsCatches = optShowTotalStatsCatches.checked;
+    if (optShowTotalStatsHighestIV) dashboardSettings.showTotalStatsHighestIV = optShowTotalStatsHighestIV.checked;
+    if (optShowTotalStatsLowestIV) dashboardSettings.showTotalStatsLowestIV = optShowTotalStatsLowestIV.checked;
+    if (optShowTotalStatsHighestSV) dashboardSettings.showTotalStatsHighestSV = optShowTotalStatsHighestSV.checked;
+    if (optShowTotalStatsLowestSV) dashboardSettings.showTotalStatsLowestSV = optShowTotalStatsLowestSV.checked;
     if (botSectionOrderList) {
         dashboardSettings.sectionOrder = normalizeBotCardSectionOrder(
             Array.from(botSectionOrderList.querySelectorAll('.section-order-item')).map(el => el.dataset.sectionKey)
