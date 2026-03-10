@@ -268,7 +268,8 @@ gen3-save-manager/
 ---
 
 ## 🎯 Statistics Features
-<img width="1570" height="1218" alt="image" src="https://github.com/user-attachments/assets/b30ea402-6d1a-4aa9-b09a-72a32fc79600" />
+<img width="1416" height="1164" alt="image" src="https://github.com/user-attachments/assets/d6cbbe8b-3ba2-4c0d-a9ca-96b8c7d9e630" />
+
 
 ### IV Statistics
 - **Summary**: Average, max, and min IV sums
@@ -316,15 +317,6 @@ gen3-save-manager/
 - Scanner settings stored in `scanner-config.json` (in current working directory, not committed to git)
 - Auto-scan runs server-side and persists across restarts
 
----
-
-## 🌐 Browser Compatibility
-
-- **Chrome/Edge** (latest) ✅
-- **Firefox** (latest) ✅
-- **Safari** (latest) ✅
-
-**Requirements**: Modern browser with ES6+ support
 
 ---
 
