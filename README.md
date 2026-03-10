@@ -68,7 +68,7 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 - **Trend Analysis**: 7-day growth graphs
 - **Distribution Charts**: Species, natures, abilities, balls, locations, and more
 
-<img width="1428" height="1178" alt="image" src="https://github.com/user-attachments/assets/e85033b7-42b0-493c-935e-b74f74b4c226" />
+<img width="1416" height="1164" alt="image" src="https://github.com/user-attachments/assets/d6cbbe8b-3ba2-4c0d-a9ca-96b8c7d9e630" />
 
 ### 🤖 Bot Dashboard
 - **Multi-Bot Monitoring**: Monitor multiple PokeBotGen-3 instances simultaneously
@@ -268,7 +268,7 @@ gen3-save-manager/
 ---
 
 ## 🎯 Statistics Features
-<img width="1416" height="1164" alt="image" src="https://github.com/user-attachments/assets/d6cbbe8b-3ba2-4c0d-a9ca-96b8c7d9e630" />
+
 
 
 ### IV Statistics
