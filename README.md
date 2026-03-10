@@ -1,4 +1,4 @@
-# Gen3 Save Manager - Alpha version
+# .pk* Save Manager - Alpha version
 
 <div align="center">
 
@@ -18,7 +18,8 @@ Gen3 Save Manager is a powerful, web-based application for viewing, managing, an
 
 Perfect for Pokémon collectors, breeders, and bot operators who need to organize, analyze, and manage large collections of Pokémon files.
 
-<img width="2357" height="1266" alt="image" src="https://github.com/user-attachments/assets/48a976dd-98ac-45b7-aff9-d19b3094a497" />
+<img width="2214" height="1275" alt="image" src="https://github.com/user-attachments/assets/4c1641ab-33c9-4fd5-ab1c-7c11ffb0786c" />
+
 <img width="2178" height="1258" alt="image" src="https://github.com/user-attachments/assets/5e77b816-d1a8-45d0-882e-b15d10055c99" />
 
 
@@ -49,7 +50,7 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 
 ### 🔍 Powerful Filtering & Sorting
 - **Advanced Filters**: IV ranges, EV ranges, nature, ability, ball type, and more
-
+  <img width="636" height="257" alt="image" src="https://github.com/user-attachments/assets/091d6f21-631c-4bf9-a070-36ba911a1389" />
   <img width="447" height="1277" alt="image" src="https://github.com/user-attachments/assets/39e4422a-cbc8-465e-9dce-d11e21a47ba2" />
 
 - **Multiple Sort Options**: Sort by IV sum, species, level, stats, and more
@@ -143,6 +144,7 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 
 ### Filtering & Sorting
 
+
 - **Quick Search**: Type in the search box to filter by species or nickname
 - **Shiny Filter**: Toggle "Show Only Shiny" to see only shiny Pokémon
 - **Advanced Filters**: Click "Advanced Filters" for detailed filtering options
@@ -185,7 +187,7 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 
 | Format | Generation | Size | Supported Games | Save Import |
 |--------|-----------|------|----------------|-------------|
-| `.pk3` | Gen 3 | 80/100 bytes | Ruby, Sapphire, Emerald, FireRed, LeafGreen | ✅ Yes |
+| `.pk3` | Gen 3 | 80/100 bytes | Ruby, Sapphire, Emerald, FireRed, LeafGreen | ✅ WIP |
 | `.pk4` | Gen 4 | 136/236 bytes | Diamond, Pearl, Platinum, HeartGold, SoulSilver | ❌ View only |
 | `.pk5` | Gen 5 | 136/236 bytes | Black, White, Black 2, White 2 | ❌ View only |
 | `.pk6` | Gen 6 | 232/260 bytes | X, Y, Omega Ruby, Alpha Sapphire | ❌ View only |
@@ -265,6 +267,7 @@ gen3-save-manager/
 ---
 
 ## 🎯 Statistics Features
+<img width="1570" height="1218" alt="image" src="https://github.com/user-attachments/assets/b30ea402-6d1a-4aa9-b09a-72a32fc79600" />
 
 ### IV Statistics
 - **Summary**: Average, max, and min IV sums
