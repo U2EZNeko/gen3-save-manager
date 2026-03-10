@@ -20,7 +20,8 @@ Perfect for Pokémon collectors, breeders, and bot operators who need to organiz
 
 <img width="2214" height="1275" alt="image" src="https://github.com/user-attachments/assets/4c1641ab-33c9-4fd5-ab1c-7c11ffb0786c" />
 
-<img width="2178" height="1258" alt="image" src="https://github.com/user-attachments/assets/5e77b816-d1a8-45d0-882e-b15d10055c99" />
+<img width="2022" height="1266" alt="image" src="https://github.com/user-attachments/assets/ab6f2eb7-63d9-49d8-bb69-f3ac63210ee8" />
+
 
 
 
