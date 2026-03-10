@@ -86,6 +86,9 @@ const pendingFilesCount = document.getElementById('pendingFilesCount');
 
 // Track pending files count per database (stored in localStorage)
 const PENDING_FILES_KEY = 'pendingFilesCount';
+
+// Cached dex completion per database for the top-level stats card (full completionStats per gen)
+const dbDexCompletionCache = new Map(); // dbId -> { completionStats: { "1": { name, owned, total, percentage }, ... } }
 function getPendingFilesCount(dbId) {
     try {
         const counts = JSON.parse(localStorage.getItem(PENDING_FILES_KEY) || '{}');
@@ -172,6 +175,51 @@ const mainHeaderLogo = document.querySelector('.header-logo');
 
 // Advanced filter state
 let advancedFilters = {};
+
+// Persist main page filters when switching to bot dashboard and back
+const MAIN_PAGE_FILTERS_KEY = 'mainPageFilters';
+
+function saveMainPageFilters() {
+    try {
+        const payload = {
+            sortSelect: sortSelect?.value ?? '',
+            searchInput: searchInput?.value ?? '',
+            groupByOT: groupByOT?.checked ?? false,
+            groupByTIDSID: groupByTIDSID?.checked ?? false,
+            shinyFilter: shinyFilter?.checked ?? false,
+            onePerSpeciesFilter: onePerSpeciesFilter?.checked ?? false,
+            onePerSpeciesLowestFilter: onePerSpeciesLowestFilter?.checked ?? false,
+            needsEvolutionFilter: needsEvolutionFilter?.checked ?? false,
+            compactView: compactView?.checked ?? false,
+            maxDisplayLimit: maxDisplayLimit?.value ?? '50',
+            advancedFilters: advancedFilters && Object.keys(advancedFilters).length ? advancedFilters : {}
+        };
+        localStorage.setItem(MAIN_PAGE_FILTERS_KEY, JSON.stringify(payload));
+    } catch (e) {
+        console.warn('Could not save main page filters:', e);
+    }
+}
+
+function restoreMainPageFilters() {
+    try {
+        const raw = localStorage.getItem(MAIN_PAGE_FILTERS_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved.sortSelect && sortSelect) sortSelect.value = saved.sortSelect;
+        if (saved.searchInput !== undefined && searchInput) searchInput.value = saved.searchInput;
+        if (saved.groupByOT !== undefined && groupByOT) groupByOT.checked = !!saved.groupByOT;
+        if (saved.groupByTIDSID !== undefined && groupByTIDSID) groupByTIDSID.checked = !!saved.groupByTIDSID;
+        if (saved.shinyFilter !== undefined && shinyFilter) shinyFilter.checked = !!saved.shinyFilter;
+        if (saved.onePerSpeciesFilter !== undefined && onePerSpeciesFilter) onePerSpeciesFilter.checked = !!saved.onePerSpeciesFilter;
+        if (saved.onePerSpeciesLowestFilter !== undefined && onePerSpeciesLowestFilter) onePerSpeciesLowestFilter.checked = !!saved.onePerSpeciesLowestFilter;
+        if (saved.needsEvolutionFilter !== undefined && needsEvolutionFilter) needsEvolutionFilter.checked = !!saved.needsEvolutionFilter;
+        if (saved.compactView !== undefined && compactView) compactView.checked = !!saved.compactView;
+        if (saved.maxDisplayLimit && maxDisplayLimit) maxDisplayLimit.value = saved.maxDisplayLimit;
+        if (saved.advancedFilters && typeof saved.advancedFilters === 'object') advancedFilters = saved.advancedFilters;
+    } catch (e) {
+        console.warn('Could not restore main page filters:', e);
+    }
+}
 
 // Theme toggle - cycles through light, grey dark, and full black dark
 function getCurrentTheme() {
@@ -457,15 +505,16 @@ if (dismissNotificationBtn) {
         }
     });
 }
-sortSelect.addEventListener('change', sortAndDisplay);
-searchInput.addEventListener('input', filterAndDisplay);
-groupByOT.addEventListener('change', sortAndDisplay);
-groupByTIDSID.addEventListener('change', sortAndDisplay);
-shinyFilter.addEventListener('change', filterAndDisplay);
+sortSelect.addEventListener('change', () => { saveMainPageFilters(); sortAndDisplay(); });
+searchInput.addEventListener('input', () => { saveMainPageFilters(); filterAndDisplay(); });
+groupByOT.addEventListener('change', () => { saveMainPageFilters(); sortAndDisplay(); });
+groupByTIDSID.addEventListener('change', () => { saveMainPageFilters(); sortAndDisplay(); });
+shinyFilter.addEventListener('change', () => { saveMainPageFilters(); filterAndDisplay(); });
 onePerSpeciesFilter.addEventListener('change', (e) => {
     if (e.target.checked && onePerSpeciesLowestFilter) {
         onePerSpeciesLowestFilter.checked = false;
     }
+    saveMainPageFilters();
     filterAndDisplay();
 });
 if (onePerSpeciesLowestFilter) {
@@ -473,13 +522,14 @@ if (onePerSpeciesLowestFilter) {
         if (e.target.checked && onePerSpeciesFilter) {
             onePerSpeciesFilter.checked = false;
         }
+        saveMainPageFilters();
         filterAndDisplay();
     });
 }
 if (needsEvolutionFilter) {
-    needsEvolutionFilter.addEventListener('change', filterAndDisplay);
+    needsEvolutionFilter.addEventListener('change', () => { saveMainPageFilters(); filterAndDisplay(); });
 }
-compactView.addEventListener('change', sortAndDisplay);
+compactView.addEventListener('change', () => { saveMainPageFilters(); sortAndDisplay(); });
 if (duplicateScannerBtn) {
     duplicateScannerBtn.addEventListener('click', () => {
         scanDuplicates();
@@ -517,17 +567,12 @@ applyAdvancedFilters.addEventListener('click', applyFilters);
 clearAdvancedFilters.addEventListener('click', clearFilters);
 cardWidthSlider.addEventListener('input', (e) => updateCardWidth(e.target.value));
 if (maxDisplayLimit) {
-    // Load saved max display limit from localStorage, default to 50
-    const savedLimit = localStorage.getItem('maxDisplayLimit');
-    if (savedLimit !== null) {
-        maxDisplayLimit.value = savedLimit;
-    } else {
-        maxDisplayLimit.value = '50';
-    }
     maxDisplayLimit.addEventListener('change', () => {
-        localStorage.setItem('maxDisplayLimit', maxDisplayLimit.value);
+        saveMainPageFilters();
         sortAndDisplay();
     });
+    // Restore all main page filters (including maxDisplayLimit) so switching pages remembers state
+    restoreMainPageFilters();
 }
 
 // Selection mode toggle
@@ -676,8 +721,12 @@ function updateDbStatistics(data) {
     const statSpecies = document.getElementById('statSpecies');
     const statShiny = document.getElementById('statShiny');
     const statIVSum = document.getElementById('statIVSum');
+    const statMostCommon = document.getElementById('statMostCommon');
+    const statMostCommonShiny = document.getElementById('statMostCommonShiny');
+    const statDexCompletion = document.getElementById('statDexCompletion');
+    const statHighestShinyIVSum = document.getElementById('statHighestShinyIVSum');
     
-    if (!statTotal || !statSpecies || !statShiny || !statIVSum) {
+    if (!statTotal || !statSpecies || !statShiny || !statIVSum || !statMostCommon || !statMostCommonShiny || !statDexCompletion || !statHighestShinyIVSum) {
         return;
     }
     
@@ -689,6 +738,10 @@ function updateDbStatistics(data) {
         statSpecies.textContent = '0';
         statShiny.textContent = '0';
         statIVSum.textContent = '-';
+        statMostCommon.textContent = '-';
+        statMostCommonShiny.textContent = '-';
+        statHighestShinyIVSum.textContent = '-';
+        renderDexCompletionGenerations(null);
         updateBotStatusDisplay();
         return;
     }
@@ -709,14 +762,122 @@ function updateDbStatistics(data) {
     });
     const avgIVSum = ivSumCount > 0 ? (ivSumTotal / ivSumCount).toFixed(1) : '-';
     
+    // Species frequency maps
+    const speciesCounts = new Map();
+    const shinySpeciesCounts = new Map();
+    validPokemon.forEach(p => {
+        const id = parseInt(p.species);
+        if (!id || id <= 0) return;
+        speciesCounts.set(id, (speciesCounts.get(id) || 0) + 1);
+        if (p.isShiny) {
+            shinySpeciesCounts.set(id, (shinySpeciesCounts.get(id) || 0) + 1);
+        }
+    });
+    
+    let mostCommonId = null;
+    let mostCommonCount = 0;
+    for (const [id, count] of speciesCounts.entries()) {
+        if (count > mostCommonCount) {
+            mostCommonCount = count;
+            mostCommonId = id;
+        }
+    }
+    
+    let mostCommonShinyId = null;
+    let mostCommonShinyCount = 0;
+    for (const [id, count] of shinySpeciesCounts.entries()) {
+        if (count > mostCommonShinyCount) {
+            mostCommonShinyCount = count;
+            mostCommonShinyId = id;
+        }
+    }
+    
+    // Highest IV sum among shiny Pokemon (and which species has it)
+    let highestShinyIVSum = 0;
+    let highestShinyIVSumSpeciesId = null;
+    validPokemon.forEach(p => {
+        if (p.isShiny && p.ivSum != null && p.ivSum >= 0) {
+            if (p.ivSum > highestShinyIVSum) {
+                highestShinyIVSum = p.ivSum;
+                highestShinyIVSumSpeciesId = parseInt(p.species);
+            }
+        }
+    });
+    
+    const getSpeciesLabel = (speciesId) => {
+        const id = parseInt(speciesId);
+        if (!id || id <= 0) return 'Unknown';
+        if (speciesCache.has(id)) {
+            return speciesCache.get(id);
+        }
+        return `#${id}`;
+    };
+    
     // Update display
     statTotal.textContent = total;
     statSpecies.textContent = uniqueSpecies;
     statShiny.textContent = shinyCount;
     statIVSum.textContent = avgIVSum;
+    statMostCommon.textContent = mostCommonId !== null ? `${getSpeciesLabel(mostCommonId)} (${mostCommonCount})` : '-';
+    statMostCommonShiny.textContent = mostCommonShinyId !== null ? `${getSpeciesLabel(mostCommonShinyId)} (${mostCommonShinyCount})` : 'None';
+    statHighestShinyIVSum.textContent = highestShinyIVSumSpeciesId !== null
+        ? `${highestShinyIVSum} (${getSpeciesLabel(highestShinyIVSumSpeciesId)})`
+        : '-';
+    
+    // Dex completion: use cached value if available, otherwise fetch from /api/pokedex
+    const statDexDbId = currentDatabase || 'db1';
+    if (dbDexCompletionCache.has(statDexDbId)) {
+        const cached = dbDexCompletionCache.get(statDexDbId);
+        renderDexCompletionGenerations(cached && cached.completionStats ? cached.completionStats : null);
+    } else {
+        renderDexCompletionGenerations(null);
+        updateDbDexCompletion(statDexDbId);
+    }
     
     // Update bot status
     updateBotStatusDisplay();
+}
+
+async function updateDbDexCompletion(dbId) {
+    const statDexCompletion = document.getElementById('statDexCompletion');
+    if (!statDexCompletion || !dbId) return;
+
+    try {
+        const response = await fetch(`/api/pokedex?db=${encodeURIComponent(dbId)}`);
+        if (!response.ok) {
+            dbDexCompletionCache.set(dbId, { completionStats: null });
+            renderDexCompletionGenerations(null);
+            return;
+        }
+        const data = await response.json();
+        const completionStats = data.completionStats || {};
+        dbDexCompletionCache.set(dbId, { completionStats });
+        renderDexCompletionGenerations(completionStats);
+    } catch (error) {
+        console.error('Error loading dex completion for DB stats:', error);
+        dbDexCompletionCache.set(dbId, { completionStats: null });
+        renderDexCompletionGenerations(null);
+    }
+}
+
+function renderDexCompletionGenerations(completionStats) {
+    const container = document.getElementById('statDexCompletion');
+    if (!container) return;
+    if (!completionStats || Object.keys(completionStats).length === 0) {
+        container.textContent = '-';
+        container.classList.remove('stat-dex-generations');
+        return;
+    }
+    container.classList.add('stat-dex-generations');
+    const sortedGens = Object.keys(completionStats).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    container.innerHTML = sortedGens
+        .map((genNum) => {
+            const gen = completionStats[genNum];
+            const name = (gen && gen.name) ? gen.name.replace(/^Generation\s+/i, '') : `Gen ${genNum}`;
+            const pct = gen && gen.total > 0 ? gen.percentage : 0;
+            return `<span class="dex-gen-line" title="${gen ? `${gen.owned}/${gen.total}` : ''}">${name}: ${pct}%</span>`;
+        })
+        .join('');
 }
 
 // Update bot status display
@@ -4052,6 +4213,12 @@ function displayStatistics(stats, pokemon = []) {
     
     html += '</div>';
     
+    // Living Dex Completion (above Most Common Pokemon)
+    html += '<div class="statistics-section">';
+    html += '<h3>Living Dex Completion</h3>';
+    html += '<div id="pokedexStatsContainer">Loading...</div>';
+    html += '</div>';
+    
     // Most Common Pokemon
     html += '<div class="statistics-section">';
     html += '<h3>Most Common Pokemon</h3>';
@@ -4272,12 +4439,6 @@ function displayStatistics(stats, pokemon = []) {
         });
         html += '</div></div>';
     }
-    
-    // Pokedex Statistics
-    html += '<div class="statistics-section">';
-    html += '<h3>Living Dex Completion</h3>';
-    html += '<div id="pokedexStatsContainer">Loading...</div>';
-    html += '</div>';
     
     html += '</div>';
     
@@ -4808,6 +4969,7 @@ function applyFilters() {
     if (tidMax) advancedFilters.tidMax = parseInt(tidMax);
     
     // Apply filters and refresh display
+    saveMainPageFilters();
     sortAndDisplay();
     advancedFilterPanel.classList.add('hidden');
 }
@@ -4827,7 +4989,7 @@ function clearFilters() {
     
     // Clear filter state
     advancedFilters = {};
-    
+    saveMainPageFilters();
     // Refresh display
     sortAndDisplay();
 }
@@ -7958,6 +8120,7 @@ async function showUnownDex() {
             const formKey = formName.toLowerCase();
             const spriteUrl = getSpriteUrl(201, false, formKey);
             const shinySpriteUrl = getSpriteUrl(201, true, formKey);
+            const fallbackSpriteId = form === 0 ? '201' : '201-' + (formKey === '!' ? 'exclamation' : formKey === '?' ? 'question' : formKey);
             
             // Get Pokemon count for this form
             const pokemonCount = unownPokemonByForm[form].length;
@@ -7967,9 +8130,9 @@ async function showUnownDex() {
                 <div class="unown-form-card ${ownedClass} ${shinyClass}" data-form="${form}">
                     <div class="unown-form-sprite">
                         <img src="${spriteUrl}" alt="Unown ${formName}" 
-                             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201-${formLower}.png'">
+                             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${fallbackSpriteId}.png'">
                         ${formData.shiny ? `<img src="${shinySpriteUrl}" alt="Unown ${formName} Shiny" class="shiny-sprite"
-                             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/201-${formLower}.png'">` : ''}
+                             onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${fallbackSpriteId}.png'">` : ''}
                     </div>
                     <div class="unown-form-letter">${formName}</div>
                     <div class="unown-form-status">
@@ -8099,6 +8262,7 @@ async function loadUnownForms() {
             const formKey = formName.toLowerCase();
             const spriteUrl = getSpriteUrl(201, false, formKey);
             const shinySpriteUrl = getSpriteUrl(201, true, formKey);
+            const fallbackSpriteId = form === 0 ? '201' : '201-' + (formKey === '!' ? 'exclamation' : formKey === '?' ? 'question' : formKey);
             
             // Get Pokemon count for this form
             const pokemonCount = unownPokemonByForm[form].length;
@@ -8108,9 +8272,9 @@ async function loadUnownForms() {
                 <div class="unown-form-card ${ownedClass} ${shinyClass}" data-form="${form}">
                     <div class="unown-form-sprite">
                         <img src="${spriteUrl}" alt="Unown ${formName}" 
-                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/201.png'">
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${fallbackSpriteId}.png'">
                         ${formData.shiny ? `<img src="${shinySpriteUrl}" alt="Unown ${formName} Shiny" class="shiny-sprite"
-                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/201.png'">` : ''}
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${fallbackSpriteId}.png'">` : ''}
                     </div>
                     <div class="unown-form-letter">${formName}</div>
                     <div class="unown-form-status">

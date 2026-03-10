@@ -532,12 +532,18 @@ header h1 {
 
 .db-stats-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto auto;
     gap: 10px;
 }
 
 /* Responsive database statistics */
+@media (max-width: 768px) {
+    .db-stats-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 480px) {
     .db-stats-content {
         grid-template-columns: 1fr;
@@ -568,6 +574,22 @@ header h1 {
     font-size: 18px;
     color: var(--text-primary);
     font-weight: 600;
+}
+
+/* Dex completion: all generations in the database */
+.stat-item-dex-completion .stat-value.stat-dex-generations {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    justify-content: center;
+    align-content: center;
+}
+
+.stat-item-dex-completion .dex-gen-line {
+    white-space: nowrap;
+    color: var(--text-primary);
 }
 
 /* Checkbox controls grouping */

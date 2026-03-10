@@ -846,7 +846,7 @@ function startServerAutoScan(config) {
     serverAutoScanInterval = null;
   }
   
-  if (!config.enableAutoScan || !config.sourceFolder || !config.targetDbId) {
+  if (!config.sourceFolder || !config.targetDbId) {
     return;
   }
   
@@ -855,7 +855,7 @@ function startServerAutoScan(config) {
   
   console.log(`[Scanner] Starting auto-scan: ${config.sourceFolder} -> ${config.targetDbId} (${config.copyInsteadOfMove ? 'copy' : 'move'}, every ${intervalMinutes} minutes)`);
   
-  // Perform initial scan
+  // Perform initial scan immediately
   performServerScan(config.sourceFolder, config.targetDbId, config.copyInsteadOfMove);
   
   // Set up interval
@@ -993,15 +993,15 @@ app.post('/api/scanner/config', express.json(), (req, res) => {
     const config = {
       sourceFolder: sourceFolder || '',
       targetDbId: targetDbId,
-      enableAutoScan: enableAutoScan || false,
+      enableAutoScan: enableAutoScan === undefined ? true : !!enableAutoScan,
       scanInterval: scanInterval || 5,
       copyInsteadOfMove: !!copyInsteadOfMove
     };
     
     if (saveScannerConfig(config)) {
-      // Restart auto-scan with new config
+      // Restart auto-scan with new config (runs in background; no tab needed)
       stopServerAutoScan();
-      if (config.enableAutoScan) {
+      if (config.sourceFolder && (config.enableAutoScan !== false)) {
         startServerAutoScan(config);
       }
       res.json({ success: true, config });
@@ -1995,11 +1995,15 @@ app.get('/api/pokemon/sprite/:speciesId', (req, res) => {
     // Handle Unown forms (species 201)
     let spriteId = speciesId;
     if (speciesId === 201 && form) {
-      // Unown forms use format: 201-{letter} (a-z), 201-exclamation, 201-question
+      // Unown forms: PokeAPI has 201-b..201-z, 201-exclamation, 201-question; no 201-a (use base 201.png for A)
       const formLower = String(form).toLowerCase();
       
-      if (formLower.length === 1 && formLower >= 'a' && formLower <= 'z') {
-        spriteId = `201-${formLower}`;
+      if (formLower === 'a' || (formLower.length === 1 && formLower >= 'a' && formLower <= 'z')) {
+        if (formLower === 'a') {
+          spriteId = 201; // Use base sprite; PokeAPI has no 201-a.png
+        } else {
+          spriteId = `201-${formLower}`;
+        }
       } else if (formLower === '!' || formLower === 'exclamation') {
         spriteId = '201-exclamation';
       } else if (formLower === '?' || formLower === 'question') {
@@ -4324,6 +4328,48 @@ app.post('/api/bot-proxy', botProxyHandler);
 app.put('/api/bot-proxy', botProxyHandler);
 app.patch('/api/bot-proxy', botProxyHandler);
 
+// Debug: fetch bot opponent/current_encounter response to inspect API shape (e.g. for Unown form fields)
+app.get('/api/debug-bot-opponent', async (req, res) => {
+  try {
+    let baseUrl = req.query.url;
+    if (!baseUrl) {
+      return res.status(400).json({ error: 'Query parameter "url" is required (e.g. url=http://127.0.0.1:8903)' });
+    }
+    try { baseUrl = decodeURIComponent(baseUrl); } catch (_) {}
+    const urlObj = new URL(baseUrl);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return res.status(400).json({ error: 'Only HTTP/HTTPS allowed' });
+    }
+    const base = urlObj.href.replace(/\/$/, '');
+    const endpoints = ['/opponent', '/current_encounter', '/encounter'];
+    for (const ep of endpoints) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(base + ep, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json', 'User-Agent': 'Gen3-Pokemon-Viewer/1.0' },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+          const ct = response.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const data = await response.json();
+            return res.json({ source: base + ep, data });
+          }
+        }
+      } catch (err) {
+        continue;
+      }
+    }
+    return res.status(404).json({ error: 'No JSON response from ' + endpoints.join(', ') });
+  } catch (err) {
+    console.error('debug-bot-opponent:', err);
+    return res.status(500).json({ error: String(err.message) });
+  }
+});
+
 // Bot event stream proxy endpoint (for /stream_events)
 app.get('/api/bot-stream-proxy', async (req, res) => {
   try {
@@ -4778,9 +4824,9 @@ app.listen(PORT, HOST, () => {
   console.log(`Maps available at: http://localhost:${PORT}/FRLGIronmonMap and http://localhost:${PORT}/EmeraldIronmonMap`);
   console.log(`Bot updates available via SSE at: http://localhost:${PORT}/api/bot-updates`);
   
-  // Load and start auto-scan if enabled
+  // Load and start auto-scan when valid config exists (runs without opening a tab)
   const scannerConfig = loadScannerConfig();
-  if (scannerConfig && scannerConfig.enableAutoScan) {
+  if (scannerConfig && scannerConfig.sourceFolder && scannerConfig.targetDbId) {
     startServerAutoScan(scannerConfig);
   }
 });

@@ -122,7 +122,6 @@ let dashboardSettings = JSON.parse(localStorage.getItem('botDashboardSettings') 
     accentColor: DEFAULT_BOT_ACCENT_COLOR
 }));
 
-// Encounter rate history for graphing (per bot)
 let encounterRateHistory = JSON.parse(localStorage.getItem('botEncounterRateHistory') || '{}');
 
 // Graph update throttling
@@ -2908,7 +2907,10 @@ function updateStatusCard(card, bot, result) {
         if (targetPokemon) {
         const unownForm = (targetPokemon.speciesId === 201) ? getUnownFormFromSpeciesName(targetPokemon.speciesName) : null;
         const spriteUrl = getSpriteUrl(targetPokemon.speciesId, true, unownForm || undefined);
-        const fallbackShinyUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${targetPokemon.speciesId === 201 && unownForm ? '201-' + (unownForm.length === 1 ? unownForm : unownForm === '!' ? 'exclamation' : 'question') : targetPokemon.speciesId}.png`;
+        const spriteIdForFallback = (targetPokemon.speciesId === 201 && unownForm)
+            ? (unownForm === 'a' || unownForm === 'A' ? '201' : '201-' + (unownForm.length === 1 ? unownForm.toLowerCase() : unownForm === '!' ? 'exclamation' : 'question'))
+            : targetPokemon.speciesId;
+        const fallbackShinyUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${spriteIdForFallback}.png`;
         
         // Get species-specific encounter count from stats
         let speciesEncounters = null;
@@ -3013,7 +3015,10 @@ function updateStatusCard(card, bot, result) {
             const level = pokemon.level || 0;
             const nickname = pokemon.nickname || '';
             const isShiny = pokemon.is_shiny || pokemon.isShiny || false;
-            const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(pokemon) ?? 0) : undefined;
+            const unownFormIndex = getUnownFormIndexFromEncounterOrName(pokemon, speciesId, speciesName);
+            const unownForm = (speciesId === 201 && unownFormIndex !== null && unownFormIndex !== undefined)
+                ? getUnownFormForSprite(unownFormIndex)
+                : undefined;
             const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
             const displayName = nickname && nickname.toLowerCase() !== speciesName.toLowerCase() 
                 ? nickname 
@@ -3141,7 +3146,10 @@ function updateStatusCard(card, bot, result) {
             
             // Only display if we have valid data
             if (speciesId > 0 || speciesName !== '#0') {
-                const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(encounter) ?? 0) : undefined;
+                const unownFormIndex = getUnownFormIndexFromEncounterOrName(encounter, speciesId, speciesName);
+                const unownForm = (speciesId === 201 && unownFormIndex !== null && unownFormIndex !== undefined)
+                    ? getUnownFormForSprite(unownFormIndex)
+                    : undefined;
                 speciesName = formatEncounterSpeciesName(speciesId, speciesName, encounter);
                 const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
                 
@@ -3163,94 +3171,107 @@ function updateStatusCard(card, bot, result) {
     }
 
     // Current Encounter/Opponent
-    if (dashboardSettings.showCurrentEncounter && currentEncounter && Object.keys(currentEncounter).length > 0) {
+    if (dashboardSettings.showCurrentEncounter) {
         html += `<div class="status-section">
             <h4>Current Encounter</h4>`;
-        
-        // Extract encounter data
-        let speciesId = 0;
-        let speciesName = 'Unknown';
-        let level = 0;
-        let isShiny = false;
-        let ivs = null;
-        let nature = null;
-        let ability = null;
-        
-        if (currentEncounter.species) {
-            const species = currentEncounter.species;
-            speciesId = species.id || species.national_dex_number || 0;
-            speciesName = species.name || `#${speciesId}`;
-        } else if (currentEncounter.id || currentEncounter.national_dex_number) {
-            speciesId = currentEncounter.id || currentEncounter.national_dex_number || 0;
-            speciesName = currentEncounter.name || currentEncounter.species_name || `#${speciesId}`;
-        }
-        
-        level = currentEncounter.level || 0;
-        isShiny = currentEncounter.is_shiny || currentEncounter.isShiny || false;
-        ivs = currentEncounter.ivs || currentEncounter.IVs;
-        nature = formatNatureValue(
-            currentEncounter.nature ||
-            currentEncounter.nature_name ||
-            currentEncounter.pokemon?.nature ||
-            currentEncounter.pokemon?.nature_name
-        );
-        ability = formatAbilityValue(
-            currentEncounter.ability || currentEncounter.pokemon?.ability,
-            currentEncounter.ability_name || currentEncounter.pokemon?.ability_name,
-            currentEncounter.ability_slot || currentEncounter.pokemon?.ability_slot
-        );
-        
-        if (speciesId > 0 || speciesName !== 'Unknown') {
-            const unownForm = (speciesId === 201) ? getUnownFormForSprite(calculateUnownFormFromEncounter(currentEncounter) ?? 0) : undefined;
-            speciesName = formatEncounterSpeciesName(speciesId, speciesName, currentEncounter);
-            const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
-            html += `<div class="current-encounter-display">`;
+
+        const hasEncounter = currentEncounter && Object.keys(currentEncounter).length > 0;
+
+        if (hasEncounter) {
+            // Extract encounter data
+            let speciesId = 0;
+            let speciesName = 'Unknown';
+            let level = 0;
+            let isShiny = false;
+            let ivs = null;
+            let nature = null;
+            let ability = null;
             
-            if (dashboardSettings.showEncounterSprite !== false) {
-                html += `<img src="${spriteUrl}" alt="Pokemon" onerror="this.style.display='none'" class="encounter-sprite">`;
+            if (currentEncounter.species) {
+                const species = currentEncounter.species;
+                speciesId = species.id || species.national_dex_number || 0;
+                speciesName = species.name || `#${speciesId}`;
+            } else if (currentEncounter.id || currentEncounter.national_dex_number) {
+                speciesId = currentEncounter.id || currentEncounter.national_dex_number || 0;
+                speciesName = currentEncounter.name || currentEncounter.species_name || `#${speciesId}`;
             }
             
-            html += `<div class="encounter-details">`;
+            level = currentEncounter.level || 0;
+            isShiny = currentEncounter.is_shiny || currentEncounter.isShiny || false;
+            ivs = currentEncounter.ivs || currentEncounter.IVs;
+            nature = formatNatureValue(
+                currentEncounter.nature ||
+                currentEncounter.nature_name ||
+                currentEncounter.pokemon?.nature ||
+                currentEncounter.pokemon?.nature_name
+            );
+            ability = formatAbilityValue(
+                currentEncounter.ability || currentEncounter.pokemon?.ability,
+                currentEncounter.ability_name || currentEncounter.pokemon?.ability_name,
+                currentEncounter.ability_slot || currentEncounter.pokemon?.ability_slot
+            );
             
-            if (dashboardSettings.showEncounterName !== false) {
-                html += `<div class="encounter-name">
-                    <strong>${speciesName}</strong>
-                    ${(dashboardSettings.showEncounterShiny !== false && isShiny) ? '<span class="shiny-badge">⭐</span>' : ''}
-                </div>`;
-            } else if (dashboardSettings.showEncounterShiny !== false && isShiny) {
-                html += `<div class="encounter-name"><span class="shiny-badge">⭐</span></div>`;
-            }
-            
-            if (dashboardSettings.showEncounterLevel !== false && level > 0) {
-                html += `<div class="encounter-detail">Level: ${level}</div>`;
-            }
-            if (dashboardSettings.showEncounterNature !== false && nature) {
-                html += `<div class="encounter-detail">Nature: ${nature}</div>`;
-            }
-            if (dashboardSettings.showEncounterAbility !== false && ability) {
-                html += `<div class="encounter-detail">Ability: ${ability}</div>`;
-            }
-            
-            if (ivs && typeof ivs === 'object') {
-                const ivSum = Object.values(ivs).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
-                if (dashboardSettings.showEncounterIVSum !== false) {
-                    html += `<div class="encounter-detail">IV Sum: ${ivSum}</div>`;
+            if (speciesId > 0 || speciesName !== 'Unknown') {
+                const unownFormIndex = getUnownFormIndexFromEncounterOrName(currentEncounter, speciesId, speciesName);
+                const unownForm = (speciesId === 201 && unownFormIndex !== null && unownFormIndex !== undefined)
+                    ? getUnownFormForSprite(unownFormIndex)
+                    : undefined;
+                speciesName = formatEncounterSpeciesName(speciesId, speciesName, currentEncounter);
+                const spriteUrl = getSpriteUrl(speciesId, isShiny, unownForm);
+                html += `<div class="current-encounter-display">`;
+                html += `<div class="encounter-sprite-slot">`;
+                if (dashboardSettings.showEncounterSprite !== false) {
+                    html += `<img src="${spriteUrl}" alt="Pokemon" onerror="this.style.display='none'" class="encounter-sprite">`;
                 }
-                if (dashboardSettings.showEncounterIVs !== false) {
-                    html += `<div class="encounter-ivs">`;
-                    const ivNames = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
-                    let ivIndex = 0;
-                    for (const [key, value] of Object.entries(ivs)) {
-                        if (ivIndex < ivNames.length) {
-                            html += `<span class="iv-item">${ivNames[ivIndex]}: ${value || 0}</span>`;
-                            ivIndex++;
-                        }
+                html += `</div>`;
+                
+                html += `<div class="encounter-details">`;
+                
+                if (dashboardSettings.showEncounterName !== false) {
+                    html += `<div class="encounter-name">
+                        <strong>${speciesName}</strong>
+                        ${(dashboardSettings.showEncounterShiny !== false && isShiny) ? '<span class="shiny-badge">⭐</span>' : ''}
+                    </div>`;
+                } else if (dashboardSettings.showEncounterShiny !== false && isShiny) {
+                    html += `<div class="encounter-name"><span class="shiny-badge">⭐</span></div>`;
+                }
+                
+                if (dashboardSettings.showEncounterLevel !== false && level > 0) {
+                    html += `<div class="encounter-detail">Level: ${level}</div>`;
+                }
+                if (dashboardSettings.showEncounterNature !== false && nature) {
+                    html += `<div class="encounter-detail">Nature: ${nature}</div>`;
+                }
+                if (dashboardSettings.showEncounterAbility !== false && ability) {
+                    html += `<div class="encounter-detail">Ability: ${ability}</div>`;
+                }
+                
+                if (ivs && typeof ivs === 'object') {
+                    const ivSum = Object.values(ivs).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
+                    if (dashboardSettings.showEncounterIVSum !== false) {
+                        html += `<div class="encounter-detail">IV Sum: ${ivSum}</div>`;
                     }
-                    html += `</div>`;
                 }
+                
+                html += `</div></div>`;
             }
-            
-            html += `</div></div>`;
+        } else {
+            const mode =
+                statusWithEmulator.mode ||
+                statusWithEmulator.bot_mode ||
+                statusWithEmulator.game_mode ||
+                statusWithEmulator.gameMode ||
+                'Unknown';
+
+            html += `<div class="current-encounter-display current-encounter-empty">
+                <div class="encounter-sprite-slot" aria-hidden="true"></div>
+                <div class="encounter-details">
+                    <div class="encounter-name">
+                        <strong>No current encounter</strong>
+                    </div>
+                    <div class="encounter-detail">Mode: ${mode}</div>
+                </div>
+            </div>`;
         }
         
         html += `</div>`;
@@ -5465,10 +5486,62 @@ function formatAbilityValue(ability, fallbackAbilityName, fallbackAbilitySlot) {
     return null;
 }
 
+function parseUnownFormFromString(str) {
+    if (typeof str !== 'string' || !str.trim()) return null;
+    const s = str.trim();
+    // "Unown (Z)", "Unown (!)", "Unown (?)"
+    let m = s.match(/Unown\s*\(\s*([A-Za-z!?])\s*\)/i);
+    if (m) {
+        const ch = m[1];
+        if (ch === '!') return 26;
+        if (ch === '?') return 27;
+        const upper = ch.toUpperCase();
+        if (upper >= 'A' && upper <= 'Z') return upper.charCodeAt(0) - 65;
+        return null;
+    }
+    // "Unown Z", "Unown-Z", "Unown  !", "unown ?" (space or hyphen before letter/!/?)
+    m = s.match(/Unown\s*[- ]\s*([A-Za-z!?])\s*$/i);
+    if (m) {
+        const ch = m[1];
+        if (ch === '!') return 26;
+        if (ch === '?') return 27;
+        const upper = ch.toUpperCase();
+        if (upper >= 'A' && upper <= 'Z') return upper.charCodeAt(0) - 65;
+        return null;
+    }
+    // Single letter/!/? at end after "unown" (e.g. "unown z")
+    m = s.match(/unown\s+([a-z!?])\s*$/i);
+    if (m) {
+        const ch = m[1];
+        if (ch === '!') return 26;
+        if (ch === '?') return 27;
+        if (ch >= 'A' && ch <= 'Z') return ch.charCodeAt(0) - 65;
+        if (ch >= 'a' && ch <= 'z') return ch.charCodeAt(0) - 97;
+        return null;
+    }
+    return null;
+}
+
+function getUnownFormIndexFromEncounterOrName(encounter, speciesId, speciesName) {
+    const id = parseInt(speciesId);
+    if (id !== 201) return null;
+
+    // 1) Explicit form in speciesName (API may send "Unown (Z)", "Unown Z", "Unown-Z", etc.)
+    const fromName = parseUnownFormFromString(speciesName);
+    if (fromName !== null) return fromName;
+
+    // 2) Fall back to encounter object: explicit form fields, then species.*, then PID/IVs
+    return calculateUnownFormFromEncounter(encounter);
+}
+
 function formatEncounterSpeciesName(speciesId, speciesName, encounter) {
-    if (parseInt(speciesId) !== 201) return speciesName;
-    const formIndex = calculateUnownFormFromEncounter(encounter);
-    if (formIndex === null || formIndex === undefined) return speciesName;
+    const id = parseInt(speciesId);
+    if (id !== 201) return speciesName;
+
+    const formIndex = getUnownFormIndexFromEncounterOrName(encounter, id, speciesName);
+    if (formIndex === null || formIndex === undefined) {
+        return speciesName;
+    }
     const formName = getUnownFormName(formIndex);
     return `Unown (${formName})`;
 }
@@ -5500,23 +5573,99 @@ function getUnownFormForSprite(formIndex) {
     return '?';
 }
 
-// Extract Unown form from encounter/pokemon (personality or IVs)
+// Extract Unown form using the same mechanic as the Pokedex (app.js calculateUnownForm).
+// Prefer explicit form from API (species.form, form, unownForm, etc.), then PID/IVs.
 function calculateUnownFormFromEncounter(encounter) {
-    const pid = encounter?.personality ?? encounter?.pid ?? encounter?.pokemon?.personality ?? encounter?.data?.pokemon?.personality;
+    if (!encounter) return null;
+
+    // 1) Prefer explicit form from API: top-level, pokemon, data.pokemon, and species (common in bot APIs)
+    const directFormSources = [
+        encounter,
+        encounter.pokemon,
+        encounter.data && encounter.data.pokemon,
+        encounter.species,
+        encounter.data && encounter.data.species
+    ].filter(Boolean);
+
+    for (const src of directFormSources) {
+        // Numeric form index 0-27
+        let numericForm = null;
+        if (typeof src.unownForm === 'number' && Number.isInteger(src.unownForm)) numericForm = src.unownForm;
+        else if (typeof src.unown_form === 'number' && Number.isInteger(src.unown_form)) numericForm = src.unown_form;
+        else if (typeof src.formIndex === 'number' && Number.isInteger(src.formIndex)) numericForm = src.formIndex;
+        else if (typeof src.form_index === 'number' && Number.isInteger(src.form_index)) numericForm = src.form_index;
+        else if (typeof src.form_id === 'number' && Number.isInteger(src.form_id)) numericForm = src.form_id;
+        if (numericForm !== null) return Math.min(27, Math.max(0, numericForm));
+
+        // String form: "Z", "z", "!", "?", "Unown (Z)", "exclamation", "question"
+        const stringForm =
+            src.unownForm ??
+            src.unown_form ??
+            src.form ??
+            src.form_name ??
+            src.formName ??
+            src.species_form;
+        if (typeof stringForm === 'string' && stringForm.trim().length > 0) {
+            const trimmed = stringForm.trim();
+            // PokeAPI-style form names
+            if (/^exclamation$/i.test(trimmed)) return 26;
+            if (/^question$/i.test(trimmed)) return 27;
+            // Parse "Unown (Z)" / "Unown Z" from species.name if this is the species object
+            if (src === encounter.species || src === (encounter.data && encounter.data.species)) {
+                const fromName = parseUnownFormFromString(src.name || trimmed);
+                if (fromName !== null) return fromName;
+            }
+            const single = trimmed.match(/^([A-Za-z!?])/);
+            if (single) {
+                const ch = single[1];
+                if (ch === '!') return 26;
+                if (ch === '?') return 27;
+                const upper = ch.toUpperCase();
+                if (upper >= 'A' && upper <= 'Z') return upper.charCodeAt(0) - 65;
+            }
+        }
+    }
+
+    // 2) Same as Pokedex: build pokemon-like object and use identical calculateUnownForm logic
+    const ivsRaw = encounter?.ivs ?? encounter?.IVs ?? encounter?.pokemon?.ivs ?? encounter?.data?.pokemon?.ivs;
+    const pokemon = {
+        // Bot API often sends personality_value (e.g. pokebot-gen3); also pid, personality
+        personality: encounter?.personality ?? encounter?.pid ?? encounter?.personality_value ??
+            encounter?.pokemon?.personality ?? encounter?.pokemon?.pid ?? encounter?.pokemon?.personality_value ??
+            encounter?.data?.pokemon?.personality ?? encounter?.data?.pokemon?.pid ?? encounter?.data?.pokemon?.personality_value,
+        ivs: ivsRaw ? {
+            attack:   ivsRaw.attack ?? ivsRaw.atk ?? 0,
+            defense:  ivsRaw.defense ?? ivsRaw.def ?? 0,
+            speed:    ivsRaw.speed ?? ivsRaw.spd ?? 0,
+            spAttack: ivsRaw.spAttack ?? ivsRaw.spa ?? 0
+        } : undefined
+    };
+
+    // Exact copy of app.js calculateUnownForm(pokemon) — PID then IV
+    const pid = pokemon?.personality;
+
     if (typeof pid === 'number' && pid > 0) {
-        const value = ((pid & 0x03000000) >> 18) | ((pid & 0x00030000) >> 12) | ((pid & 0x00000300) >> 6) | (pid & 0x00000003);
+        const value =
+            ((pid & 0x03000000) >> 18) |
+            ((pid & 0x00030000) >> 12) |
+            ((pid & 0x00000300) >> 6)  |
+            (pid & 0x00000003);
         return Math.min(27, Math.max(0, value % 28));
     }
-    const ivs = encounter?.ivs ?? encounter?.IVs ?? encounter?.pokemon?.ivs ?? encounter?.data?.pokemon?.ivs;
-    if (ivs) {
-        const atk = (ivs.attack ?? ivs.atk ?? 0) & 0x6;
-        const def = (ivs.defense ?? ivs.def ?? 0) & 0x6;
-        const spe = (ivs.speed ?? ivs.spd ?? 0) & 0x6;
-        const spa = (ivs.spAttack ?? ivs.spa ?? 0) & 0x6;
-        const formValue = ((atk << 5) | (def << 3) | (spe << 1) | (spa >> 1)) / 10;
-        return Math.min(27, Math.max(0, Math.floor(formValue)));
-    }
-    return null;
+
+    if (!pokemon.ivs) return null;
+
+    const attackIV   = pokemon.ivs.attack   ?? 0;
+    const defenseIV  = pokemon.ivs.defense  ?? 0;
+    const speedIV    = pokemon.ivs.speed    ?? 0;
+    const spAttackIV = pokemon.ivs.spAttack ?? 0;
+
+    const atkBits = (attackIV & 0x6) << 5;
+    const defBits = (defenseIV & 0x6) << 3;
+    const speBits = (speedIV & 0x6) << 1;
+    const spcBits = (spAttackIV & 0x6) >> 1;
+    const formValue = (atkBits | defBits | speBits | spcBits) / 10;
+    return Math.min(27, Math.max(0, Math.floor(formValue)));
 }
 
 // Parse Unown form from target speciesName e.g. "Unown (A)" -> "a"

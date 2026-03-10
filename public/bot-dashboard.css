@@ -687,6 +687,57 @@ body.bot-dashboard-page .bot-status-container {
     font-weight: 500;
 }
 
+/* Current Encounter - keep thumbnail space fixed so layout doesn't jump */
+.current-encounter-display {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+}
+
+.encounter-sprite-slot {
+    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.encounter-sprite-slot .encounter-sprite {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.current-encounter-display .encounter-details {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Make fetched current encounter stats more compact */
+.current-encounter-display .encounter-detail {
+    font-size: 0.8em;
+}
+
+.current-encounter-display .encounter-ivs {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font-size: 0.75em;
+}
+
+.current-encounter-display .encounter-ivs .iv-item {
+    font-size: inherit;
+}
+
 /* Target Pokemon Section */
 .target-pokemon-section {
     margin-top: 10px;
