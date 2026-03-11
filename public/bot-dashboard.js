@@ -1334,16 +1334,34 @@ async function showBotDashboardStatistics(forceRefresh = false) {
         html += `<div class="statistic-card"><div class="statistic-value">${totals.shiny_encounters.toLocaleString()}</div><div class="statistic-label">Shiny Encounters</div></div>`;
         html += `<div class="statistic-card"><div class="statistic-value">${totals.catches.toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
         html += `<div class="statistic-card"><div class="statistic-value">${shinyRateDisplay}</div><div class="statistic-label">Shiny Rate</div></div>`;
+        const bestIVEntry = combinedEntries.filter(r => r.total_highest_iv_sum != null).sort((a, b) => (b.total_highest_iv_sum || 0) - (a.total_highest_iv_sum || 0))[0];
+        const bestSVEntry = combinedEntries.filter(r => r.total_highest_sv != null).sort((a, b) => (b.total_highest_sv || 0) - (a.total_highest_sv || 0))[0];
+        const lowestIVEntry = combinedEntries.filter(r => r.total_lowest_iv_sum != null).sort((a, b) => (a.total_lowest_iv_sum || 999) - (b.total_lowest_iv_sum || 999))[0];
+        const lowestSVEntry = combinedEntries.filter(r => r.total_lowest_sv != null).sort((a, b) => (a.total_lowest_sv || 999999) - (b.total_lowest_sv || 999999))[0];
+        const highestShinyPctEntry = combinedEntries.filter(r => (r.total_encounters || 0) >= 1).map(r => ({ ...r, shinyPct: ((r.shiny_encounters || 0) / (r.total_encounters || 1)) * 100 })).sort((a, b) => (b.shinyPct || 0) - (a.shinyPct || 0))[0];
+        if (bestIVEntry) html += `<div class="statistic-card"><div class="statistic-value">${Number(bestIVEntry.total_highest_iv_sum).toLocaleString()}</div><div class="statistic-label">Highest IV <span class="statistic-sublabel">(${escapeHtml(bestIVEntry.species_name || '—')})</span></div></div>`;
+        if (bestSVEntry) html += `<div class="statistic-card"><div class="statistic-value">${Number(bestSVEntry.total_highest_sv).toLocaleString()}</div><div class="statistic-label">Highest SV <span class="statistic-sublabel">(${escapeHtml(bestSVEntry.species_name || '—')})</span></div></div>`;
+        if (lowestIVEntry) html += `<div class="statistic-card"><div class="statistic-value">${Number(lowestIVEntry.total_lowest_iv_sum).toLocaleString()}</div><div class="statistic-label">Lowest IV <span class="statistic-sublabel">(${escapeHtml(lowestIVEntry.species_name || '—')})</span></div></div>`;
+        if (lowestSVEntry) html += `<div class="statistic-card"><div class="statistic-value">${Number(lowestSVEntry.total_lowest_sv).toLocaleString()}</div><div class="statistic-label">Lowest SV <span class="statistic-sublabel">(${escapeHtml(lowestSVEntry.species_name || '—')})</span></div></div>`;
+        if (highestShinyPctEntry && highestShinyPctEntry.shinyPct != null) html += `<div class="statistic-card"><div class="statistic-value">${(highestShinyPctEntry.shinyPct).toFixed(1)}%</div><div class="statistic-label">Highest shiny % <span class="statistic-sublabel">(${escapeHtml(highestShinyPctEntry.species_name || '—')})</span></div></div>`;
         html += '</div>';
         html += '<div class="statistics-totals-by-instance"><h4 class="statistics-totals-table-title">By instance</h4><div class="statistics-table-wrapper"><table class="statistics-table statistics-totals-table">';
-        html += '<thead><tr><th>Instance</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Shiny Rate</th></tr></thead><tbody>';
+        html += '<thead><tr>';
+        html += '<th class="statistics-th-sortable" data-sort-col="instance" data-sort-type="text">Instance</th>';
+        html += '<th class="statistics-th-sortable" data-sort-col="encounters" data-sort-type="number">Encounters</th>';
+        html += '<th class="statistics-th-sortable" data-sort-col="shinies" data-sort-type="number">Shinies</th>';
+        html += '<th class="statistics-th-sortable" data-sort-col="catches" data-sort-type="number">Catches</th>';
+        html += '<th class="statistics-th-sortable" data-sort-col="shiny-rate" data-sort-type="number">Shiny Rate</th>';
+        html += '</tr></thead><tbody>';
         for (const row of byBot) {
             const enc = Number(row.totals?.total_encounters ?? row.totals?.totalEncounters ?? 0) || 0;
             const sh = Number(row.totals?.shiny_encounters ?? row.totals?.shinyEncounters ?? 0) || 0;
             const cat = Number(row.totals?.catches ?? 0) || 0;
             const botOneInX = sh > 0 && enc > 0 ? Math.round(enc / sh) : null;
             const rateDisplay = botOneInX != null ? `1 in ${botOneInX.toLocaleString()}` : '—';
-            html += `<tr><td class="statistics-instance-name">${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</td><td>${enc.toLocaleString()}</td><td>${sh.toLocaleString()}</td><td>${cat.toLocaleString()}</td><td>${rateDisplay}</td></tr>`;
+            const rateSort = botOneInX != null ? botOneInX : 0;
+            const instanceName = (row.name || '').trim();
+            html += `<tr class="statistics-instance-row" data-instance="${escapeHtml(instanceName)}" data-encounters="${enc}" data-shinies="${sh}" data-catches="${cat}" data-shiny-rate="${rateSort}"><td class="statistics-instance-name">${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</td><td>${enc.toLocaleString()}</td><td>${sh.toLocaleString()}</td><td>${cat.toLocaleString()}</td><td>${rateDisplay}</td></tr>`;
         }
         html += `<tr class="statistics-totals-table-footer"><td><strong>Total</strong></td><td><strong>${totals.total_encounters.toLocaleString()}</strong></td><td><strong>${totals.shiny_encounters.toLocaleString()}</strong></td><td><strong>${totals.catches.toLocaleString()}</strong></td><td><strong>${shinyRateDisplay}</strong></td></tr>`;
         html += '</tbody></table></div></div></div>';
@@ -1358,14 +1376,32 @@ async function showBotDashboardStatistics(forceRefresh = false) {
         }
         const sortedPokemon = Object.values(combinedPokemon).sort((a, b) => (b.total_encounters || 0) - (a.total_encounters || 0));
         if (sortedPokemon.length > 0) {
-            html += '<div class="statistics-section"><h3>Per-species statistics (combined)</h3><p class="statistics-subtitle">From /stats pokemon data across all instances. Search by name or number.</p>';
+            html += '<div class="statistics-section"><h3>Per-species statistics (combined)</h3><p class="statistics-subtitle">From /stats pokemon data across all instances. Search by name or number. Click column headers to sort.</p>';
             html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
-            html += '<div class="statistics-table-wrapper"><table class="statistics-table"><thead><tr><th>Species</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Best IV</th><th>Lowest IV</th><th>Best SV</th><th>Lowest SV</th><th>Last encounter</th></tr></thead><tbody id="botStatsPerMonList">';
+            html += '<div class="statistics-table-wrapper"><table class="statistics-table statistics-per-species-table"><thead><tr>';
+            html += '<th class="statistics-th-sortable" data-sort-col="species" data-sort-type="text">Species</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="encounters" data-sort-type="number">Encounters</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="shinies" data-sort-type="number">Shinies</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="catches" data-sort-type="number">Catches</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="shiny-rate" data-sort-type="number">1 in X (shiny)</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="best-iv" data-sort-type="number">Best IV</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="lowest-iv" data-sort-type="number">Lowest IV</th>';
+            html += '<th class="statistics-th-sortable" data-sort-col="last-encounter" data-sort-type="number">Last encounter</th>';
+            html += '</tr></thead><tbody id="botStatsPerMonList">';
             sortedPokemon.forEach((r) => {
                 const name = r.species_name || '—';
                 const id = r.species_id != null ? r.species_id : '';
                 const lastTime = r.last_encounter_time ? (() => { try { const d = new Date(r.last_encounter_time); return isNaN(d.getTime()) ? r.last_encounter_time : d.toLocaleString(); } catch (_) { return r.last_encounter_time; } })() : '—';
-                html += `<tr class="statistics-per-mon-item" data-species-key="${escapeHtml(String(name))}" data-species-id="${escapeHtml(String(id))}"><td class="statistics-name">${escapeHtml(name)}</td><td>${Number(r.total_encounters || 0).toLocaleString()}</td><td>${Number(r.shiny_encounters || 0).toLocaleString()}</td><td>${Number(r.catches || 0).toLocaleString()}</td><td>${r.total_highest_iv_sum != null ? r.total_highest_iv_sum : '—'}</td><td>${r.total_lowest_iv_sum != null ? r.total_lowest_iv_sum : '—'}</td><td>${r.total_highest_sv != null ? r.total_highest_sv.toLocaleString() : '—'}</td><td>${r.total_lowest_sv != null ? r.total_lowest_sv.toLocaleString() : '—'}</td><td class="statistics-last-time">${escapeHtml(lastTime)}</td></tr>`;
+                const lastTimeTs = r.last_encounter_time ? (() => { try { return new Date(r.last_encounter_time).getTime(); } catch (_) { return 0; } })() : 0;
+                const enc = Number(r.total_encounters || 0);
+                const sh = Number(r.shiny_encounters || 0);
+                const cat = Number(r.catches || 0);
+                const oneInX = sh > 0 && enc > 0 ? Math.round(enc / sh) : null;
+                const shinyRateDisplay = oneInX != null ? `1 in ${oneInX.toLocaleString()}` : '—';
+                const shinyRateSort = oneInX != null ? oneInX : 0;
+                const bestIv = r.total_highest_iv_sum != null ? Number(r.total_highest_iv_sum) : '';
+                const lowIv = r.total_lowest_iv_sum != null ? Number(r.total_lowest_iv_sum) : '';
+                html += `<tr class="statistics-per-mon-item" data-species-key="${escapeHtml(String(name))}" data-species-id="${escapeHtml(String(id))}" data-encounters="${enc}" data-shinies="${sh}" data-catches="${cat}" data-shiny-rate="${shinyRateSort}" data-best-iv="${bestIv}" data-lowest-iv="${lowIv}" data-last-encounter="${lastTimeTs}" data-species="${escapeHtml(String(name))}"><td class="statistics-name">${escapeHtml(name)}</td><td>${enc.toLocaleString()}</td><td>${sh.toLocaleString()}</td><td>${cat.toLocaleString()}</td><td>${shinyRateDisplay}</td><td>${bestIv !== '' ? bestIv : '—'}</td><td>${lowIv !== '' ? lowIv : '—'}</td><td class="statistics-last-time">${escapeHtml(lastTime)}</td></tr>`;
             });
             html += '</tbody></table></div></div>';
         }
@@ -1398,9 +1434,9 @@ async function showBotDashboardStatistics(forceRefresh = false) {
                 html += `<div class="statistic-card"><div class="statistic-value">${Number(enc).toLocaleString()}</div><div class="statistic-label">Encounters</div></div>`;
                 html += `<div class="statistic-card"><div class="statistic-value">${Number(sh).toLocaleString()}</div><div class="statistic-label">Shinies</div></div>`;
                 html += `<div class="statistic-card"><div class="statistic-value">${Number(cat).toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
+                if (t.total_highest_iv_sum && typeof t.total_highest_iv_sum === 'object') html += `<div class="statistic-card"><div class="statistic-value">${t.total_highest_iv_sum.value}</div><div class="statistic-label">Highest IV <span class="statistic-sublabel">(${escapeHtml(t.total_highest_iv_sum.species_name || '—')})</span></div></div>`;
+                if (t.total_highest_sv && typeof t.total_highest_sv === 'object') html += `<div class="statistic-card"><div class="statistic-value">${t.total_highest_sv.value.toLocaleString()}</div><div class="statistic-label">Highest SV <span class="statistic-sublabel">(${escapeHtml(t.total_highest_sv.species_name || '—')})</span></div></div>`;
                 html += '</div>';
-                if (t.total_highest_iv_sum && typeof t.total_highest_iv_sum === 'object') html += `<p class="statistics-detail">Highest IV: ${t.total_highest_iv_sum.value} (${t.total_highest_iv_sum.species_name || '—'})</p>`;
-                if (t.total_highest_sv && typeof t.total_highest_sv === 'object') html += `<p class="statistics-detail">Highest SV: ${t.total_highest_sv.value} (${t.total_highest_sv.species_name || '—'})</p>`;
                 const botSpeciesEntries = Object.entries(row.by_species || {}).map(([s, d]) => [s, typeof d === 'number' ? d : (d?.count ?? d?.encounters ?? 0)]).sort((a, b) => b[1] - a[1]).slice(0, 10);
                 if (botSpeciesEntries.length > 0) {
                     html += '<div class="statistics-list">';
@@ -1438,6 +1474,73 @@ async function showBotDashboardStatistics(forceRefresh = false) {
                 const row = e.target.closest('.statistics-per-mon-item');
                 if (row && row.querySelector('.statistics-per-mon-detail')) { e.preventDefault(); row.querySelector('.statistics-per-mon-detail').classList.toggle('hidden'); }
             });
+        }
+        const perSpeciesTable = document.querySelector('.statistics-per-species-table');
+        if (perSpeciesTable) {
+            const thead = perSpeciesTable.querySelector('thead');
+            const tbody = perSpeciesTable.querySelector('#botStatsPerMonList');
+            if (thead && tbody) {
+                thead.addEventListener('click', (e) => {
+                    const th = e.target.closest('.statistics-th-sortable');
+                    if (!th) return;
+                    const col = th.getAttribute('data-sort-col');
+                    const type = th.getAttribute('data-sort-type') || 'number';
+                    const dir = th.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
+                    thead.querySelectorAll('.statistics-th-sortable').forEach(h => h.removeAttribute('data-sort-dir'));
+                    th.setAttribute('data-sort-dir', dir);
+                    const attr = 'data-' + col;
+                    const rows = Array.from(tbody.querySelectorAll('.statistics-per-mon-item'));
+                    rows.sort((a, b) => {
+                        let va = a.getAttribute(attr);
+                        let vb = b.getAttribute(attr);
+                        if (type === 'number') {
+                            va = va === '' || va == null ? (dir === 'asc' ? Infinity : -Infinity) : Number(va);
+                            vb = vb === '' || vb == null ? (dir === 'asc' ? Infinity : -Infinity) : Number(vb);
+                            return dir === 'asc' ? va - vb : vb - va;
+                        }
+                        va = (va || '').toLowerCase();
+                        vb = (vb || '').toLowerCase();
+                        const cmp = va.localeCompare(vb);
+                        return dir === 'asc' ? cmp : -cmp;
+                    });
+                    rows.forEach(r => tbody.appendChild(r));
+                });
+            }
+        }
+        const instanceTable = document.querySelector('.statistics-totals-table');
+        if (instanceTable) {
+            const thead = instanceTable.querySelector('thead');
+            const tbody = instanceTable.querySelector('tbody');
+            if (thead && tbody) {
+                thead.addEventListener('click', (e) => {
+                    const th = e.target.closest('.statistics-th-sortable');
+                    if (!th) return;
+                    const col = th.getAttribute('data-sort-col');
+                    const type = th.getAttribute('data-sort-type') || 'number';
+                    const dir = th.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
+                    thead.querySelectorAll('.statistics-th-sortable').forEach(h => h.removeAttribute('data-sort-dir'));
+                    th.setAttribute('data-sort-dir', dir);
+                    const footer = tbody.querySelector('.statistics-totals-table-footer');
+                    const attr = 'data-' + col;
+                    const rows = Array.from(tbody.querySelectorAll('.statistics-instance-row'));
+                    rows.sort((a, b) => {
+                        let va = a.getAttribute(attr);
+                        let vb = b.getAttribute(attr);
+                        if (type === 'number') {
+                            va = va === '' || va == null ? (dir === 'asc' ? Infinity : -Infinity) : Number(va);
+                            vb = vb === '' || vb == null ? (dir === 'asc' ? Infinity : -Infinity) : Number(vb);
+                            return dir === 'asc' ? va - vb : vb - va;
+                        }
+                        va = (va || '').toLowerCase();
+                        vb = (vb || '').toLowerCase();
+                        const cmp = va.localeCompare(vb);
+                        return dir === 'asc' ? cmp : -cmp;
+                    });
+                    if (footer) footer.remove();
+                    rows.forEach(r => tbody.appendChild(r));
+                    if (footer) tbody.appendChild(footer);
+                });
+            }
         }
     }
 
