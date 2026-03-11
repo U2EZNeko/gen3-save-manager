@@ -212,6 +212,7 @@ const DEFAULT_PK3_FOLDER = path.join(process.cwd(), 'pk3-files');
 // Path to the folders configuration file (in cwd for portability across systems)
 const FOLDERS_CONFIG_PATH = path.join(process.cwd(), 'folders-config.json');
 const BOTS_CONFIG_PATH = path.join(process.cwd(), 'bots-config.json');
+const BOT_DASHBOARD_CACHE_PATH = path.join(process.cwd(), 'bot-dashboard-cache.json');
 
 // Load bots from JSON file or initialize with empty array
 function loadBots() {
@@ -235,6 +236,48 @@ function saveBots(bots) {
     return true;
   } catch (error) {
     console.error('Error saving bots config:', error);
+    return false;
+  }
+}
+
+// Load bot dashboard cache (stats + max totals) from file
+function loadBotDashboardCache() {
+  if (fs.existsSync(BOT_DASHBOARD_CACHE_PATH)) {
+    try {
+      const data = fs.readFileSync(BOT_DASHBOARD_CACHE_PATH, 'utf8');
+      const parsed = JSON.parse(data);
+      const statsCache = parsed && typeof parsed.statsCache === 'object' ? parsed.statsCache : {};
+      const mt = parsed && typeof parsed.maxTotals === 'object' ? parsed.maxTotals : null;
+      const maxTotals = {
+        encounters: (mt && typeof mt.encounters === 'object') ? mt.encounters : {},
+        shinies: (mt && typeof mt.shinies === 'object') ? mt.shinies : {},
+        catches: (mt && typeof mt.catches === 'object') ? mt.catches : {}
+      };
+      return { statsCache, maxTotals };
+    } catch (error) {
+      console.warn('Error loading bot dashboard cache:', error.message);
+    }
+  }
+  return { statsCache: {}, maxTotals: { encounters: {}, shinies: {}, catches: {} } };
+}
+
+// Save bot dashboard cache to file (merge maxTotals so empty POST doesn't wipe; replace statsCache)
+function saveBotDashboardCache(updates) {
+  try {
+    const current = loadBotDashboardCache();
+    if (updates.statsCache !== undefined && typeof updates.statsCache === 'object') {
+      current.statsCache = updates.statsCache;
+    }
+    if (updates.maxTotals !== undefined && typeof updates.maxTotals === 'object') {
+      const u = updates.maxTotals;
+      current.maxTotals.encounters = { ...(current.maxTotals.encounters || {}), ...(u.encounters || {}) };
+      current.maxTotals.shinies = { ...(current.maxTotals.shinies || {}), ...(u.shinies || {}) };
+      current.maxTotals.catches = { ...(current.maxTotals.catches || {}), ...(u.catches || {}) };
+    }
+    fs.writeFileSync(BOT_DASHBOARD_CACHE_PATH, JSON.stringify(current, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error saving bot dashboard cache:', error);
     return false;
   }
 }
@@ -960,13 +1003,42 @@ app.delete('/api/bot-targets/:botId', (req, res) => {
   try {
     const botId = req.params.botId;
     const targets = loadBotTargets();
-    
+
     delete targets[botId];
-    
+
     if (saveBotTargets(targets)) {
       res.json({ success: true });
     } else {
       res.status(500).json({ error: 'Failed to delete bot target' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bot dashboard cache (stats + max totals) – persisted to file so browser clearing doesn't lose data
+app.get('/api/bot-dashboard-cache', (req, res) => {
+  try {
+    const cache = loadBotDashboardCache();
+    res.json(cache);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/bot-dashboard-cache', express.json(), (req, res) => {
+  try {
+    const { statsCache, maxTotals } = req.body || {};
+    const updates = {};
+    if (statsCache !== undefined && typeof statsCache === 'object') updates.statsCache = statsCache;
+    if (maxTotals !== undefined && typeof maxTotals === 'object') updates.maxTotals = maxTotals;
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'Provide statsCache and/or maxTotals' });
+    }
+    if (saveBotDashboardCache(updates)) {
+      res.json({ success: true });
+    } else {
+      res.status(500).json({ error: 'Failed to save bot dashboard cache' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });

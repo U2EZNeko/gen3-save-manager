@@ -145,7 +145,22 @@ const BOT_MAX_TOTALS_STORAGE_KEY = 'botDashboardMaxTotals';
 const BOT_STATS_CACHE_STORAGE_KEY = 'botDashboardStatsCache';
 const BOT_STATS_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes – use cache when opening modal if within this age
 
-function loadBotStatsCache() {
+async function loadBotStatsCache() {
+    try {
+        const res = await fetch('/api/bot-dashboard-cache');
+        if (res && res.ok) {
+            const data = await res.json();
+            const stats = data && data.statsCache && typeof data.statsCache === 'object' ? data.statsCache : {};
+            Object.entries(stats).forEach(([botId, entry]) => {
+                if (entry && entry.stats != null) {
+                    botStatsCache.set(botId, { stats: entry.stats, time: entry.time || 0 });
+                }
+            });
+            return;
+        }
+    } catch (e) {
+        console.warn('[loadBotStatsCache] Server load failed, trying localStorage:', e?.message || e);
+    }
     try {
         const saved = localStorage.getItem(BOT_STATS_CACHE_STORAGE_KEY);
         if (saved) {
@@ -163,14 +178,24 @@ function loadBotStatsCache() {
     }
 }
 
-function saveBotStatsCache() {
+async function saveBotStatsCache() {
+    const data = {};
+    botStatsCache.forEach((entry, botId) => {
+        if (entry && entry.stats != null) {
+            data[botId] = { stats: entry.stats, time: entry.time || 0 };
+        }
+    });
     try {
-        const data = {};
-        botStatsCache.forEach((entry, botId) => {
-            if (entry && entry.stats != null) {
-                data[botId] = { stats: entry.stats, time: entry.time || 0 };
-            }
+        const res = await fetch('/api/bot-dashboard-cache', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ statsCache: data })
         });
+        if (res && res.ok) return;
+    } catch (e) {
+        console.warn('[saveBotStatsCache] Server save failed, using localStorage:', e?.message || e);
+    }
+    try {
         localStorage.setItem(BOT_STATS_CACHE_STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
         console.warn('[saveBotStatsCache]', e);
@@ -178,6 +203,7 @@ function saveBotStatsCache() {
 }
 
 function loadBotMaxTotalsCaches() {
+    // Synchronous fallback from localStorage only; server load is done in loadBotDashboardCacheFromServer()
     try {
         const saved = localStorage.getItem(BOT_MAX_TOTALS_STORAGE_KEY);
         if (saved) {
@@ -197,16 +223,89 @@ function loadBotMaxTotalsCaches() {
     }
 }
 
-function saveBotMaxTotalsCaches() {
+async function loadBotDashboardCacheFromServer() {
     try {
-        const data = {
-            encounters: Object.fromEntries(maxTotalEncountersCache),
-            shinies: Object.fromEntries(maxTotalShiniesCache),
-            catches: Object.fromEntries(maxTotalCatchesCache)
-        };
-        localStorage.setItem(BOT_MAX_TOTALS_STORAGE_KEY, JSON.stringify(data));
+        const res = await fetch('/api/bot-dashboard-cache');
+        if (res && res.ok) {
+            const data = await res.json();
+            if (data.statsCache && typeof data.statsCache === 'object') {
+                Object.entries(data.statsCache).forEach(([botId, entry]) => {
+                    if (entry && entry.stats != null) {
+                        botStatsCache.set(botId, { stats: entry.stats, time: Number(entry.time) || 0 });
+                    }
+                });
+            }
+            if (data.maxTotals && typeof data.maxTotals === 'object') {
+                const mt = data.maxTotals;
+                if (mt.encounters && typeof mt.encounters === 'object') {
+                    Object.entries(mt.encounters).forEach(([id, val]) => { maxTotalEncountersCache.set(id, Number(val) || 0); });
+                }
+                if (mt.shinies && typeof mt.shinies === 'object') {
+                    Object.entries(mt.shinies).forEach(([id, val]) => { maxTotalShiniesCache.set(id, Number(val) ?? -1); });
+                }
+                if (mt.catches && typeof mt.catches === 'object') {
+                    Object.entries(mt.catches).forEach(([id, val]) => { maxTotalCatchesCache.set(id, Number(val) ?? -1); });
+                }
+            }
+            return;
+        }
     } catch (e) {
-        console.warn('[saveBotMaxTotalsCaches]', e);
+        console.warn('[loadBotDashboardCacheFromServer] Server failed, using localStorage:', e?.message || e);
+    }
+    loadBotMaxTotalsCaches();
+    try {
+        const saved = localStorage.getItem(BOT_STATS_CACHE_STORAGE_KEY);
+        if (saved) {
+            const data = JSON.parse(saved);
+            if (data && typeof data === 'object') {
+                Object.entries(data).forEach(([botId, entry]) => {
+                    if (entry && entry.stats != null) {
+                        botStatsCache.set(botId, { stats: entry.stats, time: entry.time || 0 });
+                    }
+                });
+            }
+        }
+    } catch (e2) {
+        console.warn('[loadBotDashboardCacheFromServer] localStorage stats fallback:', e2);
+    }
+}
+
+function saveBotMaxTotalsCaches() {
+    const data = {
+        encounters: Object.fromEntries(maxTotalEncountersCache),
+        shinies: Object.fromEntries(maxTotalShiniesCache),
+        catches: Object.fromEntries(maxTotalCatchesCache)
+    };
+    const hasAny = Object.keys(data.encounters).length > 0 || Object.keys(data.shinies).length > 0 || Object.keys(data.catches).length > 0;
+    try {
+        if (hasAny) {
+            fetch('/api/bot-dashboard-cache', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ maxTotals: data })
+            }).then(res => {
+                if (res && res.ok) return;
+                return Promise.reject(new Error('Save failed'));
+            }).catch(() => {
+                try {
+                    localStorage.setItem(BOT_MAX_TOTALS_STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    console.warn('[saveBotMaxTotalsCaches]', e);
+                }
+            });
+        } else {
+            try {
+                localStorage.setItem(BOT_MAX_TOTALS_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('[saveBotMaxTotalsCaches]', e);
+            }
+        }
+    } catch (e) {
+        try {
+            localStorage.setItem(BOT_MAX_TOTALS_STORAGE_KEY, JSON.stringify(data));
+        } catch (e2) {
+            console.warn('[saveBotMaxTotalsCaches]', e2);
+        }
     }
 }
 
@@ -422,9 +521,8 @@ function applyBotAccentColor(color) {
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Dashboard] DOMContentLoaded - initializing...');
-    loadBotMaxTotalsCaches();
-    loadBotStatsCache();
-    
+    await loadBotDashboardCacheFromServer();
+
     try {
         // Load bot targets from server (non-blocking - continue even if it fails)
         loadBotTargets().catch(error => {
@@ -1067,15 +1165,15 @@ function setupEventListeners() {
 }
 
 // Show Database Statistics modal with /stats content and combined per-species data
-// forceRefresh: if true, always fetch /stats for all bots; otherwise use cache when < 5 min old
+// forceRefresh: if true, always fetch /stats for all bots (regardless of online status) with a longer timeout to force an update; otherwise use cache when < 5 min old
 // Refresh only updates the cache with new data; it never clears or removes existing cache entries.
+// Loads cached values immediately, then updates in the background if needed.
 async function showBotDashboardStatistics(forceRefresh = false) {
     const modal = document.getElementById('botDashboardStatisticsModal');
     const body = document.getElementById('botDashboardStatisticsBody');
     const loadingOverlay = document.getElementById('botDashboardStatisticsLoading');
     if (!modal || !body) return;
 
-    // Show loading overlay but keep existing body content (last values) visible underneath
     if (loadingOverlay) {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.setAttribute('aria-hidden', 'false');
@@ -1094,7 +1192,6 @@ async function showBotDashboardStatistics(forceRefresh = false) {
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Include all configured bots (visible and hidden, online and offline) so we always show last known data
     const botsToShow = botInstances.length ? botInstances : [];
     if (botsToShow.length === 0) {
         body.innerHTML = '<p class="no-data">No bot instances configured. Add bots first.</p>';
@@ -1102,353 +1199,285 @@ async function showBotDashboardStatistics(forceRefresh = false) {
         return;
     }
 
-    const now = Date.now();
-    const results = [];
-    try {
-    for (const bot of botsToShow) {
-        const cached = botStatsCache.get(bot.id);
-        const useCache = !forceRefresh && cached && cached.stats != null && (now - (cached.time || 0)) < BOT_STATS_CACHE_MAX_AGE_MS;
-        if (useCache) {
-            results.push({ bot, stats: cached.stats, error: null, fromCache: true });
-            continue;
-        }
-        try {
-            const statsData = await fetchBotEndpoint(bot, (bot.url || '').replace(/\/$/, ''), '/stats');
-            // Only update cache when we have new data; never clear or overwrite with empty
-            if (statsData != null) botStatsCache.set(bot.id, { stats: statsData, time: Date.now() });
-            results.push({ bot, stats: statsData, error: null, fromCache: false });
-        } catch (e) {
-            // Keep existing cache: use last known data for display; do not remove or clear cache entry
-            let fallback = botStatsCache.get(bot.id);
-            if (!fallback && botDataCache.has(bot.id)) {
+    // Build results from cache only (sync) so we can show immediately
+    function buildResultsFromCache() {
+        const out = [];
+        const now = Date.now();
+        for (const bot of botsToShow) {
+            const cached = botStatsCache.get(bot.id);
+            if (cached && cached.stats != null) {
+                out.push({ bot, stats: cached.stats, error: null, fromCache: true });
+                continue;
+            }
+            if (botDataCache.has(bot.id)) {
                 const botData = botDataCache.get(bot.id);
                 const raw = botData?.data?.stats;
                 const statsFromCard = raw && typeof raw === 'object' && raw.data !== undefined ? raw.data : raw;
                 if (statsFromCard != null) {
-                    fallback = { stats: statsFromCard, time: Date.now() };
-                    botStatsCache.set(bot.id, fallback); // add only when no cache entry yet
+                    out.push({ bot, stats: statsFromCard, error: null, fromCache: true });
+                    continue;
                 }
             }
-            if (fallback && fallback.stats != null) {
-                results.push({ bot, stats: fallback.stats, error: null, fromCache: true });
-            } else {
-                results.push({ bot, stats: null, error: e.message || String(e), fromCache: false });
-            }
-        }
-    }
-    saveBotStatsCache();
-
-    const totals = {
-        total_encounters: 0,
-        shiny_encounters: 0,
-        catches: 0,
-        by_species: {}
-    };
-    const byBot = [];
-
-    // Get pokemon object from /stats (stats.pokemon or stats.data.pokemon)
-    function getPokemonFromStats(stats) {
-        if (!stats) return {};
-        const p = stats.pokemon ?? stats.data?.pokemon ?? stats.species ?? stats.by_species;
-        if (p && typeof p === 'object' && !Array.isArray(p)) return p;
-        return {};
-    }
-
-    // Combined per-species from stats.pokemon: merge across all bots (sum encounters/shinies/catches, best IV/SV, latest time)
-    const combinedPokemon = {}; // key: species_id or species_name
-    for (const { bot, stats } of results) {
-        const pokemonMap = getPokemonFromStats(stats);
-        for (const [nameKey, entry] of Object.entries(pokemonMap)) {
-            if (!entry || typeof entry !== 'object') continue;
-            const id = entry.species_id != null ? entry.species_id : nameKey;
-            const key = String(id);
-            const speciesName = entry.species_name ?? entry.speciesName ?? nameKey;
-            if (!combinedPokemon[key]) {
-                combinedPokemon[key] = {
-                    species_id: entry.species_id,
-                    species_name: speciesName,
-                    total_encounters: 0,
-                    shiny_encounters: 0,
-                    catches: 0,
-                    total_highest_iv_sum: null,
-                    total_lowest_iv_sum: null,
-                    total_highest_sv: null,
-                    total_lowest_sv: null,
-                    last_encounter_time: null
-                };
-            }
-            const c = combinedPokemon[key];
-            c.total_encounters += Number(entry.total_encounters ?? entry.totalEncounters ?? 0) || 0;
-            c.shiny_encounters += Number(entry.shiny_encounters ?? entry.shinyEncounters ?? 0) || 0;
-            c.catches += Number(entry.catches ?? 0) || 0;
-            const hiIv = entry.total_highest_iv_sum != null ? (typeof entry.total_highest_iv_sum === 'object' ? entry.total_highest_iv_sum.value : Number(entry.total_highest_iv_sum)) : null;
-            if (hiIv != null && (c.total_highest_iv_sum == null || hiIv > c.total_highest_iv_sum)) c.total_highest_iv_sum = hiIv;
-            const loIv = entry.total_lowest_iv_sum != null ? (typeof entry.total_lowest_iv_sum === 'object' ? entry.total_lowest_iv_sum.value : Number(entry.total_lowest_iv_sum)) : null;
-            if (loIv != null && (c.total_lowest_iv_sum == null || loIv < c.total_lowest_iv_sum)) c.total_lowest_iv_sum = loIv;
-            const hiSv = entry.total_highest_sv != null ? (typeof entry.total_highest_sv === 'object' ? entry.total_highest_sv.value : Number(entry.total_highest_sv)) : null;
-            if (hiSv != null && (c.total_highest_sv == null || hiSv > c.total_highest_sv)) c.total_highest_sv = hiSv;
-            const loSv = entry.total_lowest_sv != null ? (typeof entry.total_lowest_sv === 'object' ? entry.total_lowest_sv.value : Number(entry.total_lowest_sv)) : null;
-            if (loSv != null && (c.total_lowest_sv == null || loSv < c.total_lowest_sv)) c.total_lowest_sv = loSv;
-            const lastTime = entry.last_encounter_time ?? entry.lastEncounterTime;
-            if (lastTime && (c.last_encounter_time == null || String(lastTime) > String(c.last_encounter_time))) c.last_encounter_time = lastTime;
-        }
-    }
-
-    // Extract per-species count from various API shapes (for backwards compatibility)
-    function getSpeciesCount(value) {
-        if (value == null) return 0;
-        if (typeof value === 'number') return value;
-        return Number(value.encounters ?? value.total_encounters ?? value.count ?? value.total ?? 0) || 0;
-    }
-    function getBySpeciesFromStats(stats) {
-        if (!stats) return {};
-        const out = {};
-        const pokemonMap = getPokemonFromStats(stats);
-        if (Object.keys(pokemonMap).length > 0) {
-            for (const [key, value] of Object.entries(pokemonMap)) {
-                const c = getSpeciesCount(value);
-                if (c > 0) out[key] = c;
-            }
-            return out;
-        }
-        const sources = [stats.species, stats.by_species, stats.totals?.by_species, stats.totals?.species];
-        const src = sources.find(s => s && typeof s === 'object' && Object.keys(s).length > 0);
-        if (!src) return {};
-        for (const [k, v] of Object.entries(src)) {
-            const c = getSpeciesCount(v);
-            if (c > 0) out[k] = c;
+            out.push({ bot, stats: null, error: null, fromCache: false });
         }
         return out;
     }
 
-    for (const { bot, stats, error, fromCache } of results) {
-        const totalsObj = (stats && stats.totals) ? stats.totals : {};
-        const encounters = totalsObj.total_encounters ?? totalsObj.totalEncounters ?? 0;
-        const shinies = totalsObj.shiny_encounters ?? totalsObj.shinyEncounters ?? 0;
-        const catches = totalsObj.catches ?? 0;
-        totals.total_encounters += Number(encounters) || 0;
-        totals.shiny_encounters += Number(shinies) || 0;
-        totals.catches += Number(catches) || 0;
-
-        const bySpecies = getBySpeciesFromStats(stats);
-        for (const [speciesKey, count] of Object.entries(bySpecies)) {
-            if (count > 0) totals.by_species[speciesKey] = (totals.by_species[speciesKey] || 0) + count;
+    // Build full HTML from results (shared by initial render and background update)
+    function buildStatisticsHtml(results) {
+        function getPokemonFromStats(stats) {
+            if (!stats) return {};
+            const p = stats.pokemon ?? stats.data?.pokemon ?? stats.species ?? stats.by_species;
+            if (p && typeof p === 'object' && !Array.isArray(p)) return p;
+            return {};
+        }
+        function getSpeciesCount(value) {
+            if (value == null) return 0;
+            if (typeof value === 'number') return value;
+            return Number(value.encounters ?? value.total_encounters ?? value.count ?? value.total ?? 0) || 0;
+        }
+        function getBySpeciesFromStats(stats) {
+            if (!stats) return {};
+            const out = {};
+            const pokemonMap = getPokemonFromStats(stats);
+            if (Object.keys(pokemonMap).length > 0) {
+                for (const [key, value] of Object.entries(pokemonMap)) {
+                    const c = getSpeciesCount(value);
+                    if (c > 0) out[key] = c;
+                }
+                return out;
+            }
+            const sources = [stats.species, stats.by_species, stats.totals?.by_species, stats.totals?.species];
+            const src = sources.find(s => s && typeof s === 'object' && Object.keys(s).length > 0);
+            if (!src) return {};
+            for (const [k, v] of Object.entries(src)) {
+                const c = getSpeciesCount(v);
+                if (c > 0) out[k] = c;
+            }
+            return out;
         }
 
-        byBot.push({
-            name: bot.name || bot.url || bot.id,
-            error,
-            fromCache: fromCache || false,
-            totals: totalsObj,
-            by_species: bySpecies,
-            total_highest_iv_sum: stats?.totals?.total_highest_iv_sum,
-            total_lowest_iv_sum: stats?.totals?.total_lowest_iv_sum,
-            total_highest_sv: stats?.totals?.total_highest_sv,
-            total_lowest_sv: stats?.totals?.total_lowest_sv
-        });
-    }
+        const totals = { total_encounters: 0, shiny_encounters: 0, catches: 0, by_species: {} };
+        const byBot = [];
+        const combinedPokemon = {};
+        for (const { bot, stats } of results) {
+            const pokemonMap = getPokemonFromStats(stats);
+            for (const [nameKey, entry] of Object.entries(pokemonMap)) {
+                if (!entry || typeof entry !== 'object') continue;
+                const id = entry.species_id != null ? entry.species_id : nameKey;
+                const key = String(id);
+                const speciesName = entry.species_name ?? entry.speciesName ?? nameKey;
+                if (!combinedPokemon[key]) {
+                    combinedPokemon[key] = {
+                        species_id: entry.species_id, species_name: speciesName,
+                        total_encounters: 0, shiny_encounters: 0, catches: 0,
+                        total_highest_iv_sum: null, total_lowest_iv_sum: null, total_highest_sv: null, total_lowest_sv: null, last_encounter_time: null
+                    };
+                }
+                const c = combinedPokemon[key];
+                c.total_encounters += Number(entry.total_encounters ?? entry.totalEncounters ?? 0) || 0;
+                c.shiny_encounters += Number(entry.shiny_encounters ?? entry.shinyEncounters ?? 0) || 0;
+                c.catches += Number(entry.catches ?? 0) || 0;
+                const hiIv = entry.total_highest_iv_sum != null ? (typeof entry.total_highest_iv_sum === 'object' ? entry.total_highest_iv_sum.value : Number(entry.total_highest_iv_sum)) : null;
+                if (hiIv != null && (c.total_highest_iv_sum == null || hiIv > c.total_highest_iv_sum)) c.total_highest_iv_sum = hiIv;
+                const loIv = entry.total_lowest_iv_sum != null ? (typeof entry.total_lowest_iv_sum === 'object' ? entry.total_lowest_iv_sum.value : Number(entry.total_lowest_iv_sum)) : null;
+                if (loIv != null && (c.total_lowest_iv_sum == null || loIv < c.total_lowest_iv_sum)) c.total_lowest_iv_sum = loIv;
+                const hiSv = entry.total_highest_sv != null ? (typeof entry.total_highest_sv === 'object' ? entry.total_highest_sv.value : Number(entry.total_highest_sv)) : null;
+                if (hiSv != null && (c.total_highest_sv == null || hiSv > c.total_highest_sv)) c.total_highest_sv = hiSv;
+                const loSv = entry.total_lowest_sv != null ? (typeof entry.total_lowest_sv === 'object' ? entry.total_lowest_sv.value : Number(entry.total_lowest_sv)) : null;
+                if (loSv != null && (c.total_lowest_sv == null || loSv < c.total_lowest_sv)) c.total_lowest_sv = loSv;
+                const lastTime = entry.last_encounter_time ?? entry.lastEncounterTime;
+                if (lastTime && (c.last_encounter_time == null || String(lastTime) > String(c.last_encounter_time))) c.last_encounter_time = lastTime;
+            }
+        }
+        for (const { bot, stats, error, fromCache } of results) {
+            const totalsObj = (stats && stats.totals) ? stats.totals : {};
+            const encounters = totalsObj.total_encounters ?? totalsObj.totalEncounters ?? 0;
+            const shinies = totalsObj.shiny_encounters ?? totalsObj.shinyEncounters ?? 0;
+            const catches = totalsObj.catches ?? 0;
+            totals.total_encounters += Number(encounters) || 0;
+            totals.shiny_encounters += Number(shinies) || 0;
+            totals.catches += Number(catches) || 0;
+            const bySpecies = getBySpeciesFromStats(stats);
+            for (const [speciesKey, count] of Object.entries(bySpecies)) {
+                if (count > 0) totals.by_species[speciesKey] = (totals.by_species[speciesKey] || 0) + count;
+            }
+            byBot.push({
+                name: bot.name || bot.url || bot.id,
+                error,
+                fromCache: fromCache || false,
+                totals: totalsObj,
+                by_species: bySpecies,
+                total_highest_iv_sum: stats?.totals?.total_highest_iv_sum,
+                total_lowest_iv_sum: stats?.totals?.total_lowest_iv_sum,
+                total_highest_sv: stats?.totals?.total_highest_sv,
+                total_lowest_sv: stats?.totals?.total_lowest_sv
+            });
+        }
+        const combinedEntries = Object.values(combinedPokemon);
+        if (combinedEntries.length > 0) {
+            totals.total_encounters = combinedEntries.reduce((s, r) => s + (r.total_encounters || 0), 0);
+            totals.shiny_encounters = combinedEntries.reduce((s, r) => s + (r.shiny_encounters || 0), 0);
+            totals.catches = combinedEntries.reduce((s, r) => s + (r.catches || 0), 0);
+            totals.by_species = {};
+            combinedEntries.forEach(r => {
+                const name = r.species_name || '';
+                if (name) totals.by_species[name] = r.total_encounters || 0;
+            });
+        }
 
-    // If we have full /stats pokemon data, use it for combined totals and by_species so UI is consistent
-    const combinedEntries = Object.values(combinedPokemon);
-    if (combinedEntries.length > 0) {
-        totals.total_encounters = combinedEntries.reduce((s, r) => s + (r.total_encounters || 0), 0);
-        totals.shiny_encounters = combinedEntries.reduce((s, r) => s + (r.shiny_encounters || 0), 0);
-        totals.catches = combinedEntries.reduce((s, r) => s + (r.catches || 0), 0);
-        totals.by_species = {};
-        combinedEntries.forEach(r => {
-            const name = r.species_name || '';
-            if (name) totals.by_species[name] = r.total_encounters || 0;
-        });
-    }
-
-    let html = '<div class="statistics-container">';
-
-    // Combined overview – clear summary cards (no inline breakdown)
-    html += '<div class="statistics-section">';
-    html += '<h3>Combined totals</h3>';
-    html += '<div class="statistics-grid statistics-totals-grid">';
-    const oneInX = totals.shiny_encounters > 0 && totals.total_encounters > 0
-        ? Math.round(totals.total_encounters / totals.shiny_encounters)
-        : null;
-    const shinyRateDisplay = oneInX != null ? `1 in ${oneInX.toLocaleString()}` : '—';
-    html += `<div class="statistic-card"><div class="statistic-value">${totals.total_encounters.toLocaleString()}</div><div class="statistic-label">Total Encounters</div></div>`;
-    html += `<div class="statistic-card"><div class="statistic-value">${totals.shiny_encounters.toLocaleString()}</div><div class="statistic-label">Shiny Encounters</div></div>`;
-    html += `<div class="statistic-card"><div class="statistic-value">${totals.catches.toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
-    html += `<div class="statistic-card"><div class="statistic-value">${shinyRateDisplay}</div><div class="statistic-label">Shiny Rate</div></div>`;
-    html += '</div>';
-
-    // Per-instance table: one row per bot, columns = Instance | Encounters | Shinies | Catches | Shiny Rate
-    html += '<div class="statistics-totals-by-instance">';
-    html += '<h4 class="statistics-totals-table-title">By instance</h4>';
-    html += '<div class="statistics-table-wrapper"><table class="statistics-table statistics-totals-table">';
-    html += '<thead><tr><th>Instance</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Shiny Rate</th></tr></thead><tbody>';
-    for (const row of byBot) {
-        const enc = Number(row.totals?.total_encounters ?? row.totals?.totalEncounters ?? 0) || 0;
-        const sh = Number(row.totals?.shiny_encounters ?? row.totals?.shinyEncounters ?? 0) || 0;
-        const cat = Number(row.totals?.catches ?? 0) || 0;
-        const botOneInX = sh > 0 && enc > 0 ? Math.round(enc / sh) : null;
-        const rateDisplay = botOneInX != null ? `1 in ${botOneInX.toLocaleString()}` : '—';
-        html += `<tr>
-            <td class="statistics-instance-name">${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</td>
-            <td>${enc.toLocaleString()}</td>
-            <td>${sh.toLocaleString()}</td>
-            <td>${cat.toLocaleString()}</td>
-            <td>${rateDisplay}</td>
-        </tr>`;
-    }
-    html += '<tr class="statistics-totals-table-footer"><td><strong>Total</strong></td>';
-    html += `<td><strong>${totals.total_encounters.toLocaleString()}</strong></td>`;
-    html += `<td><strong>${totals.shiny_encounters.toLocaleString()}</strong></td>`;
-    html += `<td><strong>${totals.catches.toLocaleString()}</strong></td>`;
-    html += `<td><strong>${shinyRateDisplay}</strong></td></tr>`;
-    html += '</tbody></table></div></div>';
-    html += '</div>';
-
-    // Combined by species (top species)
-    const speciesEntries = Object.entries(totals.by_species).sort((a, b) => b[1] - a[1]).slice(0, 30);
-    if (speciesEntries.length > 0) {
-        html += '<div class="statistics-section">';
-        html += '<h3>Most common species (combined)</h3>';
-        html += '<div class="statistics-list">';
-        speciesEntries.forEach(([species, count], idx) => {
-            const pct = totals.total_encounters > 0 ? ((count / totals.total_encounters) * 100).toFixed(1) : '0';
-            html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${escapeHtml(species)}</span><span class="statistics-count">${Number(count).toLocaleString()} (${pct}%)</span></div>`;
-        });
-        html += '</div></div>';
-    }
-
-    // Per-species statistics (combined from /stats pokemon data) – full stats per species
-    const sortedPokemon = Object.values(combinedPokemon).sort((a, b) => (b.total_encounters || 0) - (a.total_encounters || 0));
-    if (sortedPokemon.length > 0) {
-        html += '<div class="statistics-section">';
-        html += '<h3>Per-species statistics (combined)</h3>';
-        html += '<p class="statistics-subtitle">From /stats pokemon data across all instances. Search by name or number.</p>';
-        html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
-        html += '<div class="statistics-table-wrapper"><table class="statistics-table"><thead><tr>';
-        html += '<th>Species</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Best IV</th><th>Lowest IV</th><th>Best SV</th><th>Lowest SV</th><th>Last encounter</th></tr></thead><tbody id="botStatsPerMonList">';
-        sortedPokemon.forEach((r) => {
-            const name = r.species_name || '—';
-            const id = r.species_id != null ? r.species_id : '';
-            const lastTime = r.last_encounter_time ? (() => {
-                try {
-                    const d = new Date(r.last_encounter_time);
-                    return isNaN(d.getTime()) ? r.last_encounter_time : d.toLocaleString();
-                } catch (_) { return r.last_encounter_time; }
-            })() : '—';
-            html += `<tr class="statistics-per-mon-item" data-species-key="${escapeHtml(String(name))}" data-species-id="${escapeHtml(String(id))}">
-                <td class="statistics-name">${escapeHtml(name)}</td>
-                <td>${Number(r.total_encounters || 0).toLocaleString()}</td>
-                <td>${Number(r.shiny_encounters || 0).toLocaleString()}</td>
-                <td>${Number(r.catches || 0).toLocaleString()}</td>
-                <td>${r.total_highest_iv_sum != null ? r.total_highest_iv_sum : '—'}</td>
-                <td>${r.total_lowest_iv_sum != null ? r.total_lowest_iv_sum : '—'}</td>
-                <td>${r.total_highest_sv != null ? r.total_highest_sv.toLocaleString() : '—'}</td>
-                <td>${r.total_lowest_sv != null ? r.total_lowest_sv.toLocaleString() : '—'}</td>
-                <td class="statistics-last-time">${escapeHtml(lastTime)}</td>
-            </tr>`;
-        });
-        html += '</tbody></table></div></div>';
-    }
-
-    // Legacy: total statistics per Pokémon (by_species count only) if no pokemon table was built
-    if (sortedPokemon.length === 0) {
-        const allSpeciesEntries = Object.entries(totals.by_species).sort((a, b) => b[1] - a[1]);
-        if (allSpeciesEntries.length > 0) {
-            html += '<div class="statistics-section">';
-            html += '<h3>Total statistics per Pokémon</h3>';
-            html += '<p class="statistics-subtitle">Combined encounter count across all instances. Search by name or number.</p>';
-            html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
-            html += '<div class="statistics-per-mon-list" id="botStatsPerMonList">';
-            allSpeciesEntries.forEach(([species, count], idx) => {
+        let html = '<div class="statistics-container">';
+        html += '<div class="statistics-section"><h3>Combined totals</h3><div class="statistics-grid statistics-totals-grid">';
+        const oneInX = totals.shiny_encounters > 0 && totals.total_encounters > 0 ? Math.round(totals.total_encounters / totals.shiny_encounters) : null;
+        const shinyRateDisplay = oneInX != null ? `1 in ${oneInX.toLocaleString()}` : '—';
+        html += `<div class="statistic-card"><div class="statistic-value">${totals.total_encounters.toLocaleString()}</div><div class="statistic-label">Total Encounters</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${totals.shiny_encounters.toLocaleString()}</div><div class="statistic-label">Shiny Encounters</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${totals.catches.toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
+        html += `<div class="statistic-card"><div class="statistic-value">${shinyRateDisplay}</div><div class="statistic-label">Shiny Rate</div></div>`;
+        html += '</div>';
+        html += '<div class="statistics-totals-by-instance"><h4 class="statistics-totals-table-title">By instance</h4><div class="statistics-table-wrapper"><table class="statistics-table statistics-totals-table">';
+        html += '<thead><tr><th>Instance</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Shiny Rate</th></tr></thead><tbody>';
+        for (const row of byBot) {
+            const enc = Number(row.totals?.total_encounters ?? row.totals?.totalEncounters ?? 0) || 0;
+            const sh = Number(row.totals?.shiny_encounters ?? row.totals?.shinyEncounters ?? 0) || 0;
+            const cat = Number(row.totals?.catches ?? 0) || 0;
+            const botOneInX = sh > 0 && enc > 0 ? Math.round(enc / sh) : null;
+            const rateDisplay = botOneInX != null ? `1 in ${botOneInX.toLocaleString()}` : '—';
+            html += `<tr><td class="statistics-instance-name">${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</td><td>${enc.toLocaleString()}</td><td>${sh.toLocaleString()}</td><td>${cat.toLocaleString()}</td><td>${rateDisplay}</td></tr>`;
+        }
+        html += `<tr class="statistics-totals-table-footer"><td><strong>Total</strong></td><td><strong>${totals.total_encounters.toLocaleString()}</strong></td><td><strong>${totals.shiny_encounters.toLocaleString()}</strong></td><td><strong>${totals.catches.toLocaleString()}</strong></td><td><strong>${shinyRateDisplay}</strong></td></tr>`;
+        html += '</tbody></table></div></div></div>';
+        const speciesEntries = Object.entries(totals.by_species).sort((a, b) => b[1] - a[1]).slice(0, 30);
+        if (speciesEntries.length > 0) {
+            html += '<div class="statistics-section"><h3>Most common species (combined)</h3><div class="statistics-list">';
+            speciesEntries.forEach(([species, count], idx) => {
                 const pct = totals.total_encounters > 0 ? ((count / totals.total_encounters) * 100).toFixed(1) : '0';
-                const displayName = /^\d+$/.test(String(species)) ? `#${species}` : species;
-                html += `<div class="statistics-item statistics-per-mon-item" data-species-key="${escapeHtml(species)}" data-species-display="${escapeHtml(displayName)}" data-species-count="${Number(count).toLocaleString()}" data-species-pct="${pct}" title="Total encounters for this species. Click to show details." role="button" tabindex="0">
-                    <span class="statistics-rank">${idx + 1}.</span>
-                    <span class="statistics-name">${escapeHtml(displayName)}</span>
-                    <span class="statistics-count">${Number(count).toLocaleString()} (${pct}%)</span>
-                    <div class="statistics-per-mon-detail hidden" aria-live="polite">Encounters: <strong>${Number(count).toLocaleString()}</strong> (${pct}% of total)</div>
-                </div>`;
+                html += `<div class="statistics-item"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${escapeHtml(species)}</span><span class="statistics-count">${Number(count).toLocaleString()} (${pct}%)</span></div>`;
             });
             html += '</div></div>';
         }
-    }
-
-    // Per-bot sections
-    html += '<div class="statistics-section"><h3>By instance</h3>';
-    for (const row of byBot) {
-        html += '<div class="statistics-subsection">';
-        html += `<h4>${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</h4>`;
-        if (row.error && !row.fromCache) {
-            html += `<p class="no-data">Failed to load: ${escapeHtml(row.error)}</p>`;
-        } else {
-            const t = row.totals || {};
-            const enc = t.total_encounters ?? t.totalEncounters ?? 0;
-            const sh = t.shiny_encounters ?? t.shinyEncounters ?? 0;
-            const cat = t.catches ?? 0;
-            html += '<div class="statistics-grid">';
-            html += `<div class="statistic-card"><div class="statistic-value">${Number(enc).toLocaleString()}</div><div class="statistic-label">Encounters</div></div>`;
-            html += `<div class="statistic-card"><div class="statistic-value">${Number(sh).toLocaleString()}</div><div class="statistic-label">Shinies</div></div>`;
-            html += `<div class="statistic-card"><div class="statistic-value">${Number(cat).toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
-            html += '</div>';
-            if (t.total_highest_iv_sum && typeof t.total_highest_iv_sum === 'object') {
-                html += `<p class="statistics-detail">Highest IV: ${t.total_highest_iv_sum.value} (${t.total_highest_iv_sum.species_name || '—'})</p>`;
-            }
-            if (t.total_highest_sv && typeof t.total_highest_sv === 'object') {
-                html += `<p class="statistics-detail">Highest SV: ${t.total_highest_sv.value} (${t.total_highest_sv.species_name || '—'})</p>`;
-            }
-            const botSpeciesEntries = Object.entries(row.by_species || {}).map(([s, d]) => [s, typeof d === 'number' ? d : (d?.count ?? d?.encounters ?? 0)]).sort((a, b) => b[1] - a[1]).slice(0, 10);
-            if (botSpeciesEntries.length > 0) {
-                html += '<div class="statistics-list">';
-                botSpeciesEntries.forEach(([species, c]) => {
-                    html += `<div class="statistics-item"><span class="statistics-name">${escapeHtml(species)}</span><span class="statistics-count">${Number(c).toLocaleString()}</span></div>`;
+        const sortedPokemon = Object.values(combinedPokemon).sort((a, b) => (b.total_encounters || 0) - (a.total_encounters || 0));
+        if (sortedPokemon.length > 0) {
+            html += '<div class="statistics-section"><h3>Per-species statistics (combined)</h3><p class="statistics-subtitle">From /stats pokemon data across all instances. Search by name or number.</p>';
+            html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
+            html += '<div class="statistics-table-wrapper"><table class="statistics-table"><thead><tr><th>Species</th><th>Encounters</th><th>Shinies</th><th>Catches</th><th>Best IV</th><th>Lowest IV</th><th>Best SV</th><th>Lowest SV</th><th>Last encounter</th></tr></thead><tbody id="botStatsPerMonList">';
+            sortedPokemon.forEach((r) => {
+                const name = r.species_name || '—';
+                const id = r.species_id != null ? r.species_id : '';
+                const lastTime = r.last_encounter_time ? (() => { try { const d = new Date(r.last_encounter_time); return isNaN(d.getTime()) ? r.last_encounter_time : d.toLocaleString(); } catch (_) { return r.last_encounter_time; } })() : '—';
+                html += `<tr class="statistics-per-mon-item" data-species-key="${escapeHtml(String(name))}" data-species-id="${escapeHtml(String(id))}"><td class="statistics-name">${escapeHtml(name)}</td><td>${Number(r.total_encounters || 0).toLocaleString()}</td><td>${Number(r.shiny_encounters || 0).toLocaleString()}</td><td>${Number(r.catches || 0).toLocaleString()}</td><td>${r.total_highest_iv_sum != null ? r.total_highest_iv_sum : '—'}</td><td>${r.total_lowest_iv_sum != null ? r.total_lowest_iv_sum : '—'}</td><td>${r.total_highest_sv != null ? r.total_highest_sv.toLocaleString() : '—'}</td><td>${r.total_lowest_sv != null ? r.total_lowest_sv.toLocaleString() : '—'}</td><td class="statistics-last-time">${escapeHtml(lastTime)}</td></tr>`;
+            });
+            html += '</tbody></table></div></div>';
+        }
+        if (sortedPokemon.length === 0) {
+            const allSpeciesEntries = Object.entries(totals.by_species).sort((a, b) => b[1] - a[1]);
+            if (allSpeciesEntries.length > 0) {
+                html += '<div class="statistics-section"><h3>Total statistics per Pokémon</h3><p class="statistics-subtitle">Combined encounter count across all instances. Search by name or number.</p>';
+                html += '<input type="text" id="botStatsSpeciesFilter" class="input statistics-species-filter" placeholder="Search Pokémon (name or #)..." autocomplete="off">';
+                html += '<div class="statistics-per-mon-list" id="botStatsPerMonList">';
+                allSpeciesEntries.forEach(([species, count], idx) => {
+                    const pct = totals.total_encounters > 0 ? ((count / totals.total_encounters) * 100).toFixed(1) : '0';
+                    const displayName = /^\d+$/.test(String(species)) ? `#${species}` : species;
+                    html += `<div class="statistics-item statistics-per-mon-item" data-species-key="${escapeHtml(species)}" data-species-display="${escapeHtml(displayName)}" data-species-count="${Number(count).toLocaleString()}" data-species-pct="${pct}" title="Total encounters for this species. Click to show details." role="button" tabindex="0"><span class="statistics-rank">${idx + 1}.</span><span class="statistics-name">${escapeHtml(displayName)}</span><span class="statistics-count">${Number(count).toLocaleString()} (${pct}%)</span><div class="statistics-per-mon-detail hidden" aria-live="polite">Encounters: <strong>${Number(count).toLocaleString()}</strong> (${pct}% of total)</div></div>`;
                 });
-                html += '</div>';
+                html += '</div></div>';
             }
         }
-        html += '</div>';
+        html += '<div class="statistics-section"><h3>By instance</h3>';
+        for (const row of byBot) {
+            html += '<div class="statistics-subsection">';
+            html += `<h4>${escapeHtml(row.name)}${row.fromCache ? ' <span class="statistics-cached-badge">(cached)</span>' : ''}</h4>`;
+            if (row.error && !row.fromCache) {
+                html += `<p class="no-data">Failed to load: ${escapeHtml(row.error)}</p>`;
+            } else {
+                const t = row.totals || {};
+                const enc = t.total_encounters ?? t.totalEncounters ?? 0;
+                const sh = t.shiny_encounters ?? t.shinyEncounters ?? 0;
+                const cat = t.catches ?? 0;
+                html += '<div class="statistics-grid">';
+                html += `<div class="statistic-card"><div class="statistic-value">${Number(enc).toLocaleString()}</div><div class="statistic-label">Encounters</div></div>`;
+                html += `<div class="statistic-card"><div class="statistic-value">${Number(sh).toLocaleString()}</div><div class="statistic-label">Shinies</div></div>`;
+                html += `<div class="statistic-card"><div class="statistic-value">${Number(cat).toLocaleString()}</div><div class="statistic-label">Catches</div></div>`;
+                html += '</div>';
+                if (t.total_highest_iv_sum && typeof t.total_highest_iv_sum === 'object') html += `<p class="statistics-detail">Highest IV: ${t.total_highest_iv_sum.value} (${t.total_highest_iv_sum.species_name || '—'})</p>`;
+                if (t.total_highest_sv && typeof t.total_highest_sv === 'object') html += `<p class="statistics-detail">Highest SV: ${t.total_highest_sv.value} (${t.total_highest_sv.species_name || '—'})</p>`;
+                const botSpeciesEntries = Object.entries(row.by_species || {}).map(([s, d]) => [s, typeof d === 'number' ? d : (d?.count ?? d?.encounters ?? 0)]).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                if (botSpeciesEntries.length > 0) {
+                    html += '<div class="statistics-list">';
+                    botSpeciesEntries.forEach(([species, c]) => { html += `<div class="statistics-item"><span class="statistics-name">${escapeHtml(species)}</span><span class="statistics-count">${Number(c).toLocaleString()}</span></div>`; });
+                    html += '</div>';
+                }
+            }
+            html += '</div>';
+        }
+        html += '</div></div>';
+        return html;
     }
-    html += '</div>';
 
-    html += '</div>';
-    body.innerHTML = html;
-    } finally {
-        hideLoading();
-    }
-
-    // Wire species filter for per-species list or table
-    const filterInput = document.getElementById('botStatsSpeciesFilter');
-    const perMonList = document.getElementById('botStatsPerMonList');
-    if (filterInput && perMonList) {
-        filterInput.addEventListener('input', () => {
-            const q = (filterInput.value || '').trim().toLowerCase();
-            perMonList.querySelectorAll('.statistics-per-mon-item').forEach(el => {
-                const key = (el.dataset.speciesKey || '').toLowerCase();
-                const display = (el.dataset.speciesDisplay || '').toLowerCase();
-                const id = (el.dataset.speciesId || '').toLowerCase();
-                const nameCell = el.querySelector('.statistics-name');
-                const cellText = nameCell ? (nameCell.textContent || '').toLowerCase() : '';
-                const match = !q || key.includes(q) || display.includes(q) || id.includes(q) || cellText.includes(q);
-                el.style.display = match ? '' : 'none';
+    function wireStatisticsFilter() {
+        const filterInput = document.getElementById('botStatsSpeciesFilter');
+        const perMonList = document.getElementById('botStatsPerMonList');
+        if (filterInput && perMonList) {
+            filterInput.addEventListener('input', () => {
+                const q = (filterInput.value || '').trim().toLowerCase();
+                perMonList.querySelectorAll('.statistics-per-mon-item').forEach(el => {
+                    const key = (el.dataset.speciesKey || '').toLowerCase();
+                    const display = (el.dataset.speciesDisplay || '').toLowerCase();
+                    const id = (el.dataset.speciesId || '').toLowerCase();
+                    const nameCell = el.querySelector('.statistics-name');
+                    const cellText = nameCell ? (nameCell.textContent || '').toLowerCase() : '';
+                    el.style.display = !q || key.includes(q) || display.includes(q) || id.includes(q) || cellText.includes(q) ? '' : 'none';
+                });
             });
-        });
-        // Click (or Enter) toggles detail for list items (not used in table view)
-        perMonList.addEventListener('click', (e) => {
-            const row = e.target.closest('.statistics-per-mon-item');
-            if (row && row.querySelector('.statistics-per-mon-detail')) {
-                const detail = row.querySelector('.statistics-per-mon-detail');
-                if (detail) detail.classList.toggle('hidden');
-            }
-        });
-        perMonList.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            const row = e.target.closest('.statistics-per-mon-item');
-            if (row && row.querySelector('.statistics-per-mon-detail')) {
-                e.preventDefault();
-                const detail = row.querySelector('.statistics-per-mon-detail');
-                if (detail) detail.classList.toggle('hidden');
-            }
-        });
+            perMonList.addEventListener('click', (e) => {
+                const row = e.target.closest('.statistics-per-mon-item');
+                if (row && row.querySelector('.statistics-per-mon-detail')) row.querySelector('.statistics-per-mon-detail').classList.toggle('hidden');
+            });
+            perMonList.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const row = e.target.closest('.statistics-per-mon-item');
+                if (row && row.querySelector('.statistics-per-mon-detail')) { e.preventDefault(); row.querySelector('.statistics-per-mon-detail').classList.toggle('hidden'); }
+            });
+        }
     }
+
+    // Phase 1: show cached data immediately
+    const results = buildResultsFromCache();
+    body.innerHTML = buildStatisticsHtml(results);
+    hideLoading();
+    wireStatisticsFilter();
+
+    // Phase 2: fetch in background if any bot needs an update
+    const now = Date.now();
+    const needsFetch = botsToShow.filter(bot => {
+        const cached = botStatsCache.get(bot.id);
+        return forceRefresh || !cached || !cached.stats || (now - (cached.time || 0)) >= BOT_STATS_CACHE_MAX_AGE_MS;
+    });
+    if (needsFetch.length === 0) return;
+
+    (async () => {
+        for (const bot of needsFetch) {
+            try {
+                const statsData = await (forceRefresh
+                    ? fetchBotEndpoint(bot, (bot.url || '').replace(/\/$/, ''), '/stats', { timeout: 20000 })
+                    : fetchBotEndpoint(bot, (bot.url || '').replace(/\/$/, ''), '/stats'));
+                if (statsData != null) botStatsCache.set(bot.id, { stats: statsData, time: Date.now() });
+            } catch (e) {
+                let fallback = botStatsCache.get(bot.id);
+                if (!fallback && botDataCache.has(bot.id)) {
+                    const botData = botDataCache.get(bot.id);
+                    const raw = botData?.data?.stats;
+                    const statsFromCard = raw && typeof raw === 'object' && raw.data !== undefined ? raw.data : raw;
+                    if (statsFromCard != null) { fallback = { stats: statsFromCard, time: Date.now() }; botStatsCache.set(bot.id, fallback); }
+                }
+            }
+            await new Promise(r => setTimeout(r, 0));
+        }
+        saveBotStatsCache();
+        const results2 = buildResultsFromCache();
+        body.innerHTML = buildStatisticsHtml(results2);
+        wireStatisticsFilter();
+    })();
 }
 
 // Load and display bot instances
@@ -2305,7 +2334,15 @@ function trackCurrentEncounter(botId, currentEncounter) {
     }
 }
 
-async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
+async function fetchBotEndpoint(bot, baseUrl, ...args) {
+    let endpoints = args;
+    let options = {};
+    if (args.length > 0 && typeof args[args.length - 1] === 'object' && args[args.length - 1] !== null && !Array.isArray(args[args.length - 1]) && 'timeout' in args[args.length - 1]) {
+        options = args[args.length - 1];
+        endpoints = args.slice(0, -1);
+    }
+    const timeoutMs = options.timeout != null ? Number(options.timeout) : 5000;
+
     for (const endpoint of endpoints) {
         try {
             // Try proxy first
@@ -2337,7 +2374,7 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                                 headers: {
                                     'Accept': 'application/json'
                                 },
-                                signal: AbortSignal.timeout(5000)
+                                signal: AbortSignal.timeout(timeoutMs)
                             });
                             
                             if (response && response.ok) {
@@ -2392,7 +2429,7 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                         headers: {
                             'Accept': 'application/json'
                         },
-                        signal: AbortSignal.timeout(5000)
+                        signal: AbortSignal.timeout(timeoutMs)
                     });
                 }
             } catch (proxyErr) {
@@ -2409,7 +2446,7 @@ async function fetchBotEndpoint(bot, baseUrl, ...endpoints) {
                         headers: {
                             'Accept': 'application/json'
                         },
-                        signal: AbortSignal.timeout(5000)
+                        signal: AbortSignal.timeout(timeoutMs)
                     });
                 } catch (directErr) {
                     continue;
@@ -2685,7 +2722,8 @@ function updateBotStatus(showLoading = false) {
     const visibleBots = getVisibleBots();
     console.log('[updateBotStatus] Processing', visibleBots.length, 'visible bots out of', botInstances.length, 'total');
 
-    // Remove status cards for bots that are no longer in the visible list
+    // Remove status cards for bots that are no longer in the visible list (hidden bots).
+    // Only remove the DOM node; never clear botDataCache, botStatsCache, or max total caches for that bot.
     const visibleIds = new Set(visibleBots.map(b => b.id));
     if (botStatusContainer) {
         botStatusContainer.querySelectorAll('[id^="bot-status-"]').forEach(el => {
@@ -2999,11 +3037,13 @@ function toggleBotVisibility(botId) {
         }
     }
     
-    // Reorder to update display
-    reorderBotCards();
-    
+    // Hiding must never clear cached values: botDataCache, botStatsCache, and max total caches
+    // are left unchanged so totals and Bot Statistics still show last known data for hidden bots.
     // When hiding: keep last data in cache so total statistics still include it; we just stop polling (visible bots only)
     // Do not delete botDataCache or liveEncounterRateHistory for hidden bots.
+    
+    // Reorder to update display
+    reorderBotCards();
     
     // Update summary
     updateDashboardSummary();
