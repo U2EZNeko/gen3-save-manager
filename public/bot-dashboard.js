@@ -4577,7 +4577,12 @@ function updateStatusCard(card, bot, result) {
                 const id32 = getPlayerValue('id32', 'ID32', 'player.id32', 'trainer.id32', 'trainerID32', 'trainerId32');
                 if (id32 !== undefined && typeof id32 === 'number') playerInfo.push(`ID32: ${id32}`);
             }
-            const knownKeys = ['name', 'player_name', 'trainer_name', 'ot', 'OT', 'trainer_id', 'tid', 'TID', 'secret_id', 'sid', 'SID', 'gender', 'play_time', 'playTime', 'id32', 'ID32', 'money', 'coins', 'registered_item', 'emulation_speed', 'emulationSpeed'];
+            const knownKeys = ['name', 'player_name', 'trainer_name', 'ot', 'OT', 'trainer_id', 'tid', 'TID', 'secret_id', 'sid', 'SID', 'gender', 'play_time', 'playTime', 'id32', 'ID32', 'money', 'coins', 'registered_item', 'emulation_speed', 'emulationSpeed',
+                'video_enabled', 'videoEnabled', 'video', 'audio_enabled', 'audioEnabled', 'audio',
+                'current_message', 'currentMessage', 'message',
+                'frame_count', 'frameCount', 'frames', 'frame_rate', 'frameRate', 'fps', 'FPS', 'current_fps', 'currentFps',
+                'current_time_spent_in_bot', 'currentTimeSpentInBot', 'time_spent_in_bot', 'timeSpentInBot', 'current_time_spent_in_bot_fraction', 'currentTimeSpentInBotFraction',
+                'game_state', 'gameState'];
             for (const [key, value] of Object.entries(playerData)) {
                 if (knownKeys.includes(key)) continue;
                 if (/^\d+$/.test(String(key))) continue; // skip numeric keys (e.g. 0,1,2 from string/array-like)
