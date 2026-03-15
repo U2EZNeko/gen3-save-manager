@@ -200,6 +200,34 @@ app.use(express.raw({ limit: '128kb', type: 'application/octet-stream' }));
 
 app.use(express.static('public'));
 
+// Bot dashboard cache – register first so they are always available (avoids 404 from other middleware)
+app.get('/api/bot-dashboard-cache', (req, res) => {
+  try {
+    const cache = loadBotDashboardCache();
+    res.json(cache);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+app.post('/api/bot-dashboard-cache', express.json(), (req, res) => {
+  try {
+    const { statsCache, maxTotals } = req.body || {};
+    const updates = {};
+    if (statsCache !== undefined && typeof statsCache === 'object') updates.statsCache = statsCache;
+    if (maxTotals !== undefined && typeof maxTotals === 'object') updates.maxTotals = maxTotals;
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'Provide statsCache and/or maxTotals' });
+    }
+    if (saveBotDashboardCache(updates)) {
+      res.json({ success: true });
+    } else {
+      res.status(500).json({ error: 'Failed to save bot dashboard cache' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Configure multer for file uploads
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -261,12 +289,94 @@ function loadBotDashboardCache() {
   return { statsCache: {}, maxTotals: { encounters: {}, shinies: {}, catches: {} } };
 }
 
-// Save bot dashboard cache to file (merge maxTotals so empty POST doesn't wipe; replace statsCache)
+// Numeric fields where we want the HIGHER value (never reset to a lower number)
+const STATS_MAX_FIELDS = new Set([
+  'total_encounters', 'totalEncounters', 'shiny_encounters', 'shinyEncounters', 'catches',
+  'total_encounters_sum', 'shiny_encounters_sum', 'catches_sum', 'encounters', 'count', 'total'
+]);
+const STATS_MIN_FIELDS = new Set(['total_lowest_iv_sum', 'total_lowest_sv']);
+const STATS_VALUE_OBJECT_FIELDS = new Set([
+  'total_highest_iv_sum', 'total_highest_sv', 'total_lowest_iv_sum', 'total_lowest_sv'
+]);
+const STATS_LATEST_FIELDS = new Set(['last_encounter_time', 'lastEncounterTime']);
+
+function mergeStatsValue(existing, incoming, preferHigher) {
+  if (incoming == null && existing == null) return undefined;
+  if (incoming == null) return existing;
+  if (existing == null) return incoming;
+  const exVal = typeof existing === 'object' && existing !== null && 'value' in existing
+    ? Number(existing.value) : Number(existing);
+  const inVal = typeof incoming === 'object' && incoming !== null && 'value' in incoming
+    ? Number(incoming.value) : Number(incoming);
+  if (Number.isNaN(exVal)) return incoming;
+  if (Number.isNaN(inVal)) return existing;
+  return preferHigher ? (inVal >= exVal ? incoming : existing) : (inVal <= exVal ? incoming : existing);
+}
+
+function mergeStatsObject(existing, incoming) {
+  if (incoming == null || typeof incoming !== 'object') return existing != null ? existing : incoming;
+  if (existing == null || typeof existing !== 'object') return incoming;
+  const out = Array.isArray(existing) ? [...existing] : { ...existing };
+  for (const [key, inVal] of Object.entries(incoming)) {
+    if (inVal === undefined) continue;
+    if (STATS_VALUE_OBJECT_FIELDS.has(key)) {
+      const preferHigher = !STATS_MIN_FIELDS.has(key);
+      const merged = mergeStatsValue(existing[key], inVal, preferHigher);
+      if (merged !== undefined) out[key] = merged;
+      continue;
+    }
+    if (STATS_LATEST_FIELDS.has(key)) {
+      const ex = existing[key];
+      out[key] = (ex == null || ex === '') ? inVal : ((inVal == null || inVal === '') ? ex : (String(inVal) > String(ex) ? inVal : ex));
+      continue;
+    }
+    if (STATS_MAX_FIELDS.has(key)) {
+      const exNum = Number(existing[key]);
+      const inNum = Number(inVal);
+      if (!Number.isNaN(inNum) && (Number.isNaN(exNum) || inNum > exNum)) out[key] = inVal;
+      continue;
+    }
+    if (STATS_MIN_FIELDS.has(key)) {
+      const exObj = existing[key];
+      const inObj = inVal;
+      const exNum = Number(typeof exObj === 'object' && exObj != null && 'value' in exObj ? exObj.value : exObj);
+      const inNum = Number(typeof inObj === 'object' && inObj != null && 'value' in inObj ? inObj.value : inObj);
+      if (!Number.isNaN(inNum) && (Number.isNaN(exNum) || inNum < exNum)) out[key] = inVal;
+      continue;
+    }
+    if (typeof inVal === 'object' && inVal !== null && !Array.isArray(inVal)) {
+      out[key] = mergeStatsObject(existing[key], inVal);
+    } else if (typeof inVal === 'number' && typeof existing[key] === 'number') {
+      out[key] = Math.max(existing[key], inVal);
+    } else if (existing[key] === undefined) {
+      out[key] = inVal;
+    }
+  }
+  return out;
+}
+
+function mergeStatsCacheEntry(existingEntry, incomingEntry) {
+  if (!incomingEntry || incomingEntry.stats == null) return existingEntry;
+  const existingStats = existingEntry && existingEntry.stats != null ? existingEntry.stats : null;
+  const mergedStats = mergeStatsObject(existingStats, incomingEntry.stats);
+  const mergedTime = Math.max(
+    Number(existingEntry && existingEntry.time) || 0,
+    Number(incomingEntry.time) || 0
+  );
+  return { stats: mergedStats, time: mergedTime };
+}
+
+// Save bot dashboard cache to file (merge maxTotals so empty POST doesn't wipe; merge statsCache taking only higher values)
 function saveBotDashboardCache(updates) {
   try {
     const current = loadBotDashboardCache();
     if (updates.statsCache !== undefined && typeof updates.statsCache === 'object') {
-      current.statsCache = updates.statsCache;
+      const incoming = updates.statsCache;
+      const merged = { ...current.statsCache };
+      for (const botId of Object.keys(incoming)) {
+        merged[botId] = mergeStatsCacheEntry(current.statsCache[botId], incoming[botId]);
+      }
+      current.statsCache = merged;
     }
     if (updates.maxTotals !== undefined && typeof updates.maxTotals === 'object') {
       const u = updates.maxTotals;
@@ -1010,35 +1120,6 @@ app.delete('/api/bot-targets/:botId', (req, res) => {
       res.json({ success: true });
     } else {
       res.status(500).json({ error: 'Failed to delete bot target' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Bot dashboard cache (stats + max totals) – persisted to file so browser clearing doesn't lose data
-app.get('/api/bot-dashboard-cache', (req, res) => {
-  try {
-    const cache = loadBotDashboardCache();
-    res.json(cache);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/bot-dashboard-cache', express.json(), (req, res) => {
-  try {
-    const { statsCache, maxTotals } = req.body || {};
-    const updates = {};
-    if (statsCache !== undefined && typeof statsCache === 'object') updates.statsCache = statsCache;
-    if (maxTotals !== undefined && typeof maxTotals === 'object') updates.maxTotals = maxTotals;
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'Provide statsCache and/or maxTotals' });
-    }
-    if (saveBotDashboardCache(updates)) {
-      res.json({ success: true });
-    } else {
-      res.status(500).json({ error: 'Failed to save bot dashboard cache' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });

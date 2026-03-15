@@ -43,6 +43,15 @@ function normalizeBotCardSectionOrder(order) {
     return unique;
 }
 
+function showToast(message, type) {
+    const el = document.createElement('div');
+    el.className = 'bot-toast bot-toast-' + (type === 'error' ? 'error' : 'success');
+    el.setAttribute('role', 'alert');
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
 const DEFAULT_BOT_ACCENT_COLOR = '#667eea';
 
 // Dashboard settings storage
@@ -145,9 +154,17 @@ const BOT_MAX_TOTALS_STORAGE_KEY = 'botDashboardMaxTotals';
 const BOT_STATS_CACHE_STORAGE_KEY = 'botDashboardStatsCache';
 const BOT_STATS_CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes – use cache when opening modal if within this age
 
+function getBotDashboardApiBase() {
+    if (typeof window === 'undefined' || !window.location) return '';
+    const p = window.location.protocol;
+    if (p === 'http:' || p === 'https:') return window.location.origin;
+    return '';
+}
+
 async function loadBotStatsCache() {
     try {
-        const res = await fetch('/api/bot-dashboard-cache');
+        const base = getBotDashboardApiBase();
+        const res = await fetch(base + '/api/bot-dashboard-cache');
         if (res && res.ok) {
             const data = await res.json();
             const stats = data && data.statsCache && typeof data.statsCache === 'object' ? data.statsCache : {};
@@ -186,7 +203,8 @@ async function saveBotStatsCache() {
         }
     });
     try {
-        const res = await fetch('/api/bot-dashboard-cache', {
+        const base = getBotDashboardApiBase();
+        const res = await fetch(base + '/api/bot-dashboard-cache', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ statsCache: data })
@@ -225,7 +243,8 @@ function loadBotMaxTotalsCaches() {
 
 async function loadBotDashboardCacheFromServer() {
     try {
-        const res = await fetch('/api/bot-dashboard-cache');
+        const base = getBotDashboardApiBase();
+        const res = await fetch(base + '/api/bot-dashboard-cache');
         if (res && res.ok) {
             const data = await res.json();
             if (data.statsCache && typeof data.statsCache === 'object') {
@@ -279,7 +298,8 @@ function saveBotMaxTotalsCaches() {
     const hasAny = Object.keys(data.encounters).length > 0 || Object.keys(data.shinies).length > 0 || Object.keys(data.catches).length > 0;
     try {
         if (hasAny) {
-            fetch('/api/bot-dashboard-cache', {
+            const base = getBotDashboardApiBase();
+            fetch(base + '/api/bot-dashboard-cache', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ maxTotals: data })
@@ -1143,9 +1163,51 @@ function setupEventListeners() {
         botDashboardStatisticsBtn.addEventListener('click', () => showBotDashboardStatistics());
     }
     const botStatsRefreshBtn = document.getElementById('botStatsRefreshBtn');
+    const botStatsCommitBtn = document.getElementById('botStatsCommitBtn');
+    const botStatsDownloadBtn = document.getElementById('botStatsDownloadBtn');
     const botStatsWipeBtn = document.getElementById('botStatsWipeBtn');
     if (botStatsRefreshBtn) {
         botStatsRefreshBtn.addEventListener('click', () => showBotDashboardStatistics(true)); // refresh fetches new data but never clears cache
+    }
+    if (botStatsCommitBtn) {
+        botStatsCommitBtn.addEventListener('click', async () => {
+            try {
+                const data = {};
+                botStatsCache.forEach((entry, botId) => {
+                    if (entry && entry.stats != null) {
+                        data[botId] = { stats: entry.stats, time: entry.time || 0 };
+                    }
+                });
+                const base = getBotDashboardApiBase();
+                const res = await fetch(base + '/api/bot-dashboard-cache', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statsCache: data })
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    const msg = err.error || res.statusText || 'Commit failed';
+                    if (res.status === 404) {
+                        throw new Error('API not found (404). Open the app from the server (e.g. http://localhost:3000/bot-dashboard.html) and restart the server if you just updated the code.');
+                    }
+                    throw new Error(msg);
+                }
+                showToast('Statistics committed to server (only higher values are kept).', 'success');
+            } catch (e) {
+                showToast('Failed to commit: ' + (e?.message || e), 'error');
+            }
+        });
+    }
+    if (botStatsDownloadBtn) {
+        botStatsDownloadBtn.addEventListener('click', async () => {
+            try {
+                await loadBotDashboardCacheFromServer();
+                showBotDashboardStatistics(false);
+                showToast('Statistics loaded from server.', 'success');
+            } catch (e) {
+                showToast('Failed to download statistics: ' + (e?.message || e), 'error');
+            }
+        });
     }
     if (botStatsWipeBtn) {
         botStatsWipeBtn.addEventListener('click', () => {

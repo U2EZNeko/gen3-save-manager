@@ -1618,3 +1618,24 @@ body.bot-dashboard-page .bot-status-container {
     }
 }
 
+/* Toast for commit/download feedback */
+.bot-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    max-width: 90%;
+}
+.bot-toast-success {
+    background: var(--accent-color, #667eea);
+    color: #fff;
+}
+.bot-toast-error {
+    background: #c53030;
+    color: #fff;
+}
