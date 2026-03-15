@@ -102,16 +102,17 @@ body.bot-dashboard-page .bot-dashboard {
 }
 
 .controls-section-2 {
-    max-height: 250px; /* Limit card height */
+    height: 250px;
     overflow: hidden;
+    min-height: 0;
 }
 
 .controls-section-2 .foldable-body {
-    /*Make settings scrollable */
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+    overflow: hidden;
 }
 .controls-section-1 h3,
 .controls-section-2 h3,
@@ -188,12 +189,11 @@ body.bot-dashboard-page .bot-dashboard {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    flex: 1;
-    min-height: 400px; /* Allow scrolling */
-    max-height: 100%; /* Don't exceed parent */
-    padding-right: 5px; /* Space for scrollbar */
+    padding-right: 5px;
 }
 
 /* Custom scrollbar styling */
