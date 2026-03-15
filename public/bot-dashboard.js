@@ -1326,9 +1326,10 @@ async function showBotDashboardStatistics(forceRefresh = false) {
             const pokemonMap = getPokemonFromStats(stats);
             for (const [nameKey, entry] of Object.entries(pokemonMap)) {
                 if (!entry || typeof entry !== 'object') continue;
-                const id = entry.species_id != null ? entry.species_id : nameKey;
-                const key = String(id);
                 const speciesName = entry.species_name ?? entry.speciesName ?? nameKey;
+                const id = entry.species_id != null ? entry.species_id : nameKey;
+                const isUnownForm = entry.species_id === 201 || entry.species_id === '201';
+                const key = isUnownForm ? (speciesName || String(nameKey)) : String(id);
                 if (!combinedPokemon[key]) {
                     combinedPokemon[key] = {
                         species_id: entry.species_id, species_name: speciesName,
