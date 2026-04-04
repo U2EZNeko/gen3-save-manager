@@ -2603,15 +2603,18 @@ function updateStats(count, total = null) {
     }
 }
 
-// Modal elements
+// Modal elements (close button must be scoped to this modal — not document.querySelector('.modal-close'))
 const pokemonModal = document.getElementById('pokemonModal');
 const modalBody = document.getElementById('modalBody');
-const modalClose = document.querySelector('.modal-close');
+const modalClose = document.getElementById('closePokemonModal');
 
 // Close modal handlers
-modalClose.addEventListener('click', () => {
-    pokemonModal.classList.add('hidden');
-});
+if (modalClose && pokemonModal) {
+    modalClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pokemonModal.classList.add('hidden');
+    });
+}
 
 pokemonModal.addEventListener('click', (e) => {
     if (e.target === pokemonModal) {
@@ -2857,6 +2860,7 @@ async function showPokemonModal(pokemon) {
                     <span class="modal-value" style="font-family: monospace; font-size: 0.9em;">${pokemon.filename}</span>
                 </div>
                 <div class="modal-actions">
+                    ${pokemon.filename ? `<button type="button" class="btn btn-secondary pokemon-modal-download-btn">Download file</button>` : ''}
                     ${getEvolutionSpecies(pokemon.species) ? `<button class="btn btn-primary" onclick="evolvePokemon('${pokemon.filename}', ${pokemon.species})" id="evolveBtn" style="display: none;">Evolve</button>` : ''}
                     <button class="btn btn-danger" onclick="deletePokemonFile('${pokemon.filename}')">Delete File</button>
                 </div>
@@ -2873,6 +2877,11 @@ async function showPokemonModal(pokemon) {
     // Show modal
     if (pokemonModal) {
         pokemonModal.classList.remove('hidden');
+    }
+
+    const downloadBtn = modalBody.querySelector('.pokemon-modal-download-btn');
+    if (downloadBtn && pokemon.filename) {
+        downloadBtn.addEventListener('click', () => downloadPokemonFile(pokemon.filename));
     }
     
     // Load ball thumbnail asynchronously
@@ -3177,6 +3186,30 @@ function getPreEvolution(speciesId) {
 function getEvolutionSpecies(speciesId) {
     const evolutions = getAllEvolutionSpecies(speciesId);
     return evolutions && evolutions.length > 0 ? evolutions[0] : null;
+}
+
+// Download the raw Pokemon file (.pk3, .pk4, etc.) from the current database
+async function downloadPokemonFile(filename) {
+    if (!filename) return;
+    try {
+        const response = await fetch(`/api/pokemon/file/${encodeURIComponent(filename)}?db=${currentDatabase}`);
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || response.statusText || 'Download failed');
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        alert(`Failed to download file: ${error.message}`);
+        console.error('Download Pokemon file:', error);
+    }
 }
 
 // Delete Pokemon file with confirmation

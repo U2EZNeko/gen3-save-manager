@@ -541,6 +541,7 @@ function applyBotAccentColor(color) {
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Dashboard] DOMContentLoaded - initializing...');
+    getTargetPokemonListPrimed();
     await loadBotDashboardCacheFromServer();
 
     try {
@@ -7102,8 +7103,7 @@ async function showTargetPokemonSelector(botId) {
         const pokemonSelect = document.getElementById('targetPokemonSelect');
         const pokemonDropdown = document.getElementById('targetPokemonDropdown');
         if (pokemonSelect && pokemonDropdown) {
-            // Load Pokemon names asynchronously
-            loadPokemonList(pokemonSelect, pokemonDropdown);
+            loadPokemonList(pokemonSelect);
         }
         
         // Add event listeners
@@ -7331,79 +7331,51 @@ async function showTargetPokemonSelector(botId) {
     modal.classList.remove('hidden');
 }
 
-// Load Pokemon list (sorted alphabetically); includes all 28 Unown forms for targets
-async function loadPokemonList(inputElement, dropdownElement) {
-    try {
-        // Fetch all Pokemon names for Gen 3 (1-386)
-        const pokemonList = [];
-        const batchSize = 50;
-        
-        for (let i = 1; i <= 386; i += batchSize) {
-            const batch = [];
-            for (let j = i; j < Math.min(i + batchSize, 387); j++) {
-                batch.push(fetchPokemonNameForList(j));
+// Gen 3 target list: built from local names (gen3-species-names.js) — no API storm on modal open
+let _targetPokemonListPrimed = null;
+function buildGen3TargetPokemonListPayload() {
+    const names = (typeof window !== 'undefined' && window.GEN3_NATIONAL_DEX_NAMES) ? window.GEN3_NATIONAL_DEX_NAMES : {};
+    const pokemonList = [];
+    for (let id = 1; id <= 386; id++) {
+        const baseName = names[id];
+        if (!baseName) continue;
+        if (id === 201) {
+            for (let f = 0; f <= 25; f++) {
+                pokemonList.push({ id: 201, name: `Unown (${String.fromCharCode(65 + f)})`, form: String.fromCharCode(97 + f) });
             }
-            const results = await Promise.all(batch);
-            results.forEach((name, index) => {
-                if (name) {
-                    const id = i + index;
-                    if (id === 201) {
-                        // Add all 28 Unown forms as separate entries
-                        for (let f = 0; f <= 25; f++) {
-                            pokemonList.push({ id: 201, name: `Unown (${String.fromCharCode(65 + f)})`, form: String.fromCharCode(97 + f) });
-                        }
-                        pokemonList.push({ id: 201, name: 'Unown (!)', form: '!' });
-                        pokemonList.push({ id: 201, name: 'Unown (?)', form: '?' });
-                    } else {
-                        pokemonList.push({ id, name });
-                    }
-                }
-            });
+            pokemonList.push({ id: 201, name: 'Unown (!)', form: '!' });
+            pokemonList.push({ id: 201, name: 'Unown (?)', form: '?' });
+        } else {
+            pokemonList.push({ id, name: baseName });
         }
-        
-        // Sort by name alphabetically
-        pokemonList.sort((a, b) => a.name.localeCompare(b.name));
-        
-        // Build display map for lookup by displayText, name, #id, or id
-        const displayMap = new Map();
-        pokemonList.forEach(p => {
-            const displayText = `#${p.id} - ${p.name}`;
-            const entry = { id: p.id, name: p.name, form: p.form || null };
-            displayMap.set(displayText, entry);
-            displayMap.set(p.name, entry);
-            displayMap.set(`#${p.id}`, entry);
-            displayMap.set(p.id.toString(), entry);
-        });
-        
-        if (inputElement) {
-            inputElement.dataset.pokemonList = JSON.stringify(pokemonList);
-            inputElement.dataset.pokemonDisplayMap = JSON.stringify(Array.from(displayMap.entries()));
-        }
-    } catch (error) {
-        console.error('Error loading Pokemon list:', error);
     }
+    pokemonList.sort((a, b) => a.name.localeCompare(b.name));
+    const displayMap = new Map();
+    pokemonList.forEach(p => {
+        const displayText = `#${p.id} - ${p.name}`;
+        const entry = { id: p.id, name: p.name, form: p.form || null };
+        displayMap.set(displayText, entry);
+        displayMap.set(p.name, entry);
+        displayMap.set(`#${p.id}`, entry);
+        displayMap.set(p.id.toString(), entry);
+    });
+    return {
+        listJson: JSON.stringify(pokemonList),
+        displayMapJson: JSON.stringify(Array.from(displayMap.entries()))
+    };
 }
 
-// Fetch Pokemon name for list (with caching)
-const pokemonNameCache = new Map();
-async function fetchPokemonNameForList(speciesId) {
-    if (pokemonNameCache.has(speciesId)) {
-        return pokemonNameCache.get(speciesId);
+function getTargetPokemonListPrimed() {
+    if (!_targetPokemonListPrimed) _targetPokemonListPrimed = buildGen3TargetPokemonListPayload();
+    return _targetPokemonListPrimed;
+}
+
+function loadPokemonList(inputElement) {
+    const { listJson, displayMapJson } = getTargetPokemonListPrimed();
+    if (inputElement) {
+        inputElement.dataset.pokemonList = listJson;
+        inputElement.dataset.pokemonDisplayMap = displayMapJson;
     }
-    
-    try {
-        const response = await fetch(`/api/pokemon/species/${speciesId}`);
-        if (response.ok) {
-            const speciesData = await response.json();
-            const speciesName = speciesData.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            pokemonNameCache.set(speciesId, speciesName);
-            return speciesName;
-        }
-    } catch (error) {
-        console.error(`Error fetching Pokemon name for ${speciesId}:`, error);
-    }
-    
-    return `Unknown (${speciesId})`;
 }
 
 // Store polling intervals per bot
