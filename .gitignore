@@ -63,3 +63,4 @@ temp-frlg-map/
 .env.local
 .env.*.local
 bot-dashboard-cache.json
+bot-dashboard-cache.json

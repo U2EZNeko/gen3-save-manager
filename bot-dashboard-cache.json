@@ -91,19 +91,19 @@
           "Oddish": {
             "species_id": 43,
             "species_name": "Oddish",
-            "total_encounters": 719747,
+            "total_encounters": 719804,
             "shiny_encounters": 90,
             "catches": 89,
             "total_highest_iv_sum": 179,
             "total_lowest_iv_sum": 7,
             "total_highest_sv": 65535,
             "total_lowest_sv": 0,
-            "phase_encounters": 548,
+            "phase_encounters": 605,
             "phase_highest_iv_sum": 157,
             "phase_lowest_iv_sum": 33,
             "phase_highest_sv": 65441,
             "phase_lowest_sv": 12,
-            "last_encounter_time": "2026-03-11T00:08:38.672472+00:00"
+            "last_encounter_time": "2026-05-13T10:11:12.125532+00:00"
           },
           "Gloom": {
             "species_id": 44,
@@ -737,19 +737,19 @@
           "Poochyena": {
             "species_id": 286,
             "species_name": "Poochyena",
-            "total_encounters": 557920,
+            "total_encounters": 558043,
             "shiny_encounters": 74,
             "catches": 88,
             "total_highest_iv_sum": 178,
             "total_lowest_iv_sum": 9,
             "total_highest_sv": 65535,
             "total_lowest_sv": 0,
-            "phase_encounters": 1086,
+            "phase_encounters": 1209,
             "phase_highest_iv_sum": 159,
             "phase_lowest_iv_sum": 26,
-            "phase_highest_sv": 65508,
+            "phase_highest_sv": 65511,
             "phase_lowest_sv": 120,
-            "last_encounter_time": "2026-03-11T00:09:15.780716+00:00"
+            "last_encounter_time": "2026-05-13T10:11:05.244011+00:00"
           },
           "Mightyena": {
             "species_id": 287,
@@ -924,19 +924,19 @@
           "Wingull": {
             "species_id": 309,
             "species_name": "Wingull",
-            "total_encounters": 29956,
+            "total_encounters": 29998,
             "shiny_encounters": 5,
             "catches": 6,
             "total_highest_iv_sum": 171,
             "total_lowest_iv_sum": 13,
             "total_highest_sv": 65534,
             "total_lowest_sv": 1,
-            "phase_encounters": 458,
+            "phase_encounters": 500,
             "phase_highest_iv_sum": 153,
             "phase_lowest_iv_sum": 25,
-            "phase_highest_sv": 64894,
+            "phase_highest_sv": 65139,
             "phase_lowest_sv": 224,
-            "last_encounter_time": "2026-03-11T00:08:54.988791+00:00"
+            "last_encounter_time": "2026-05-13T10:11:08.370807+00:00"
           },
           "Wailmer": {
             "species_id": 313,
@@ -1128,19 +1128,19 @@
           "Electrike": {
             "species_id": 337,
             "species_name": "Electrike",
-            "total_encounters": 83150,
+            "total_encounters": 83341,
             "shiny_encounters": 8,
             "catches": 9,
             "total_highest_iv_sum": 172,
             "total_lowest_iv_sum": 14,
             "total_highest_sv": 65535,
             "total_lowest_sv": 1,
-            "phase_encounters": 1626,
+            "phase_encounters": 1817,
             "phase_highest_iv_sum": 161,
             "phase_lowest_iv_sum": 23,
             "phase_highest_sv": 65529,
             "phase_lowest_sv": 68,
-            "last_encounter_time": "2026-03-11T00:09:09.963622+00:00"
+            "last_encounter_time": "2026-05-13T10:11:09.629755+00:00"
           },
           "Numel": {
             "species_id": 339,
@@ -1196,36 +1196,36 @@
           "Plusle": {
             "species_id": 353,
             "species_name": "Plusle",
-            "total_encounters": 5648,
+            "total_encounters": 5659,
             "shiny_encounters": 0,
             "catches": 1,
             "total_highest_iv_sum": 175,
             "total_lowest_iv_sum": 18,
             "total_highest_sv": 65512,
             "total_lowest_sv": 16,
-            "phase_encounters": 96,
+            "phase_encounters": 107,
             "phase_highest_iv_sum": 151,
             "phase_lowest_iv_sum": 53,
             "phase_highest_sv": 65200,
             "phase_lowest_sv": 49,
-            "last_encounter_time": "2026-03-11T00:07:36.885324+00:00"
+            "last_encounter_time": "2026-05-13T10:10:03.291932+00:00"
           },
           "Minun": {
             "species_id": 354,
             "species_name": "Minun",
-            "total_encounters": 42559,
+            "total_encounters": 42670,
             "shiny_encounters": 5,
             "catches": 7,
             "total_highest_iv_sum": 175,
             "total_lowest_iv_sum": 9,
             "total_highest_sv": 65532,
             "total_lowest_sv": 1,
-            "phase_encounters": 814,
+            "phase_encounters": 925,
             "phase_highest_iv_sum": 174,
             "phase_lowest_iv_sum": 29,
-            "phase_highest_sv": 65336,
+            "phase_highest_sv": 65473,
             "phase_lowest_sv": 159,
-            "last_encounter_time": "2026-03-11T00:08:21.232776+00:00"
+            "last_encounter_time": "2026-05-13T10:10:45.799823+00:00"
           },
           "Swablu": {
             "species_id": 358,
@@ -1264,19 +1264,19 @@
           "Gulpin": {
             "species_id": 367,
             "species_name": "Gulpin",
-            "total_encounters": 41607,
+            "total_encounters": 41696,
             "shiny_encounters": 5,
             "catches": 5,
             "total_highest_iv_sum": 174,
             "total_lowest_iv_sum": 11,
             "total_highest_sv": 65532,
             "total_lowest_sv": 0,
-            "phase_encounters": 810,
+            "phase_encounters": 899,
             "phase_highest_iv_sum": 161,
             "phase_lowest_iv_sum": 24,
-            "phase_highest_sv": 65504,
+            "phase_highest_sv": 65509,
             "phase_lowest_sv": 10,
-            "last_encounter_time": "2026-03-11T00:09:13.458516+00:00"
+            "last_encounter_time": "2026-05-13T10:11:13.686674+00:00"
           },
           "Tropius": {
             "species_id": 369,
@@ -1433,7 +1433,7 @@
           }
         },
         "totals": {
-          "total_encounters": 3328019,
+          "total_encounters": 3328643,
           "shiny_encounters": 387,
           "catches": 451,
           "total_highest_iv_sum": {
@@ -1452,7 +1452,7 @@
             "value": 0,
             "species_name": "Sandshrew"
           },
-          "phase_encounters": 5438,
+          "phase_encounters": 6062,
           "phase_highest_iv_sum": {
             "value": 174,
             "species_name": "Minun"
@@ -1472,7 +1472,7 @@
         },
         "current_phase": {
           "start_time": "2026-02-27T11:46:26.260669+00:00",
-          "encounters": 5438,
+          "encounters": 6062,
           "highest_iv_sum": {
             "value": 174,
             "species_name": "Minun"
@@ -1494,7 +1494,7 @@
             "species_name": "Electrike"
           },
           "current_streak": {
-            "value": 1,
+            "value": 3,
             "species_name": "Poochyena"
           },
           "fishing_attempts": 0,
@@ -1513,7 +1513,7 @@
         },
         "pickup_items": {}
       },
-      "time": 1773187759489
+      "time": 1778667074978
     },
     "1767715780166": {
       "stats": {
@@ -4398,19 +4398,19 @@
           "Latias": {
             "species_id": 407,
             "species_name": "Latias",
-            "total_encounters": 40043,
-            "shiny_encounters": 4,
+            "total_encounters": 48587,
+            "shiny_encounters": 6,
             "catches": 0,
             "total_highest_iv_sum": 177,
             "total_lowest_iv_sum": 13,
             "total_highest_sv": 65533,
             "total_lowest_sv": 1,
-            "phase_encounters": 30710,
+            "phase_encounters": 32810,
             "phase_highest_iv_sum": 177,
-            "phase_lowest_iv_sum": 13,
+            "phase_lowest_iv_sum": 78,
             "phase_highest_sv": 65530,
-            "phase_lowest_sv": 9,
-            "last_encounter_time": "2026-03-11T21:25:06.257441+00:00"
+            "phase_lowest_sv": 45972,
+            "last_encounter_time": "2026-03-15T17:01:29.485885+00:00"
           },
           "Deoxys": {
             "species_id": 410,
@@ -4431,8 +4431,8 @@
           }
         },
         "totals": {
-          "total_encounters": 3071930,
-          "shiny_encounters": 399,
+          "total_encounters": 3080474,
+          "shiny_encounters": 401,
           "catches": 320,
           "total_highest_iv_sum": {
             "value": 183,
@@ -4450,13 +4450,13 @@
             "value": 0,
             "species_name": "Jigglypuff"
           },
-          "phase_encounters": 30710,
+          "phase_encounters": 32810,
           "phase_highest_iv_sum": {
             "value": 177,
             "species_name": "Latias"
           },
           "phase_lowest_iv_sum": {
-            "value": 13,
+            "value": 78,
             "species_name": "Latias"
           },
           "phase_highest_sv": {
@@ -4464,19 +4464,19 @@
             "species_name": "Latias"
           },
           "phase_lowest_sv": {
-            "value": 9,
+            "value": 45972,
             "species_name": "Latias"
           }
         },
         "current_phase": {
           "start_time": "2026-03-01T17:23:03.404258+00:00",
-          "encounters": 30710,
+          "encounters": 32810,
           "highest_iv_sum": {
             "value": 177,
             "species_name": "Latias"
           },
           "lowest_iv_sum": {
-            "value": 13,
+            "value": 78,
             "species_name": "Latias"
           },
           "highest_sv": {
@@ -4484,22 +4484,22 @@
             "species_name": "Latias"
           },
           "lowest_sv": {
-            "value": 9,
+            "value": 45972,
             "species_name": "Latias"
           },
           "longest_streak": {
-            "value": 30710,
+            "value": 32810,
             "species_name": "Latias"
           },
           "current_streak": {
-            "value": 30710,
+            "value": 32810,
             "species_name": "Latias"
           },
           "fishing_attempts": 0,
           "successful_fishing_attempts": 0,
           "longest_unsuccessful_fishing_streak": 0,
           "current_unsuccessful_fishing_streak": 0,
-          "pokenav_calls": 34
+          "pokenav_calls": 36
         },
         "longest_phase": {
           "value": 98101,
@@ -4526,7 +4526,7 @@
           "King’s Rock": 2
         }
       },
-      "time": 1773264307530
+      "time": 1773594094774
     },
     "1767716426896": {
       "stats": {
@@ -5758,7 +5758,7 @@
           "Chikorita": {
             "species_id": 152,
             "species_name": "Chikorita",
-            "total_encounters": 55348,
+            "total_encounters": 55376,
             "shiny_encounters": 6,
             "catches": 0,
             "total_highest_iv_sum": 178,
@@ -5770,12 +5770,12 @@
             "phase_lowest_iv_sum": 106,
             "phase_highest_sv": 65531,
             "phase_lowest_sv": 39984,
-            "last_encounter_time": "2026-03-13T11:40:09.096111+00:00"
+            "last_encounter_time": "2026-03-15T12:06:59.747826+00:00"
           },
           "Cyndaquil": {
             "species_id": 155,
             "species_name": "Cyndaquil",
-            "total_encounters": 55726,
+            "total_encounters": 55752,
             "shiny_encounters": 3,
             "catches": 0,
             "total_highest_iv_sum": 175,
@@ -5787,12 +5787,12 @@
             "phase_lowest_iv_sum": 62,
             "phase_highest_sv": 65531,
             "phase_lowest_sv": 29474,
-            "last_encounter_time": "2026-03-13T11:40:10.799593+00:00"
+            "last_encounter_time": "2026-03-15T12:07:01.935466+00:00"
           },
           "Totodile": {
             "species_id": 158,
             "species_name": "Totodile",
-            "total_encounters": 49939,
+            "total_encounters": 49967,
             "shiny_encounters": 4,
             "catches": 0,
             "total_highest_iv_sum": 179,
@@ -5804,7 +5804,7 @@
             "phase_lowest_iv_sum": 89,
             "phase_highest_sv": 65531,
             "phase_lowest_sv": 30390,
-            "last_encounter_time": "2026-03-13T11:40:12.536545+00:00"
+            "last_encounter_time": "2026-03-13T11:42:42.559119+00:00"
           },
           "Hoothoot": {
             "species_id": 163,
@@ -6454,7 +6454,7 @@
           }
         },
         "totals": {
-          "total_encounters": 1873908,
+          "total_encounters": 1873990,
           "shiny_encounters": 226,
           "catches": 85,
           "total_highest_iv_sum": {
@@ -6534,7 +6534,7 @@
         },
         "pickup_items": {}
       },
-      "time": 1773402012758
+      "time": 1773576423047
     },
     "1768048770839": {
       "stats": {
@@ -7224,36 +7224,36 @@
           "Pidgey": {
             "species_id": 16,
             "species_name": "Pidgey",
-            "total_encounters": 3,
+            "total_encounters": 6,
             "shiny_encounters": 0,
             "catches": 0,
             "total_highest_iv_sum": 106,
-            "total_lowest_iv_sum": 77,
+            "total_lowest_iv_sum": 51,
             "total_highest_sv": 35985,
-            "total_lowest_sv": 18865,
-            "phase_encounters": 0,
+            "total_lowest_sv": 11038,
+            "phase_encounters": 3,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-01-16T21:14:25.209918+00:00"
+            "last_encounter_time": "2026-03-16T11:39:28.812847+00:00"
           },
           "Pidgeotto": {
             "species_id": 17,
             "species_name": "Pidgeotto",
-            "total_encounters": 3,
+            "total_encounters": 5,
             "shiny_encounters": 0,
             "catches": 0,
             "total_highest_iv_sum": 124,
             "total_lowest_iv_sum": 82,
             "total_highest_sv": 64795,
             "total_lowest_sv": 7654,
-            "phase_encounters": 0,
+            "phase_encounters": 2,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-01-16T21:14:42.357168+00:00"
+            "last_encounter_time": "2026-03-16T11:39:31.310151+00:00"
           },
           "Nidorina": {
             "species_id": 30,
@@ -7309,19 +7309,19 @@
           "Oddish": {
             "species_id": 43,
             "species_name": "Oddish",
-            "total_encounters": 5,
+            "total_encounters": 7,
             "shiny_encounters": 0,
             "catches": 0,
             "total_highest_iv_sum": 114,
-            "total_lowest_iv_sum": 77,
-            "total_highest_sv": 49707,
+            "total_lowest_iv_sum": 57,
+            "total_highest_sv": 52444,
             "total_lowest_sv": 21872,
-            "phase_encounters": 0,
+            "phase_encounters": 2,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-01-16T21:14:29.982480+00:00"
+            "last_encounter_time": "2026-03-16T14:38:37.933272+00:00"
           },
           "Paras": {
             "species_id": 46,
@@ -7394,36 +7394,36 @@
           "Gastly": {
             "species_id": 92,
             "species_name": "Gastly",
-            "total_encounters": 177249,
-            "shiny_encounters": 27,
-            "catches": 0,
-            "total_highest_iv_sum": 172,
+            "total_encounters": 235205,
+            "shiny_encounters": 29,
+            "catches": 3,
+            "total_highest_iv_sum": 177,
             "total_lowest_iv_sum": 10,
             "total_highest_sv": 65535,
             "total_lowest_sv": 0,
-            "phase_encounters": 0,
+            "phase_encounters": 4303,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-01-22T22:15:33.866654+00:00"
+            "last_encounter_time": "2026-04-04T09:27:17.102578+00:00"
           },
           "Haunter": {
             "species_id": 93,
             "species_name": "Haunter",
-            "total_encounters": 12615,
-            "shiny_encounters": 3,
-            "catches": 0,
-            "total_highest_iv_sum": 170,
-            "total_lowest_iv_sum": 17,
+            "total_encounters": 82415,
+            "shiny_encounters": 9,
+            "catches": 7,
+            "total_highest_iv_sum": 175,
+            "total_lowest_iv_sum": 10,
             "total_highest_sv": 65534,
             "total_lowest_sv": 0,
-            "phase_encounters": 0,
+            "phase_encounters": 5084,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-01-22T22:14:38.212075+00:00"
+            "last_encounter_time": "2026-04-04T09:27:12.248647+00:00"
           },
           "Exeggcute": {
             "species_id": 102,
@@ -7445,19 +7445,19 @@
           "Cubone": {
             "species_id": 104,
             "species_name": "Cubone",
-            "total_encounters": 18569,
-            "shiny_encounters": 2,
-            "catches": 0,
+            "total_encounters": 60026,
+            "shiny_encounters": 10,
+            "catches": 8,
             "total_highest_iv_sum": 172,
-            "total_lowest_iv_sum": 13,
+            "total_lowest_iv_sum": 12,
             "total_highest_sv": 65535,
             "total_lowest_sv": 0,
-            "phase_encounters": 0,
+            "phase_encounters": 147,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-01-22T22:14:15.455335+00:00"
+            "last_encounter_time": "2026-04-02T13:54:49.421729+00:00"
           },
           "Rhyhorn": {
             "species_id": 111,
@@ -7530,93 +7530,535 @@
           "Qwilfish": {
             "species_id": 211,
             "species_name": "Qwilfish",
-            "total_encounters": 4696,
-            "shiny_encounters": 0,
+            "total_encounters": 16809,
+            "shiny_encounters": 2,
             "catches": 0,
-            "total_highest_iv_sum": 173,
-            "total_lowest_iv_sum": 21,
-            "total_highest_sv": 65501,
-            "total_lowest_sv": 22,
+            "total_highest_iv_sum": 174,
+            "total_lowest_iv_sum": 13,
+            "total_highest_sv": 65518,
+            "total_lowest_sv": 0,
             "phase_encounters": 4584,
             "phase_highest_iv_sum": 173,
-            "phase_lowest_iv_sum": 21,
+            "phase_lowest_iv_sum": 92,
             "phase_highest_sv": 65501,
-            "phase_lowest_sv": 22,
-            "last_encounter_time": "2026-03-13T19:04:14.430477+00:00"
+            "phase_lowest_sv": 43231,
+            "last_encounter_time": "2026-03-16T10:17:43.475763+00:00"
           },
           "Gyarados": {
             "species_id": 130,
             "species_name": "Gyarados",
-            "total_encounters": 1747,
-            "shiny_encounters": 0,
+            "total_encounters": 6312,
+            "shiny_encounters": 1,
             "catches": 0,
-            "total_highest_iv_sum": 167,
-            "total_lowest_iv_sum": 30,
-            "total_highest_sv": 65485,
-            "total_lowest_sv": 47,
+            "total_highest_iv_sum": 168,
+            "total_lowest_iv_sum": 20,
+            "total_highest_sv": 65529,
+            "total_lowest_sv": 0,
             "phase_encounters": 1690,
-            "phase_highest_iv_sum": 167,
-            "phase_lowest_iv_sum": 30,
+            "phase_highest_iv_sum": 168,
+            "phase_lowest_iv_sum": 112,
             "phase_highest_sv": 65485,
-            "phase_lowest_sv": 47,
-            "last_encounter_time": "2026-03-13T19:04:19.459767+00:00"
+            "phase_lowest_sv": 2067,
+            "last_encounter_time": "2026-03-16T10:17:33.674857+00:00"
           },
           "Horsea": {
             "species_id": 116,
             "species_name": "Horsea",
-            "total_encounters": 4688,
-            "shiny_encounters": 0,
+            "total_encounters": 16671,
+            "shiny_encounters": 1,
             "catches": 0,
-            "total_highest_iv_sum": 162,
-            "total_lowest_iv_sum": 23,
-            "total_highest_sv": 65505,
-            "total_lowest_sv": 12,
+            "total_highest_iv_sum": 171,
+            "total_lowest_iv_sum": 6,
+            "total_highest_sv": 65533,
+            "total_lowest_sv": 3,
             "phase_encounters": 4563,
             "phase_highest_iv_sum": 162,
-            "phase_lowest_iv_sum": 23,
+            "phase_lowest_iv_sum": 42,
             "phase_highest_sv": 65505,
-            "phase_lowest_sv": 12,
-            "last_encounter_time": "2026-03-13T19:04:02.189856+00:00"
+            "phase_lowest_sv": 341,
+            "last_encounter_time": "2026-03-16T10:17:53.568013+00:00"
           },
           "Seadra": {
             "species_id": 117,
             "species_name": "Seadra",
-            "total_encounters": 473,
+            "total_encounters": 1641,
             "shiny_encounters": 1,
-            "catches": 0,
+            "catches": 1,
             "total_highest_iv_sum": 170,
             "total_lowest_iv_sum": 26,
             "total_highest_sv": 65524,
             "total_lowest_sv": 1,
             "phase_encounters": 456,
             "phase_highest_iv_sum": 170,
-            "phase_lowest_iv_sum": 26,
+            "phase_lowest_iv_sum": 83,
             "phase_highest_sv": 65524,
-            "phase_lowest_sv": 12,
-            "last_encounter_time": "2026-03-13T19:04:21.283834+00:00"
+            "phase_lowest_sv": 8893,
+            "last_encounter_time": "2026-03-16T10:17:37.464782+00:00"
           },
           "Psyduck": {
             "species_id": 54,
             "species_name": "Psyduck",
-            "total_encounters": 98,
+            "total_encounters": 588,
             "shiny_encounters": 0,
             "catches": 0,
-            "total_highest_iv_sum": 150,
-            "total_lowest_iv_sum": 36,
-            "total_highest_sv": 65419,
-            "total_lowest_sv": 58,
+            "total_highest_iv_sum": 153,
+            "total_lowest_iv_sum": 32,
+            "total_highest_sv": 65525,
+            "total_lowest_sv": 25,
             "phase_encounters": 97,
             "phase_highest_iv_sum": 150,
-            "phase_lowest_iv_sum": 36,
+            "phase_lowest_iv_sum": 102,
             "phase_highest_sv": 65419,
-            "phase_lowest_sv": 58,
-            "last_encounter_time": "2026-03-13T18:54:31.562543+00:00"
+            "phase_lowest_sv": 23842,
+            "last_encounter_time": "2026-03-17T15:46:45.254728+00:00"
+          },
+          "Zubat": {
+            "species_id": 41,
+            "species_name": "Zubat",
+            "total_encounters": 46873,
+            "shiny_encounters": 8,
+            "catches": 8,
+            "total_highest_iv_sum": 173,
+            "total_lowest_iv_sum": 10,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 1,
+            "phase_encounters": 3344,
+            "phase_highest_iv_sum": 168,
+            "phase_lowest_iv_sum": 101,
+            "phase_highest_sv": 65533,
+            "phase_lowest_sv": 26914,
+            "last_encounter_time": "2026-04-04T09:27:02.221150+00:00"
+          },
+          "Golbat": {
+            "species_id": 42,
+            "species_name": "Golbat",
+            "total_encounters": 47519,
+            "shiny_encounters": 5,
+            "catches": 7,
+            "total_highest_iv_sum": 179,
+            "total_lowest_iv_sum": 15,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 3431,
+            "phase_highest_iv_sum": 169,
+            "phase_lowest_iv_sum": 91,
+            "phase_highest_sv": 65515,
+            "phase_lowest_sv": 53852,
+            "last_encounter_time": "2026-04-04T09:27:00.763112+00:00"
+          },
+          "Seel": {
+            "species_id": 86,
+            "species_name": "Seel",
+            "total_encounters": 342,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 149,
+            "total_lowest_iv_sum": 31,
+            "total_highest_sv": 65449,
+            "total_lowest_sv": 325,
+            "phase_encounters": 44,
+            "phase_highest_iv_sum": 141,
+            "phase_lowest_iv_sum": 61,
+            "phase_highest_sv": 65328,
+            "phase_lowest_sv": 8061,
+            "last_encounter_time": "2026-03-16T11:37:17.789346+00:00"
+          },
+          "Dewgong": {
+            "species_id": 87,
+            "species_name": "Dewgong",
+            "total_encounters": 6,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 136,
+            "total_lowest_iv_sum": 69,
+            "total_highest_sv": 54047,
+            "total_lowest_sv": 9351,
+            "phase_encounters": 1,
+            "phase_highest_iv_sum": null,
+            "phase_lowest_iv_sum": null,
+            "phase_highest_sv": null,
+            "phase_lowest_sv": null,
+            "last_encounter_time": "2026-03-16T11:38:08.967737+00:00"
+          },
+          "Swinub": {
+            "species_id": 220,
+            "species_name": "Swinub",
+            "total_encounters": 1623,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 161,
+            "total_lowest_iv_sum": 25,
+            "total_highest_sv": 65518,
+            "total_lowest_sv": 56,
+            "phase_encounters": 211,
+            "phase_highest_iv_sum": 161,
+            "phase_lowest_iv_sum": 52,
+            "phase_highest_sv": 65506,
+            "phase_lowest_sv": 1973,
+            "last_encounter_time": "2026-03-16T11:37:49.297188+00:00"
+          },
+          "Delibird": {
+            "species_id": 225,
+            "species_name": "Delibird",
+            "total_encounters": 187,
+            "shiny_encounters": 1,
+            "catches": 1,
+            "total_highest_iv_sum": 167,
+            "total_lowest_iv_sum": 34,
+            "total_highest_sv": 65206,
+            "total_lowest_sv": 3,
+            "phase_encounters": 32,
+            "phase_highest_iv_sum": 167,
+            "phase_lowest_iv_sum": 83,
+            "phase_highest_sv": 63999,
+            "phase_lowest_sv": 5728,
+            "last_encounter_time": "2026-03-16T11:37:35.586932+00:00"
+          },
+          "Sentret": {
+            "species_id": 161,
+            "species_name": "Sentret",
+            "total_encounters": 8,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 114,
+            "total_lowest_iv_sum": 49,
+            "total_highest_sv": 62953,
+            "total_lowest_sv": 5004,
+            "phase_encounters": 8,
+            "phase_highest_iv_sum": 114,
+            "phase_lowest_iv_sum": 49,
+            "phase_highest_sv": 62953,
+            "phase_lowest_sv": 5004,
+            "last_encounter_time": "2026-03-16T14:38:50.430625+00:00"
+          },
+          "Hoppip": {
+            "species_id": 187,
+            "species_name": "Hoppip",
+            "total_encounters": 3,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 94,
+            "total_lowest_iv_sum": 52,
+            "total_highest_sv": 54281,
+            "total_lowest_sv": 11616,
+            "phase_encounters": 3,
+            "phase_highest_iv_sum": 94,
+            "phase_lowest_iv_sum": 52,
+            "phase_highest_sv": 54281,
+            "phase_lowest_sv": 11616,
+            "last_encounter_time": "2026-03-16T11:39:35.092564+00:00"
+          },
+          "Persian": {
+            "species_id": 53,
+            "species_name": "Persian",
+            "total_encounters": 20965,
+            "shiny_encounters": 5,
+            "catches": 7,
+            "total_highest_iv_sum": 176,
+            "total_lowest_iv_sum": 13,
+            "total_highest_sv": 65529,
+            "total_lowest_sv": 0,
+            "phase_encounters": 80,
+            "phase_highest_iv_sum": 160,
+            "phase_lowest_iv_sum": 68,
+            "phase_highest_sv": 65485,
+            "phase_lowest_sv": 5530,
+            "last_encounter_time": "2026-04-02T13:54:59.262675+00:00"
+          },
+          "Meowth": {
+            "species_id": 52,
+            "species_name": "Meowth",
+            "total_encounters": 42456,
+            "shiny_encounters": 9,
+            "catches": 9,
+            "total_highest_iv_sum": 169,
+            "total_lowest_iv_sum": 9,
+            "total_highest_sv": 65532,
+            "total_lowest_sv": 0,
+            "phase_encounters": 140,
+            "phase_highest_iv_sum": 158,
+            "phase_lowest_iv_sum": 66,
+            "phase_highest_sv": 65475,
+            "phase_lowest_sv": 11210,
+            "last_encounter_time": "2026-04-02T13:55:12.528790+00:00"
+          },
+          "Gloom": {
+            "species_id": 44,
+            "species_name": "Gloom",
+            "total_encounters": 1,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 101,
+            "total_lowest_iv_sum": 101,
+            "total_highest_sv": 38236,
+            "total_lowest_sv": 38236,
+            "phase_encounters": 1,
+            "phase_highest_iv_sum": 101,
+            "phase_lowest_iv_sum": 101,
+            "phase_highest_sv": 38236,
+            "phase_lowest_sv": 38236,
+            "last_encounter_time": "2026-03-16T14:38:32.109182+00:00"
+          },
+          "Spearow": {
+            "species_id": 21,
+            "species_name": "Spearow",
+            "total_encounters": 780,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 156,
+            "total_lowest_iv_sum": 22,
+            "total_highest_sv": 65121,
+            "total_lowest_sv": 168,
+            "phase_encounters": 34,
+            "phase_highest_iv_sum": 137,
+            "phase_lowest_iv_sum": 44,
+            "phase_highest_sv": 62086,
+            "phase_lowest_sv": 3696,
+            "last_encounter_time": "2026-03-17T15:46:59.496314+00:00"
+          },
+          "Natu": {
+            "species_id": 177,
+            "species_name": "Natu",
+            "total_encounters": 913,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 164,
+            "total_lowest_iv_sum": 14,
+            "total_highest_sv": 65465,
+            "total_lowest_sv": 114,
+            "phase_encounters": 36,
+            "phase_highest_iv_sum": 151,
+            "phase_lowest_iv_sum": 34,
+            "phase_highest_sv": 64278,
+            "phase_lowest_sv": 4832,
+            "last_encounter_time": "2026-03-17T15:46:55.802337+00:00"
+          },
+          "Wooper": {
+            "species_id": 194,
+            "species_name": "Wooper",
+            "total_encounters": 355,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 160,
+            "total_lowest_iv_sum": 32,
+            "total_highest_sv": 65421,
+            "total_lowest_sv": 79,
+            "phase_encounters": 12,
+            "phase_highest_iv_sum": 134,
+            "phase_lowest_iv_sum": 56,
+            "phase_highest_sv": 59358,
+            "phase_lowest_sv": 10494,
+            "last_encounter_time": "2026-03-17T15:46:21.513236+00:00"
+          },
+          "Wobbuffet": {
+            "species_id": 202,
+            "species_name": "Wobbuffet",
+            "total_encounters": 180,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 158,
+            "total_lowest_iv_sum": 36,
+            "total_highest_sv": 65273,
+            "total_lowest_sv": 236,
+            "phase_encounters": 10,
+            "phase_highest_iv_sum": 142,
+            "phase_lowest_iv_sum": 73,
+            "phase_highest_sv": 65273,
+            "phase_lowest_sv": 674,
+            "last_encounter_time": "2026-03-17T15:46:50.916716+00:00"
+          },
+          "Fearow": {
+            "species_id": 22,
+            "species_name": "Fearow",
+            "total_encounters": 41644,
+            "shiny_encounters": 12,
+            "catches": 14,
+            "total_highest_iv_sum": 177,
+            "total_lowest_iv_sum": 16,
+            "total_highest_sv": 65531,
+            "total_lowest_sv": 0,
+            "phase_encounters": 157,
+            "phase_highest_iv_sum": 149,
+            "phase_lowest_iv_sum": 70,
+            "phase_highest_sv": 65471,
+            "phase_lowest_sv": 8740,
+            "last_encounter_time": "2026-04-02T13:55:10.864744+00:00"
+          },
+          "Yanma": {
+            "species_id": 193,
+            "species_name": "Yanma",
+            "total_encounters": 386,
+            "shiny_encounters": 1,
+            "catches": 1,
+            "total_highest_iv_sum": 153,
+            "total_lowest_iv_sum": 19,
+            "total_highest_sv": 65373,
+            "total_lowest_sv": 1,
+            "phase_encounters": 11,
+            "phase_highest_iv_sum": 141,
+            "phase_lowest_iv_sum": 49,
+            "phase_highest_sv": 64194,
+            "phase_lowest_sv": 7893,
+            "last_encounter_time": "2026-03-17T15:46:34.275213+00:00"
+          },
+          "Murkrow": {
+            "species_id": 198,
+            "species_name": "Murkrow",
+            "total_encounters": 11623,
+            "shiny_encounters": 1,
+            "catches": 1,
+            "total_highest_iv_sum": 170,
+            "total_lowest_iv_sum": 16,
+            "total_highest_sv": 65531,
+            "total_lowest_sv": 7,
+            "phase_encounters": 821,
+            "phase_highest_iv_sum": 169,
+            "phase_lowest_iv_sum": 41,
+            "phase_highest_sv": 65531,
+            "phase_lowest_sv": 398,
+            "last_encounter_time": "2026-04-04T09:27:15.660269+00:00"
+          },
+          "Geodude": {
+            "species_id": 74,
+            "species_name": "Geodude",
+            "total_encounters": 83666,
+            "shiny_encounters": 8,
+            "catches": 8,
+            "total_highest_iv_sum": 174,
+            "total_lowest_iv_sum": 12,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 303,
+            "phase_highest_iv_sum": 157,
+            "phase_lowest_iv_sum": 40,
+            "phase_highest_sv": 65266,
+            "phase_lowest_sv": 582,
+            "last_encounter_time": "2026-04-02T13:55:29.011597+00:00"
+          },
+          "Onix": {
+            "species_id": 95,
+            "species_name": "Onix",
+            "total_encounters": 20849,
+            "shiny_encounters": 4,
+            "catches": 4,
+            "total_highest_iv_sum": 172,
+            "total_lowest_iv_sum": 8,
+            "total_highest_sv": 65531,
+            "total_lowest_sv": 3,
+            "phase_encounters": 71,
+            "phase_highest_iv_sum": 146,
+            "phase_lowest_iv_sum": 88,
+            "phase_highest_sv": 65386,
+            "phase_lowest_sv": 32399,
+            "last_encounter_time": "2026-04-02T13:55:03.387382+00:00"
+          },
+          "Marowak": {
+            "species_id": 105,
+            "species_name": "Marowak",
+            "total_encounters": 41407,
+            "shiny_encounters": 8,
+            "catches": 9,
+            "total_highest_iv_sum": 177,
+            "total_lowest_iv_sum": 15,
+            "total_highest_sv": 65534,
+            "total_lowest_sv": 0,
+            "phase_encounters": 143,
+            "phase_highest_iv_sum": 149,
+            "phase_lowest_iv_sum": 76,
+            "phase_highest_sv": 65374,
+            "phase_lowest_sv": 7993,
+            "last_encounter_time": "2026-04-02T13:55:27.257966+00:00"
+          },
+          "Skarmory": {
+            "species_id": 227,
+            "species_name": "Skarmory",
+            "total_encounters": 20768,
+            "shiny_encounters": 4,
+            "catches": 4,
+            "total_highest_iv_sum": 166,
+            "total_lowest_iv_sum": 14,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 75,
+            "phase_highest_iv_sum": 134,
+            "phase_lowest_iv_sum": 58,
+            "phase_highest_sv": 65280,
+            "phase_lowest_sv": 21819,
+            "last_encounter_time": "2026-04-02T13:54:47.958518+00:00"
+          },
+          "Phanpy": {
+            "species_id": 231,
+            "species_name": "Phanpy",
+            "total_encounters": 83517,
+            "shiny_encounters": 11,
+            "catches": 11,
+            "total_highest_iv_sum": 172,
+            "total_lowest_iv_sum": 12,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 1,
+            "phase_encounters": 321,
+            "phase_highest_iv_sum": 172,
+            "phase_lowest_iv_sum": 53,
+            "phase_highest_sv": 65414,
+            "phase_lowest_sv": 12349,
+            "last_encounter_time": "2026-04-02T13:55:19.101517+00:00"
+          },
+          "Larvitar": {
+            "species_id": 246,
+            "species_name": "Larvitar",
+            "total_encounters": 20962,
+            "shiny_encounters": 3,
+            "catches": 3,
+            "total_highest_iv_sum": 171,
+            "total_lowest_iv_sum": 17,
+            "total_highest_sv": 65534,
+            "total_lowest_sv": 4,
+            "phase_encounters": 86,
+            "phase_highest_iv_sum": 141,
+            "phase_lowest_iv_sum": 64,
+            "phase_highest_sv": 65068,
+            "phase_lowest_sv": 12761,
+            "last_encounter_time": "2026-04-02T13:54:57.790247+00:00"
+          },
+          "Unown (A)": {
+            "species_id": 201,
+            "species_name": "Unown (A)",
+            "total_encounters": 127980,
+            "shiny_encounters": 18,
+            "catches": 0,
+            "total_highest_iv_sum": 176,
+            "total_lowest_iv_sum": 6,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 13826,
+            "phase_highest_iv_sum": 176,
+            "phase_lowest_iv_sum": 22,
+            "phase_highest_sv": 65535,
+            "phase_lowest_sv": 27,
+            "last_encounter_time": "2026-04-04T14:49:38.009491+00:00"
+          },
+          "Unown (?)": {
+            "species_id": 201,
+            "species_name": "Unown (?)",
+            "total_encounters": 1361,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 169,
+            "total_lowest_iv_sum": 24,
+            "total_highest_sv": 65529,
+            "total_lowest_sv": 35,
+            "phase_encounters": 132,
+            "phase_highest_iv_sum": 169,
+            "phase_lowest_iv_sum": 67,
+            "phase_highest_sv": 64515,
+            "phase_lowest_sv": 63,
+            "last_encounter_time": "2026-04-04T14:49:16.503203+00:00"
           }
         },
         "totals": {
-          "total_encounters": 695824,
-          "shiny_encounters": 76,
-          "catches": 0,
+          "total_encounters": 1511737,
+          "shiny_encounters": 194,
+          "catches": 106,
           "total_highest_iv_sum": {
             "value": 179,
             "species_name": "Nidoran♂"
@@ -7631,57 +8073,57 @@
           },
           "total_lowest_sv": {
             "value": 0,
-            "species_name": "Nidoran♂"
+            "species_name": "Fearow"
           },
-          "phase_encounters": 11390,
+          "phase_encounters": 16978,
           "phase_highest_iv_sum": {
-            "value": 173,
+            "value": 176,
             "species_name": "Paras"
           },
           "phase_lowest_iv_sum": {
-            "value": 21,
+            "value": 42,
             "species_name": "Nidoran♂"
           },
           "phase_highest_sv": {
-            "value": 65524,
+            "value": 65535,
             "species_name": "Nidorino"
           },
           "phase_lowest_sv": {
-            "value": 18,
+            "value": 674,
             "species_name": "Nidoran♂"
           }
         },
         "current_phase": {
           "start_time": "2026-01-28T16:48:17.040264+00:00",
-          "encounters": 11390,
+          "encounters": 16978,
           "highest_iv_sum": {
-            "value": 173,
+            "value": 176,
             "species_name": "Paras"
           },
           "lowest_iv_sum": {
-            "value": 21,
+            "value": 42,
             "species_name": "Paras"
           },
           "highest_sv": {
-            "value": 65524,
+            "value": 65535,
             "species_name": "Nidorino"
           },
           "lowest_sv": {
-            "value": 18,
+            "value": 674,
             "species_name": "Nidoran♂"
           },
           "longest_streak": {
-            "value": 12,
+            "value": 361,
             "species_name": "Rhyhorn"
           },
           "current_streak": {
-            "value": 3,
+            "value": 277,
             "species_name": "Articuno"
           },
           "fishing_attempts": 22650,
           "successful_fishing_attempts": 11390,
           "longest_unsuccessful_fishing_streak": 15,
-          "current_unsuccessful_fishing_streak": 2,
+          "current_unsuccessful_fishing_streak": 7,
           "pokenav_calls": 0
         },
         "longest_phase": {
@@ -7694,7 +8136,7 @@
         },
         "pickup_items": {}
       },
-      "time": 1773574928785
+      "time": 1775314180617
     },
     "1772923142661": {
       "stats": {
@@ -7821,36 +8263,36 @@
           "Zubat": {
             "species_id": 41,
             "species_name": "Zubat",
-            "total_encounters": 14293,
+            "total_encounters": 15650,
             "shiny_encounters": 2,
             "catches": 2,
             "total_highest_iv_sum": 171,
             "total_lowest_iv_sum": 20,
             "total_highest_sv": 65534,
             "total_lowest_sv": 1,
-            "phase_encounters": 0,
+            "phase_encounters": 1027,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-03-01T15:23:26.081154+00:00"
+            "last_encounter_time": "2026-04-04T12:12:08.249628+00:00"
           },
           "Golbat": {
             "species_id": 42,
             "species_name": "Golbat",
-            "total_encounters": 36070,
+            "total_encounters": 36752,
             "shiny_encounters": 6,
             "catches": 7,
             "total_highest_iv_sum": 178,
             "total_lowest_iv_sum": 15,
             "total_highest_sv": 65533,
             "total_lowest_sv": 2,
-            "phase_encounters": 0,
+            "phase_encounters": 522,
             "phase_highest_iv_sum": null,
             "phase_lowest_iv_sum": null,
             "phase_highest_sv": null,
             "phase_lowest_sv": null,
-            "last_encounter_time": "2026-03-01T15:23:31.917617+00:00"
+            "last_encounter_time": "2026-04-04T12:12:23.763139+00:00"
           },
           "Venonat": {
             "species_id": 48,
@@ -8450,45 +8892,45 @@
           "Unown (D)": {
             "species_id": 201,
             "species_name": "Unown (D)",
-            "total_encounters": 75560,
-            "shiny_encounters": 6,
+            "total_encounters": 372742,
+            "shiny_encounters": 28,
             "catches": 0,
-            "total_highest_iv_sum": 177,
-            "total_lowest_iv_sum": 14,
+            "total_highest_iv_sum": 182,
+            "total_lowest_iv_sum": 8,
             "total_highest_sv": 65535,
             "total_lowest_sv": 0,
             "phase_encounters": 15589,
-            "phase_highest_iv_sum": 177,
+            "phase_highest_iv_sum": 179,
             "phase_lowest_iv_sum": 108,
             "phase_highest_sv": 65535,
             "phase_lowest_sv": 56511,
-            "last_encounter_time": "2026-03-15T11:42:09.432112+00:00"
+            "last_encounter_time": "2026-03-29T14:53:48.751654+00:00"
           },
           "Unown (C)": {
             "species_id": 201,
             "species_name": "Unown (C)",
-            "total_encounters": 127157,
-            "shiny_encounters": 12,
+            "total_encounters": 622867,
+            "shiny_encounters": 58,
             "catches": 0,
-            "total_highest_iv_sum": 175,
-            "total_lowest_iv_sum": 11,
+            "total_highest_iv_sum": 178,
+            "total_lowest_iv_sum": 4,
             "total_highest_sv": 65534,
             "total_lowest_sv": 1,
             "phase_encounters": 25732,
             "phase_highest_iv_sum": 175,
-            "phase_lowest_iv_sum": 89,
+            "phase_lowest_iv_sum": 97,
             "phase_highest_sv": 65534,
             "phase_lowest_sv": 61149,
-            "last_encounter_time": "2026-03-15T11:42:08.127149+00:00"
+            "last_encounter_time": "2026-03-29T14:53:46.058735+00:00"
           },
           "Unown (H)": {
             "species_id": 201,
             "species_name": "Unown (H)",
-            "total_encounters": 35365,
-            "shiny_encounters": 2,
+            "total_encounters": 174200,
+            "shiny_encounters": 18,
             "catches": 0,
-            "total_highest_iv_sum": 175,
-            "total_lowest_iv_sum": 10,
+            "total_highest_iv_sum": 178,
+            "total_lowest_iv_sum": 9,
             "total_highest_sv": 65534,
             "total_lowest_sv": 1,
             "phase_encounters": 7165,
@@ -8496,54 +8938,139 @@
             "phase_lowest_iv_sum": 110,
             "phase_highest_sv": 65534,
             "phase_lowest_sv": 62983,
-            "last_encounter_time": "2026-03-15T11:42:00.402350+00:00"
+            "last_encounter_time": "2026-03-29T14:53:40.310341+00:00"
           },
           "Unown (U)": {
             "species_id": 201,
             "species_name": "Unown (U)",
-            "total_encounters": 12647,
-            "shiny_encounters": 0,
+            "total_encounters": 61998,
+            "shiny_encounters": 10,
             "catches": 0,
-            "total_highest_iv_sum": 169,
-            "total_lowest_iv_sum": 15,
+            "total_highest_iv_sum": 171,
+            "total_lowest_iv_sum": 10,
             "total_highest_sv": 65534,
-            "total_lowest_sv": 8,
+            "total_lowest_sv": 1,
             "phase_encounters": 2614,
             "phase_highest_iv_sum": 169,
             "phase_lowest_iv_sum": 131,
             "phase_highest_sv": 65534,
             "phase_lowest_sv": 62132,
-            "last_encounter_time": "2026-03-15T11:41:44.093093+00:00"
+            "last_encounter_time": "2026-03-29T14:53:37.830289+00:00"
           },
           "Unown (O)": {
             "species_id": 201,
             "species_name": "Unown (O)",
-            "total_encounters": 2578,
-            "shiny_encounters": 0,
+            "total_encounters": 12408,
+            "shiny_encounters": 1,
             "catches": 0,
-            "total_highest_iv_sum": 168,
-            "total_lowest_iv_sum": 28,
-            "total_highest_sv": 65483,
-            "total_lowest_sv": 15,
+            "total_highest_iv_sum": 175,
+            "total_lowest_iv_sum": 18,
+            "total_highest_sv": 65503,
+            "total_lowest_sv": 7,
             "phase_encounters": 532,
             "phase_highest_iv_sum": 168,
             "phase_lowest_iv_sum": 126,
             "phase_highest_sv": 65483,
             "phase_lowest_sv": 56800,
-            "last_encounter_time": "2026-03-15T11:41:52.901133+00:00"
+            "last_encounter_time": "2026-03-29T14:53:26.167001+00:00"
+          },
+          "Unown (A)": {
+            "species_id": 201,
+            "species_name": "Unown (A)",
+            "total_encounters": 380382,
+            "shiny_encounters": 40,
+            "catches": 0,
+            "total_highest_iv_sum": 177,
+            "total_lowest_iv_sum": 8,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 17587,
+            "phase_highest_iv_sum": 177,
+            "phase_lowest_iv_sum": 40,
+            "phase_highest_sv": 65535,
+            "phase_lowest_sv": 99,
+            "last_encounter_time": "2026-04-04T15:30:27.320304+00:00"
+          },
+          "Unown (?)": {
+            "species_id": 201,
+            "species_name": "Unown (?)",
+            "total_encounters": 3940,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 170,
+            "total_lowest_iv_sum": 22,
+            "total_highest_sv": 65505,
+            "total_lowest_sv": 21,
+            "phase_encounters": 180,
+            "phase_highest_iv_sum": 160,
+            "phase_lowest_iv_sum": 96,
+            "phase_highest_sv": 65487,
+            "phase_lowest_sv": 31838,
+            "last_encounter_time": "2026-04-04T15:28:10.033482+00:00"
+          },
+          "Misdreavus": {
+            "species_id": 200,
+            "species_name": "Misdreavus",
+            "total_encounters": 1308,
+            "shiny_encounters": 1,
+            "catches": 1,
+            "total_highest_iv_sum": 158,
+            "total_lowest_iv_sum": 23,
+            "total_highest_sv": 65452,
+            "total_lowest_sv": 2,
+            "phase_encounters": 1013,
+            "phase_highest_iv_sum": 158,
+            "phase_lowest_iv_sum": 36,
+            "phase_highest_sv": 65452,
+            "phase_lowest_sv": 5724,
+            "last_encounter_time": "2026-04-04T12:12:16.321993+00:00"
+          },
+          "Haunter": {
+            "species_id": 93,
+            "species_name": "Haunter",
+            "total_encounters": 2048,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 156,
+            "total_lowest_iv_sum": 24,
+            "total_highest_sv": 65490,
+            "total_lowest_sv": 27,
+            "phase_encounters": 1599,
+            "phase_highest_iv_sum": 156,
+            "phase_lowest_iv_sum": 44,
+            "phase_highest_sv": 65490,
+            "phase_lowest_sv": 287,
+            "last_encounter_time": "2026-04-04T12:12:21.384791+00:00"
+          },
+          "Gastly": {
+            "species_id": 92,
+            "species_name": "Gastly",
+            "total_encounters": 1315,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 163,
+            "total_lowest_iv_sum": 25,
+            "total_highest_sv": 65434,
+            "total_lowest_sv": 67,
+            "phase_encounters": 1039,
+            "phase_highest_iv_sum": 163,
+            "phase_lowest_iv_sum": 45,
+            "phase_highest_sv": 65434,
+            "phase_lowest_sv": 505,
+            "last_encounter_time": "2026-04-04T12:12:17.899642+00:00"
           }
         },
         "totals": {
-          "total_encounters": 1212601,
-          "shiny_encounters": 145,
-          "catches": 85,
+          "total_encounters": 2594541,
+          "shiny_encounters": 281,
+          "catches": 86,
           "total_highest_iv_sum": {
-            "value": 178,
-            "species_name": "Golbat"
+            "value": 182,
+            "species_name": "Unown (D)"
           },
           "total_lowest_iv_sum": {
-            "value": 7,
-            "species_name": "Venonat"
+            "value": 4,
+            "species_name": "Unown (C)"
           },
           "total_highest_sv": {
             "value": 65535,
@@ -8555,7 +9082,7 @@
           },
           "phase_encounters": 51632,
           "phase_highest_iv_sum": {
-            "value": 177,
+            "value": 179,
             "species_name": "Unown (C)"
           },
           "phase_lowest_iv_sum": {
@@ -8575,7 +9102,7 @@
           "start_time": "2026-03-11T18:19:27.777259+00:00",
           "encounters": 51632,
           "highest_iv_sum": {
-            "value": 177,
+            "value": 179,
             "species_name": "Unown (C)"
           },
           "lowest_iv_sum": {
@@ -8591,11 +9118,11 @@
             "species_name": "Unown (U)"
           },
           "longest_streak": {
-            "value": 19,
+            "value": 619,
             "species_name": "Unown (C)"
           },
           "current_streak": {
-            "value": 18,
+            "value": 247,
             "species_name": "Unown (H)"
           },
           "fishing_attempts": 0,
@@ -8614,7 +9141,7 @@
         },
         "pickup_items": {}
       },
-      "time": 1773574930612
+      "time": 1775316630730
     },
     "1767717125084": {
       "stats": {
@@ -10086,8 +10613,8 @@
           "Unown (Z)": {
             "species_id": 201,
             "species_name": "Unown (Z)",
-            "total_encounters": 1086734,
-            "shiny_encounters": 139,
+            "total_encounters": 1426282,
+            "shiny_encounters": 180,
             "catches": 0,
             "total_highest_iv_sum": 184,
             "total_lowest_iv_sum": 7,
@@ -10095,40 +10622,74 @@
             "total_lowest_sv": 0,
             "phase_encounters": 20011,
             "phase_highest_iv_sum": 181,
-            "phase_lowest_iv_sum": 99,
+            "phase_lowest_iv_sum": 104,
             "phase_highest_sv": 65535,
             "phase_lowest_sv": 31295,
-            "last_encounter_time": "2026-03-15T11:42:08.071484+00:00"
+            "last_encounter_time": "2026-03-19T21:31:03.705201+00:00"
           },
           "Unown (!)": {
             "species_id": 201,
             "species_name": "Unown (!)",
-            "total_encounters": 11036,
-            "shiny_encounters": 0,
+            "total_encounters": 14484,
+            "shiny_encounters": 1,
             "catches": 0,
             "total_highest_iv_sum": 167,
-            "total_lowest_iv_sum": 21,
+            "total_lowest_iv_sum": 19,
             "total_highest_sv": 65530,
-            "total_lowest_sv": 15,
+            "total_lowest_sv": 7,
             "phase_encounters": 214,
-            "phase_highest_iv_sum": 160,
+            "phase_highest_iv_sum": 166,
             "phase_lowest_iv_sum": 134,
             "phase_highest_sv": 65530,
             "phase_lowest_sv": 64716,
-            "last_encounter_time": "2026-03-15T11:41:33.002076+00:00"
+            "last_encounter_time": "2026-03-19T21:31:02.653936+00:00"
+          },
+          "Unown (A)": {
+            "species_id": 201,
+            "species_name": "Unown (A)",
+            "total_encounters": 1122986,
+            "shiny_encounters": 98,
+            "catches": 0,
+            "total_highest_iv_sum": 179,
+            "total_lowest_iv_sum": 4,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 44051,
+            "phase_highest_iv_sum": 172,
+            "phase_lowest_iv_sum": 53,
+            "phase_highest_sv": 65535,
+            "phase_lowest_sv": 466,
+            "last_encounter_time": "2026-04-04T14:58:12.274537+00:00"
+          },
+          "Unown (?)": {
+            "species_id": 201,
+            "species_name": "Unown (?)",
+            "total_encounters": 11228,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 178,
+            "total_lowest_iv_sum": 11,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 14,
+            "phase_encounters": 420,
+            "phase_highest_iv_sum": 170,
+            "phase_lowest_iv_sum": 51,
+            "phase_highest_sv": 65497,
+            "phase_lowest_sv": 3039,
+            "last_encounter_time": "2026-04-04T14:57:14.917999+00:00"
           }
         },
         "totals": {
-          "total_encounters": 1534331,
-          "shiny_encounters": 184,
+          "total_encounters": 3011541,
+          "shiny_encounters": 324,
           "catches": 11,
           "total_highest_iv_sum": {
             "value": 184,
             "species_name": "Unown (Z)"
           },
           "total_lowest_iv_sum": {
-            "value": 7,
-            "species_name": "Venonat"
+            "value": 4,
+            "species_name": "Unown (A)"
           },
           "total_highest_sv": {
             "value": 65535,
@@ -10138,7 +10699,7 @@
             "value": 0,
             "species_name": "Squirtle"
           },
-          "phase_encounters": 20225,
+          "phase_encounters": 44471,
           "phase_highest_iv_sum": {
             "value": 181,
             "species_name": "Unown (Z)"
@@ -10158,7 +10719,7 @@
         },
         "current_phase": {
           "start_time": "2026-03-11T21:42:49.353921+00:00",
-          "encounters": 20225,
+          "encounters": 44471,
           "highest_iv_sum": {
             "value": 181,
             "species_name": "Unown (Z)"
@@ -10199,7 +10760,7 @@
         },
         "pickup_items": {}
       },
-      "time": 1773574929515
+      "time": 1775314695450
     },
     "1767716467579": {
       "stats": {
@@ -13139,29 +13700,227 @@
         }
       },
       "time": 1773184964332
+    },
+    "1768164687929": {
+      "stats": {
+        "pokemon": {
+          "Treecko": {
+            "species_id": 277,
+            "species_name": "Treecko",
+            "total_encounters": 46120,
+            "shiny_encounters": 5,
+            "catches": 0,
+            "total_highest_iv_sum": 173,
+            "total_lowest_iv_sum": 9,
+            "total_highest_sv": 65531,
+            "total_lowest_sv": 0,
+            "phase_encounters": 2252,
+            "phase_highest_iv_sum": 161,
+            "phase_lowest_iv_sum": 27,
+            "phase_highest_sv": 65474,
+            "phase_lowest_sv": 35,
+            "last_encounter_time": "2026-03-11T18:19:46.930384+00:00"
+          },
+          "Torchic": {
+            "species_id": 280,
+            "species_name": "Torchic",
+            "total_encounters": 46213,
+            "shiny_encounters": 2,
+            "catches": 0,
+            "total_highest_iv_sum": 178,
+            "total_lowest_iv_sum": 13,
+            "total_highest_sv": 65534,
+            "total_lowest_sv": 0,
+            "phase_encounters": 2255,
+            "phase_highest_iv_sum": 175,
+            "phase_lowest_iv_sum": 22,
+            "phase_highest_sv": 65533,
+            "phase_lowest_sv": 88,
+            "last_encounter_time": "2026-03-11T18:19:41.212863+00:00"
+          },
+          "Mudkip": {
+            "species_id": 283,
+            "species_name": "Mudkip",
+            "total_encounters": 46154,
+            "shiny_encounters": 4,
+            "catches": 0,
+            "total_highest_iv_sum": 175,
+            "total_lowest_iv_sum": 10,
+            "total_highest_sv": 65535,
+            "total_lowest_sv": 0,
+            "phase_encounters": 2268,
+            "phase_highest_iv_sum": 175,
+            "phase_lowest_iv_sum": 20,
+            "phase_highest_sv": 65533,
+            "phase_lowest_sv": 56,
+            "last_encounter_time": "2026-03-15T12:07:45.602725+00:00"
+          },
+          "Poochyena": {
+            "species_id": 286,
+            "species_name": "Poochyena",
+            "total_encounters": 2,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 68,
+            "total_lowest_iv_sum": 67,
+            "total_highest_sv": 63632,
+            "total_lowest_sv": 41350,
+            "phase_encounters": 0,
+            "phase_highest_iv_sum": null,
+            "phase_lowest_iv_sum": null,
+            "phase_highest_sv": null,
+            "phase_lowest_sv": null,
+            "last_encounter_time": "2025-12-23T15:15:21.039557+00:00"
+          },
+          "Zigzagoon": {
+            "species_id": 288,
+            "species_name": "Zigzagoon",
+            "total_encounters": 1,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 125,
+            "total_lowest_iv_sum": 125,
+            "total_highest_sv": 43875,
+            "total_lowest_sv": 43875,
+            "phase_encounters": 0,
+            "phase_highest_iv_sum": null,
+            "phase_lowest_iv_sum": null,
+            "phase_highest_sv": null,
+            "phase_lowest_sv": null,
+            "last_encounter_time": "2025-12-23T15:15:25.911060+00:00"
+          },
+          "Wurmple": {
+            "species_id": 290,
+            "species_name": "Wurmple",
+            "total_encounters": 1,
+            "shiny_encounters": 0,
+            "catches": 0,
+            "total_highest_iv_sum": 123,
+            "total_lowest_iv_sum": 123,
+            "total_highest_sv": 61192,
+            "total_lowest_sv": 61192,
+            "phase_encounters": 0,
+            "phase_highest_iv_sum": null,
+            "phase_lowest_iv_sum": null,
+            "phase_highest_sv": null,
+            "phase_lowest_sv": null,
+            "last_encounter_time": "2025-12-23T15:15:10.127685+00:00"
+          }
+        },
+        "totals": {
+          "total_encounters": 138491,
+          "shiny_encounters": 11,
+          "catches": 0,
+          "total_highest_iv_sum": {
+            "value": 178,
+            "species_name": "Torchic"
+          },
+          "total_lowest_iv_sum": {
+            "value": 9,
+            "species_name": "Treecko"
+          },
+          "total_highest_sv": {
+            "value": 65535,
+            "species_name": "Mudkip"
+          },
+          "total_lowest_sv": {
+            "value": 0,
+            "species_name": "Treecko"
+          },
+          "phase_encounters": 6775,
+          "phase_highest_iv_sum": {
+            "value": 175,
+            "species_name": "Torchic"
+          },
+          "phase_lowest_iv_sum": {
+            "value": 20,
+            "species_name": "Mudkip"
+          },
+          "phase_highest_sv": {
+            "value": 65533,
+            "species_name": "Torchic"
+          },
+          "phase_lowest_sv": {
+            "value": 35,
+            "species_name": "Treecko"
+          }
+        },
+        "current_phase": {
+          "start_time": "2026-03-11T14:53:44.899248+00:00",
+          "encounters": 6775,
+          "highest_iv_sum": {
+            "value": 175,
+            "species_name": "Mudkip"
+          },
+          "lowest_iv_sum": {
+            "value": 20,
+            "species_name": "Mudkip"
+          },
+          "highest_sv": {
+            "value": 65533,
+            "species_name": "Mudkip"
+          },
+          "lowest_sv": {
+            "value": 35,
+            "species_name": "Treecko"
+          },
+          "longest_streak": {
+            "value": 6,
+            "species_name": "Torchic"
+          },
+          "current_streak": {
+            "value": 1,
+            "species_name": "Mudkip"
+          },
+          "fishing_attempts": 0,
+          "successful_fishing_attempts": 0,
+          "longest_unsuccessful_fishing_streak": 0,
+          "current_unsuccessful_fishing_streak": 0,
+          "pokenav_calls": 0
+        },
+        "longest_phase": {
+          "value": 40275,
+          "species_name": "Treecko"
+        },
+        "shortest_phase": {
+          "value": 2,
+          "species_name": "Torchic"
+        },
+        "pickup_items": {}
+      },
+      "time": 1773576470344
     }
   },
   "maxTotals": {
     "encounters": {
       "1767716518837": 1873879,
       "1767717163854": 521157,
-      "1772923124136": 1534331,
-      "1772923142661": 1212580,
-      "1768163830453": 695824
+      "1772923124136": 3011541,
+      "1772923142661": 2594541,
+      "1768163830453": 1511737,
+      "1768164687929": 138491,
+      "1767716217535": 3080751,
+      "1767715762783": 3328643
     },
     "shinies": {
       "1767716518837": 226,
       "1767717163854": 59,
-      "1772923124136": 184,
-      "1772923142661": 145,
-      "1768163830453": 76
+      "1772923124136": 324,
+      "1772923142661": 281,
+      "1768163830453": 194,
+      "1768164687929": 11,
+      "1767716217535": 401,
+      "1767715762783": 387
     },
     "catches": {
       "1767716518837": 85,
       "1767717163854": 39,
       "1772923124136": 11,
-      "1772923142661": 85,
-      "1768163830453": 0
+      "1772923142661": 86,
+      "1768163830453": 106,
+      "1768164687929": 0,
+      "1767716217535": 320,
+      "1767715762783": 451
     }
   }
 }
